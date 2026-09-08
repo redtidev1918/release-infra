@@ -6,7 +6,7 @@
   "fork": false,
   "template": false,
   "classification": "managed",
-  "health": "DEGRADED",
+  "health": "HEALTHY",
   "release_policy": {
     "kind": "python-library",
     "versioning": {
@@ -32,9 +32,9 @@
   },
   "release_infra_version": null,
   "desired_version": null,
-  "latest_release": null,
-  "latest_release_at": null,
-  "latest_tag": null,
+  "latest_release": "v1.0.0",
+  "latest_release_at": "2026-09-08T15:27:14Z",
+  "latest_tag": "v1.0.0",
   "draft_releases": [],
   "actual_assets": [],
   "release_workflows": [
@@ -47,7 +47,12 @@
       "path": ".github/workflows/reusable-release.yml"
     }
   ],
-  "latest_release_run": null,
+  "latest_release_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/redtidev1918/release-infra/actions/runs/34244824625",
+    "updated_at": "2026-09-08T15:27:20Z"
+  },
   "signals": [
     ".release-policy.yml",
     "pyproject.toml"
@@ -58,8 +63,25 @@
     ".github/workflows/infra-release.yml",
     ".github/workflows/reusable-release.yml"
   ],
-  "release_history": [],
-  "tags": [],
+  "release_history": [
+    {
+      "tag": "v1.0.0",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T15:27:14Z",
+      "assets": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "v1.0.0",
+      "commit": "ee8e3deda70f8d0740c064283d10b23dbfac3a7c"
+    },
+    {
+      "name": "v1",
+      "commit": "ee8e3deda70f8d0740c064283d10b23dbfac3a7c"
+    }
+  ],
   "release_config": {},
   "registries": {
     "pypi": {
