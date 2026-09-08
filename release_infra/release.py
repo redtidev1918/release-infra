@@ -66,6 +66,11 @@ def _upload_idempotent(tag: str, paths: list[Path], *, dry_run: bool = False) ->
     with tempfile.TemporaryDirectory() as directory:
         for path in paths:
             if path.name in remote:
+                # Metadata records the publishing run and container digest, so
+                # a repair run naturally regenerates it. Once a release is
+                # public, preserve its immutable first publication record.
+                if path.name == "RELEASE-METADATA.json" and not (current or {}).get("isDraft", True):
+                    continue
                 _run(["gh", "release", "download", tag, "--pattern", path.name, "--dir", directory])
                 downloaded = Path(directory) / path.name
                 if sha256(downloaded) != sha256(path):
