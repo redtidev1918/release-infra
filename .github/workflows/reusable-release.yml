@@ -10,6 +10,7 @@ on:
       stage: {type: string, default: all}
     secrets:
       RELEASE_PLEASE_TOKEN: {required: false}
+      NPM_TOKEN: {required: false}
 
 concurrency:
   group: release-${{ github.repository }}-${{ inputs.version || github.ref }}

@@ -39,6 +39,10 @@ class WorkflowTest(unittest.TestCase):
             finalize,
         )
 
+    def test_reusable_workflow_accepts_npm_token_secret(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        self.assertIn("NPM_TOKEN: {required: false}", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
