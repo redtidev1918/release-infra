@@ -14,6 +14,10 @@ class WorkflowTest(unittest.TestCase):
         self.assertGreaterEqual(workflow.count("steps.plan.outputs.run_release == '1'"), 10)
         self.assertIn("if: always() && needs.build.result == 'success'", workflow)
 
+    def test_release_please_only_manages_version(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        self.assertIn("skip-github-release: true", workflow)
+
     def test_artifact_transfer_has_bounded_retries(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
         self.assertEqual(workflow.count("actions/upload-artifact@"), 4)
