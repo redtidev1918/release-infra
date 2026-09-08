@@ -1,3 +1,4 @@
+import re
 import unittest
 from pathlib import Path
 
@@ -13,6 +14,11 @@ class WorkflowTest(unittest.TestCase):
         self.assertNotIn("needs.plan.outputs.run_release", workflow)
         self.assertGreaterEqual(workflow.count("steps.plan.outputs.run_release == '1'"), 10)
         self.assertIn("if: always() && needs.build.result == 'success'", workflow)
+
+    def test_third_party_actions_use_full_pinned_shas(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        for action in re.findall(r"uses:\s*([^\s#]+)@([0-9a-f]+)", workflow):
+            self.assertEqual(len(action[1]), 40, action)
 
     def test_release_please_only_manages_version(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
