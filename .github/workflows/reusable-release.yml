@@ -317,6 +317,11 @@ jobs:
           [[ "$DRY_RUN" == true ]] && args+=(--dry-run)
           PYTHONPATH=.release-infra python3 -m release_infra.cli asset-gate
           PYTHONPATH=.release-infra python3 -m release_infra.cli stage "${args[@]}"
+      - uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
+        if: steps.plan.outputs.run_release == '1' && contains(steps.plan.outputs.required_publish, 'npm publish')
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
       - name: Required registry publication
         if: ${{ steps.plan.outputs.run_release == '1' && !inputs.dry_run && steps.plan.outputs.required_publish != '' }}
         env:

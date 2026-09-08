@@ -39,9 +39,13 @@ class WorkflowTest(unittest.TestCase):
             finalize,
         )
 
-    def test_reusable_workflow_accepts_npm_token_secret(self):
+    def test_finalize_configures_node_registry_before_npm_publication(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
-        self.assertIn("NPM_TOKEN: {required: false}", workflow)
+        finalize = workflow.split("  finalize:", 1)[1]
+        publication = finalize.index("Required registry publication")
+        setup = finalize.index("actions/setup-node@")
+        self.assertLess(setup, publication)
+        self.assertIn("registry-url: https://registry.npmjs.org/", finalize)
 
 
 if __name__ == "__main__":
