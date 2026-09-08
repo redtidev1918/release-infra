@@ -3,8 +3,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "17 3 * * *"
-  push:
-    branches: [main]
 permissions: {contents: write}
 concurrency: {group: fleet-audit, cancel-in-progress: false}
 jobs:

@@ -48,8 +48,8 @@ class ReleaseTest(unittest.TestCase):
             (root / ".release-policy.yml").write_text(json.dumps(policy))
             (root / "dist/release").mkdir(parents=True)
             (root / "dist/release/app").write_text("ok")
+            previous = Path.cwd()
             with mock.patch.object(release, "_run", return_value="abc"), mock.patch.object(release, "_remote_tag_commit") as remote, mock.patch.object(release, "_release"), mock.patch.object(release, "_upload_idempotent") as upload, mock.patch("os.getcwd", return_value=directory):
-                previous = Path.cwd()
                 try:
                     import os
                     os.chdir(directory)
