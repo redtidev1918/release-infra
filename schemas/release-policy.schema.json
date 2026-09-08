@@ -39,7 +39,11 @@
       "propertyNames": {"enum": ["github", "pypi", "npm", "pub", "ghcr"]},
       "additionalProperties": {
         "type": "object",
-        "properties": {"required": {"type": "boolean"}, "publish": {"type": "string"}, "verify": {"type": "string"}}
+        "properties": {
+          "required": {"type": "boolean"}, "publish": {"type": "string"}, "verify": {"type": "string"},
+          "packages_dir": {"type": "string"}, "context": {"type": "string"}, "file": {"type": "string"},
+          "image": {"type": "string"}, "platforms": {"type": "string"}
+        }
       }
     },
     "retention": {"type": "object", "properties": {"stable": {"type": "integer", "minimum": 1}, "prerelease": {"type": "integer", "minimum": 0}, "failed_draft": {"type": "integer", "minimum": 0}}},

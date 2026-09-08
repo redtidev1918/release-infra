@@ -104,15 +104,19 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     if release and not release["isDraft"] and not healthy and not repair:
         raise ReleaseError(f"public release {tag} is incomplete; rerun with repair=true")
     registries = policy.get("registries", {})
+    ghcr = registries.get("ghcr", {})
     return {
         "should_release": str(force or not healthy).lower(), "version": desired, "tag": tag,
         "test_command": policy.get("build", {}).get("test", ""), "build_command": policy.get("build", {}).get("command", ""),
         "version_check": policy.get("build", {}).get("version_check", ""),
         "pypi_enabled": str("pypi" in registries).lower(), "pypi_required": str(registries.get("pypi", {}).get("required", True)).lower(),
         "pypi_packages_dir": registries.get("pypi", {}).get("packages_dir", "dist/release"),
-        "required_publish": " && ".join(config.get("publish", ":") for config in registries.values() if config.get("required", True) and config.get("publish")),
+        "ghcr_enabled": str("ghcr" in registries).lower(), "ghcr_required": str(ghcr.get("required", True)).lower(),
+        "ghcr_context": ghcr.get("context", "."), "ghcr_file": ghcr.get("file", "Dockerfile"),
+        "ghcr_image": ghcr.get("image", ""), "ghcr_platforms": ghcr.get("platforms", "linux/amd64"),
+        "required_publish": " && ".join(config.get("publish", ":") for name, config in registries.items() if name != "ghcr" and config.get("required", True) and config.get("publish")),
         "required_verify": " && ".join(config.get("verify", ":") for config in registries.values() if config.get("required", True) and config.get("verify")),
-        "optional_publish": "; ".join(f"({config['publish']}) || true" for config in registries.values() if not config.get("required", True) and config.get("publish")),
+        "optional_publish": "; ".join(f"({config['publish']}) || true" for name, config in registries.items() if name != "ghcr" and not config.get("required", True) and config.get("publish")),
         "optional_verify": "; ".join(f"({config['verify']}) || true" for config in registries.values() if not config.get("required", True) and config.get("verify")),
     }
 

@@ -18,6 +18,17 @@ class ReleaseTest(unittest.TestCase):
         self.assertEqual(result["version"], "1.2.3")
         self.assertEqual(result["tag"], "v1.2.3")
 
+    def test_ghcr_channel_is_exposed_without_custom_publish_command(self):
+        policy = {"kind": "hybrid", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}, "ghcr": {"required": False, "image": "ghcr.io/owner/app", "platforms": "linux/amd64,linux/arm64"}}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            with mock.patch.object(release, "_release", return_value=None):
+                result = release.plan(str(path))
+        self.assertEqual(result["ghcr_enabled"], "true")
+        self.assertEqual(result["ghcr_required"], "false")
+        self.assertEqual(result["ghcr_image"], "ghcr.io/owner/app")
+
     def test_retention_deletes_release_objects_without_tags(self):
         policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "2.0.0"}, "assets": {"required": []}, "registries": {"github": {"required": True}}, "retention": {"stable": 1, "prerelease": 0}}
         rows = [{"tagName": "v2", "isDraft": False, "isPrerelease": False}, {"tagName": "v1", "isDraft": False, "isPrerelease": False}, {"tagName": "v3-rc", "isDraft": False, "isPrerelease": True}]

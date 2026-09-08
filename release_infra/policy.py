@@ -46,6 +46,10 @@ def validate_policy(policy: Any) -> None:
     for name, config in registries.items():
         if not isinstance(config, dict) or config.get("required", True) not in (True, False):
             raise PolicyError(f"registries.{name} must be an object with boolean required")
+        for command in ("publish", "verify"):
+            value = config.get(command, "")
+            if not isinstance(value, str) or "\n" in value:
+                raise PolicyError(f"registries.{name}.{command} must be a single-line string")
     for name in ("test", "command", "version_check"):
         value = policy.get("build", {}).get(name, "")
         if not isinstance(value, str) or "\n" in value:
