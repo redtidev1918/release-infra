@@ -82,7 +82,7 @@ def stage(policy_path: str = ".release-policy.yml", version: str | None = None, 
     tag = policy.get("tag", {}).get("template", "v{version}").format(version=desired)
     commit = _run(["git", "rev-parse", "HEAD"], capture=True)
     assets = collect_assets(policy.get("assets", {}).get("required", []), policy.get("assets", {}).get("optional", []))
-    checksums = write_checksums(assets)
+    checksums = write_checksums(assets) if assets and policy.get("checksums", True) else None
     if dry_run:
         return tag
     _ensure_tag(tag, commit, dry_run=dry_run)
@@ -91,7 +91,7 @@ def stage(policy_path: str = ".release-policy.yml", version: str | None = None, 
         raise ReleaseError(f"{tag} is already public; run audit instead")
     if not release and not dry_run:
         _run(["gh", "release", "create", tag, "--verify-tag", "--draft", "--title", tag, "--generate-notes"])
-    _upload_idempotent(tag, [*assets, checksums], dry_run=dry_run)
+    _upload_idempotent(tag, [*assets, *([checksums] if checksums else [])], dry_run=dry_run)
     return tag
 
 
@@ -100,12 +100,20 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     desired = desired_version(policy, version)
     tag = policy.get("tag", {}).get("template", "v{version}").format(version=desired)
     release = _release(tag)
-    required = set(policy.get("assets", {}).get("required", [])) | {"SHA256SUMS", "RELEASE-METADATA.json"}
+    required = set(policy.get("assets", {}).get("required", [])) | {"RELEASE-METADATA.json"}
+    checksums_enabled = policy.get("checksums", True) and bool(policy.get("assets", {}).get("required"))
+    if checksums_enabled:
+        required.add("SHA256SUMS")
     remote = {asset["name"] for asset in (release or {}).get("assets", []) if int(asset.get("size", 0)) > 0}
     healthy = bool(release and not release["isDraft"] and required.issubset(remote))
     needs_repair = bool(release and not release["isDraft"] and not healthy)
     build = policy.get("build", {})
     matrix = build.get("matrix") or [{"runner": "ubuntu-latest", "command": build.get("command", ":"), "version_check": build.get("version_check", "")}]
+    needs_flutter = Path("pubspec.yaml").exists() and "sdk: flutter" in Path("pubspec.yaml").read_text(errors="ignore")
+    go_version = ""
+    if Path("go.mod").exists():
+        go_version = next((line.split()[1] for line in Path("go.mod").read_text().splitlines() if line.startswith("go ")), "")
+    asset_patterns = policy.get("assets", {})
     registries = policy.get("registries", {})
     ghcr = registries.get("ghcr", {})
     retry_count = 0
@@ -126,6 +134,11 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
         "retry_count": str(retry_count), "cooldown": str(cooldown).lower(), "needs_repair": str(needs_repair).lower(),
         "test_command": policy.get("build", {}).get("test", ""), "build_command": policy.get("build", {}).get("command", ":"),
         "version_check": policy.get("build", {}).get("version_check", ""), "build_matrix": json.dumps({"include": matrix}, separators=(",", ":")),
+        "has_assets": "1" if asset_patterns.get("required") or asset_patterns.get("optional") else "0",
+        "checksums_enabled": str(checksums_enabled).lower(),
+        "needs_flutter": "1" if needs_flutter else "0", "flutter_version": policy.get("build", {}).get("flutter_version", "3.32.8"),
+        "needs_go": "1" if go_version else "0", "go_version": go_version,
+        "needs_goreleaser": "1" if Path(".goreleaser.yml").exists() or Path(".goreleaser.yaml").exists() else "0",
         "pypi_enabled": str("pypi" in registries).lower(), "pypi_required": str(registries.get("pypi", {}).get("required", True)).lower(),
         "pypi_packages_dir": registries.get("pypi", {}).get("packages_dir", "dist/release"),
         "ghcr_enabled": str("ghcr" in registries).lower(), "ghcr_required": str(ghcr.get("required", True)).lower(),
@@ -158,6 +171,7 @@ def publish(policy_path: str = ".release-policy.yml", version: str | None = None
     desired = desired_version(policy, version)
     tag = policy.get("tag", {}).get("template", "v{version}").format(version=desired)
     assets = collect_assets(policy.get("assets", {}).get("required", []), policy.get("assets", {}).get("optional", []))
+    Path("dist/release").mkdir(parents=True, exist_ok=True)
     metadata_path = Path("dist/release/RELEASE-METADATA.json")
     metadata_path.write_text(json.dumps(_metadata(policy, desired, tag, assets), indent=2) + "\n")
     _upload_idempotent(tag, [metadata_path], dry_run=dry_run)
@@ -184,7 +198,9 @@ def audit(policy_path: str = ".release-policy.yml", version: str | None = None) 
     if not release or release["isDraft"]:
         raise ReleaseError(f"public release missing for {tag}")
     remote = {asset["name"]: asset for asset in release["assets"]}
-    required = set(policy.get("assets", {}).get("required", [])) | {"SHA256SUMS", "RELEASE-METADATA.json"}
+    required = set(policy.get("assets", {}).get("required", [])) | {"RELEASE-METADATA.json"}
+    if policy.get("checksums", True) and policy.get("assets", {}).get("required"):
+        required.add("SHA256SUMS")
     missing = [name for name in required if name not in remote or int(remote[name].get("size", 0)) <= 0]
     if missing:
         raise ReleaseError(f"release assets missing or empty: {', '.join(sorted(missing))}")

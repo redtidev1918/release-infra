@@ -47,7 +47,8 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "asset-gate":
         policy = load_policy(args.path)
         assets = collect_assets(policy.get("assets", {}).get("required", []), policy.get("assets", {}).get("optional", []), args.root)
-        write_checksums(assets, Path(args.root) / "SHA256SUMS")
+        if assets and policy.get("checksums", True):
+            write_checksums(assets, Path(args.root) / "SHA256SUMS")
         print("\n".join(str(path) for path in assets))
     elif args.command == "fleet-audit":
         inventory = scan(args.owner, include_private=not args.public_only)

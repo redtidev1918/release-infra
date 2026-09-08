@@ -41,6 +41,13 @@ jobs:
       tag: ${{ steps.plan.outputs.tag }}
       test_command: ${{ steps.plan.outputs.test_command }}
       build_matrix: ${{ steps.plan.outputs.build_matrix }}
+      has_assets: ${{ steps.plan.outputs.has_assets }}
+      checksums_enabled: ${{ steps.plan.outputs.checksums_enabled }}
+      needs_flutter: ${{ steps.plan.outputs.needs_flutter }}
+      flutter_version: ${{ steps.plan.outputs.flutter_version }}
+      needs_go: ${{ steps.plan.outputs.needs_go }}
+      go_version: ${{ steps.plan.outputs.go_version }}
+      needs_goreleaser: ${{ steps.plan.outputs.needs_goreleaser }}
       pypi_enabled: ${{ steps.plan.outputs.pypi_enabled }}
       pypi_packages_dir: ${{ steps.plan.outputs.pypi_packages_dir }}
       ghcr_enabled: ${{ steps.plan.outputs.ghcr_enabled }}
@@ -67,6 +74,22 @@ jobs:
           [[ "$INPUT_REPAIR" == true ]] && args+=(--repair)
           PYTHONPATH=.release-infra python3 -m release_infra.cli static-check
           PYTHONPATH=.release-infra python3 -m release_infra.cli workflow-plan "${args[@]}"
+      - uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
+        if: steps.plan.outputs.run_release == '1' && hashFiles('package.json') != ''
+        with:
+          node-version: 22
+          cache: npm
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.needs_flutter == '1'
+        with:
+          flutter-version: ${{ steps.plan.outputs.flutter_version }}
+          channel: stable
+          cache: true
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
+        if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.needs_go == '1'
+        with:
+          go-version: ${{ steps.plan.outputs.go_version }}
+          cache: true
       - name: Test
         if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.test_command != ''
         env:
@@ -95,6 +118,22 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        if: needs.build-plan.outputs.needs_flutter == '1'
+        with:
+          flutter-version: ${{ needs.build-plan.outputs.flutter_version }}
+          channel: stable
+          cache: true
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
+        if: needs.build-plan.outputs.needs_go == '1'
+        with:
+          go-version: ${{ needs.build-plan.outputs.go_version }}
+          cache: true
+      - uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
+        if: needs.build-plan.outputs.needs_goreleaser == '1'
+        with:
+          version: latest
+          args: --version
       - name: Build
         env:
           RELEASE_VERSION: ${{ needs.build-plan.outputs.version }}
@@ -111,6 +150,7 @@ jobs:
         run: bash -euo pipefail -c "$COMMAND"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: upload_0
+        if: needs.build-plan.outputs.has_assets == '1'
         continue-on-error: true
         with:
           name: release-assets-${{ needs.build-plan.outputs.version }}-${{ strategy.job-index }}
@@ -119,11 +159,11 @@ jobs:
             dist/pypi/
           if-no-files-found: error
           retention-days: 7
-      - if: steps.upload_0.outcome == 'failure'
+      - if: needs.build-plan.outputs.has_assets == '1' && steps.upload_0.outcome == 'failure'
         run: sleep 5
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: upload_1
-        if: steps.upload_0.outcome == 'failure'
+        if: needs.build-plan.outputs.has_assets == '1' && steps.upload_0.outcome == 'failure'
         continue-on-error: true
         with:
           name: release-assets-${{ needs.build-plan.outputs.version }}-${{ strategy.job-index }}
@@ -133,11 +173,11 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           overwrite: true
-      - if: steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure'
+      - if: needs.build-plan.outputs.has_assets == '1' && steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure'
         run: sleep 20
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: upload_2
-        if: steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure'
+        if: needs.build-plan.outputs.has_assets == '1' && steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure'
         continue-on-error: true
         with:
           name: release-assets-${{ needs.build-plan.outputs.version }}-${{ strategy.job-index }}
@@ -147,11 +187,11 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           overwrite: true
-      - if: steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure' && steps.upload_2.outcome == 'failure'
+      - if: needs.build-plan.outputs.has_assets == '1' && steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure' && steps.upload_2.outcome == 'failure'
         run: sleep 60
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: upload_3
-        if: steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure' && steps.upload_2.outcome == 'failure'
+        if: needs.build-plan.outputs.has_assets == '1' && steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure' && steps.upload_2.outcome == 'failure'
         with:
           name: release-assets-${{ needs.build-plan.outputs.version }}-${{ strategy.job-index }}
           path: |
@@ -197,37 +237,37 @@ jobs:
           PYTHONPATH=.release-infra python3 -m release_infra.cli workflow-plan "${args[@]}"
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         id: download_0
-        if: steps.plan.outputs.run_release == '1'
+        if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.has_assets == '1'
         continue-on-error: true
         with:
           pattern: release-assets-${{ steps.plan.outputs.version }}-*
           path: dist
           merge-multiple: true
-      - if: steps.download_0.outcome == 'failure'
+      - if: steps.plan.outputs.has_assets == '1' && steps.download_0.outcome == 'failure'
         run: sleep 5
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         id: download_1
-        if: steps.download_0.outcome == 'failure'
+        if: steps.plan.outputs.has_assets == '1' && steps.download_0.outcome == 'failure'
         continue-on-error: true
         with:
           pattern: release-assets-${{ steps.plan.outputs.version }}-*
           path: dist
           merge-multiple: true
-      - if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure'
+      - if: steps.plan.outputs.has_assets == '1' && steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure'
         run: sleep 20
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         id: download_2
-        if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure'
+        if: steps.plan.outputs.has_assets == '1' && steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure'
         continue-on-error: true
         with:
           pattern: release-assets-${{ steps.plan.outputs.version }}-*
           path: dist
           merge-multiple: true
-      - if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure' && steps.download_2.outcome == 'failure'
+      - if: steps.plan.outputs.has_assets == '1' && steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure' && steps.download_2.outcome == 'failure'
         run: sleep 60
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         id: download_3
-        if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure' && steps.download_2.outcome == 'failure'
+        if: steps.plan.outputs.has_assets == '1' && steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure' && steps.download_2.outcome == 'failure'
         with:
           pattern: release-assets-${{ steps.plan.outputs.version }}-*
           path: dist
@@ -239,7 +279,14 @@ jobs:
           mkdir -p dist/release dist/pypi
           find dist -type f ! -path 'dist/release/*' ! -path 'dist/pypi/*' -print0 |
           while IFS= read -r -d '' file; do
-            if [[ "${{ steps.plan.outputs.pypi_enabled }}" == true && "$file" == *.whl ]]; then mv "$file" dist/pypi/; else mv "$file" dist/release/; fi
+            if [[ "${{ steps.plan.outputs.pypi_enabled }}" == true && "$file" == *.whl ]]; then
+              mv "$file" dist/pypi/
+            elif [[ "${{ steps.plan.outputs.pypi_enabled }}" == true && "$file" == *.tar.gz ]]; then
+              cp "$file" dist/pypi/
+              mv "$file" dist/release/
+            else
+              mv "$file" dist/release/
+            fi
           done
       - name: Asset gate and draft transaction
         if: steps.plan.outputs.run_release == '1'
