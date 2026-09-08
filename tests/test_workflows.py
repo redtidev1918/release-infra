@@ -12,6 +12,7 @@ class WorkflowTest(unittest.TestCase):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
         self.assertNotIn("needs.plan.outputs.run_release", workflow)
         self.assertGreaterEqual(workflow.count("steps.plan.outputs.run_release == '1'"), 10)
+        self.assertIn("if: always() && needs.build.result == 'success'", workflow)
 
     def test_artifact_transfer_has_bounded_retries(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()

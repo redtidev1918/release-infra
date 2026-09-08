@@ -131,7 +131,7 @@ jobs:
 
   finalize:
     needs: build
-    if: needs.build.result == 'success'
+    if: always() && needs.build.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
