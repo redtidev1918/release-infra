@@ -110,6 +110,7 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     build = policy.get("build", {})
     matrix = build.get("matrix") or [{"runner": "ubuntu-latest", "command": build.get("command", ":"), "version_check": build.get("version_check", "")}]
     needs_flutter = Path("pubspec.yaml").exists() and "sdk: flutter" in Path("pubspec.yaml").read_text(errors="ignore")
+    needs_java = Path("android").is_dir()
     go_version = ""
     if Path("go.mod").exists():
         go_version = next((line.split()[1] for line in Path("go.mod").read_text().splitlines() if line.startswith("go ")), "")
@@ -137,6 +138,7 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
         "has_assets": "1" if asset_patterns.get("required") or asset_patterns.get("optional") else "0",
         "checksums_enabled": str(checksums_enabled).lower(),
         "needs_flutter": "1" if needs_flutter else "0", "flutter_version": policy.get("build", {}).get("flutter_version", "3.32.8"),
+        "needs_java": "1" if needs_java else "0",
         "needs_go": "1" if go_version else "0", "go_version": go_version,
         "needs_goreleaser": "1" if Path(".goreleaser.yml").exists() or Path(".goreleaser.yaml").exists() else "0",
         "pypi_enabled": str("pypi" in registries).lower(), "pypi_required": str(registries.get("pypi", {}).get("required", True)).lower(),

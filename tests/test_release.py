@@ -55,6 +55,22 @@ class ReleaseTest(unittest.TestCase):
         self.assertEqual(result["needs_go"], "1")
         self.assertEqual(result["go_version"], "1.23")
 
+    def test_android_project_requests_java(self):
+        policy = {"kind": "flutter", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": []}, "registries": {"github": {"required": True}}}
+        with tempfile.TemporaryDirectory() as directory:
+            (Path(directory) / "android").mkdir()
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            previous = Path.cwd()
+            try:
+                import os
+                os.chdir(directory)
+                with mock.patch.object(release, "_release", return_value=None):
+                    result = release.plan(str(path))
+            finally:
+                os.chdir(previous)
+        self.assertEqual(result["needs_java"], "1")
+
     def test_ghcr_channel_is_exposed_without_custom_publish_command(self):
         policy = {"kind": "hybrid", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}, "ghcr": {"required": False, "image": "ghcr.io/owner/app", "platforms": "linux/amd64,linux/arm64"}}}
         with tempfile.TemporaryDirectory() as directory:
