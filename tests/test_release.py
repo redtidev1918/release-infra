@@ -17,6 +17,7 @@ class ReleaseTest(unittest.TestCase):
                 result = release.plan(str(path), repair=True)
         self.assertEqual(result["version"], "1.2.3")
         self.assertEqual(result["tag"], "v1.2.3")
+        self.assertEqual(result["run_release"], "1")
 
     def test_ghcr_channel_is_exposed_without_custom_publish_command(self):
         policy = {"kind": "hybrid", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}, "ghcr": {"required": False, "image": "ghcr.io/owner/app", "platforms": "linux/amd64,linux/arm64"}}}

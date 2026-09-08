@@ -10,7 +10,7 @@ class WorkflowTest(unittest.TestCase):
 
     def test_release_jobs_only_skip_explicit_noop(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
-        self.assertEqual(workflow.count("needs.plan.outputs.should_release != 'false'"), 2)
+        self.assertEqual(workflow.count("needs.plan.outputs.run_release == '1'"), 2)
 
 
 if __name__ == "__main__":

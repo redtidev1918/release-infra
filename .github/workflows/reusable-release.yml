@@ -33,6 +33,7 @@ jobs:
       contents: read
     outputs:
       should_release: ${{ steps.plan.outputs.should_release }}
+      run_release: ${{ steps.plan.outputs.run_release }}
       version: ${{ steps.plan.outputs.version }}
       tag: ${{ steps.plan.outputs.tag }}
       test_command: ${{ steps.plan.outputs.test_command }}
@@ -80,7 +81,7 @@ jobs:
 
   build:
     needs: plan
-    if: needs.plan.result == 'success' && needs.plan.outputs.should_release != 'false'
+    if: needs.plan.result == 'success' && needs.plan.outputs.run_release == '1'
     runs-on: ubuntu-latest
     permissions: {contents: read}
     steps:
@@ -115,7 +116,7 @@ jobs:
 
   finalize:
     needs: [plan, build]
-    if: needs.plan.result == 'success' && needs.plan.outputs.should_release != 'false' && needs.build.result == 'success'
+    if: needs.plan.result == 'success' && needs.plan.outputs.run_release == '1' && needs.build.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -119,8 +119,9 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
                 cooldown = dt.datetime.now(dt.UTC) - last < dt.timedelta(hours=6)
         except (ReleaseError, ValueError, KeyError):
             pass
+    should_release = force or (not healthy and not cooldown)
     return {
-        "should_release": str(force or (not healthy and not cooldown)).lower(), "version": desired, "tag": tag,
+        "should_release": str(should_release).lower(), "run_release": "1" if should_release else "0", "version": desired, "tag": tag,
         "retry_count": str(retry_count), "cooldown": str(cooldown).lower(),
         "test_command": policy.get("build", {}).get("test", ""), "build_command": policy.get("build", {}).get("command", ""),
         "version_check": policy.get("build", {}).get("version_check", ""),
