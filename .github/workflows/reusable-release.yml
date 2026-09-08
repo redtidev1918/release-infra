@@ -11,6 +11,8 @@ on:
     secrets:
       RELEASE_PLEASE_TOKEN: {required: false}
       NPM_TOKEN: {required: false}
+      ANDROID_KEYSTORE_B64: {required: false}
+      ANDROID_KEYSTORE_PROPERTIES: {required: false}
 
 concurrency:
   group: release-${{ github.repository }}-${{ inputs.version || github.ref }}
@@ -145,12 +147,15 @@ jobs:
         if: needs.build-plan.outputs.needs_goreleaser == '1'
         with:
           version: latest
-          args: --version
+          install-only: true
       - name: Build
         env:
           RELEASE_VERSION: ${{ needs.build-plan.outputs.version }}
           RELEASE_TAG: ${{ needs.build-plan.outputs.tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
           COMMAND: ${{ matrix.command }}
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KEYSTORE_PROPERTIES: ${{ secrets.ANDROID_KEYSTORE_PROPERTIES }}
         shell: bash
         run: bash -euo pipefail -c "$COMMAND"
       - name: Binary version gate
