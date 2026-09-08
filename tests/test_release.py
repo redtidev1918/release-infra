@@ -48,7 +48,7 @@ class ReleaseTest(unittest.TestCase):
             (root / ".release-policy.yml").write_text(json.dumps(policy))
             (root / "dist/release").mkdir(parents=True)
             (root / "dist/release/app").write_text("ok")
-            with mock.patch.object(release, "_run", return_value="abc"), mock.patch.object(release, "_remote_tag_commit", return_value=None), mock.patch.object(release, "_release", return_value=None), mock.patch.object(release, "_upload_idempotent") as upload, mock.patch("os.getcwd", return_value=directory):
+            with mock.patch.object(release, "_run", return_value="abc"), mock.patch.object(release, "_remote_tag_commit") as remote, mock.patch.object(release, "_release"), mock.patch.object(release, "_upload_idempotent") as upload, mock.patch("os.getcwd", return_value=directory):
                 previous = Path.cwd()
                 try:
                     import os
@@ -56,7 +56,8 @@ class ReleaseTest(unittest.TestCase):
                     release.stage(dry_run=True)
                 finally:
                     os.chdir(previous)
-        self.assertTrue(upload.call_args.kwargs["dry_run"])
+        remote.assert_not_called()
+        upload.assert_not_called()
 
 
 if __name__ == "__main__":

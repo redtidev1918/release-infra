@@ -83,6 +83,8 @@ def stage(policy_path: str = ".release-policy.yml", version: str | None = None, 
     commit = _run(["git", "rev-parse", "HEAD"], capture=True)
     assets = collect_assets(policy.get("assets", {}).get("required", []), policy.get("assets", {}).get("optional", []))
     checksums = write_checksums(assets)
+    if dry_run:
+        return tag
     _ensure_tag(tag, commit, dry_run=dry_run)
     release = _release(tag)
     if release and not release["isDraft"]:
