@@ -104,6 +104,8 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     remote = {asset["name"] for asset in (release or {}).get("assets", []) if int(asset.get("size", 0)) > 0}
     healthy = bool(release and not release["isDraft"] and required.issubset(remote))
     needs_repair = bool(release and not release["isDraft"] and not healthy)
+    build = policy.get("build", {})
+    matrix = build.get("matrix") or [{"runner": "ubuntu-latest", "command": build.get("command", ":"), "version_check": build.get("version_check", "")}]
     registries = policy.get("registries", {})
     ghcr = registries.get("ghcr", {})
     retry_count = 0
@@ -122,8 +124,8 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     return {
         "should_release": str(should_release).lower(), "run_release": "1" if should_release else "0", "version": desired, "tag": tag,
         "retry_count": str(retry_count), "cooldown": str(cooldown).lower(), "needs_repair": str(needs_repair).lower(),
-        "test_command": policy.get("build", {}).get("test", ""), "build_command": policy.get("build", {}).get("command", ""),
-        "version_check": policy.get("build", {}).get("version_check", ""),
+        "test_command": policy.get("build", {}).get("test", ""), "build_command": policy.get("build", {}).get("command", ":"),
+        "version_check": policy.get("build", {}).get("version_check", ""), "build_matrix": json.dumps({"include": matrix}, separators=(",", ":")),
         "pypi_enabled": str("pypi" in registries).lower(), "pypi_required": str(registries.get("pypi", {}).get("required", True)).lower(),
         "pypi_packages_dir": registries.get("pypi", {}).get("packages_dir", "dist/release"),
         "ghcr_enabled": str("ghcr" in registries).lower(), "ghcr_required": str(ghcr.get("required", True)).lower(),

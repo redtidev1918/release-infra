@@ -23,7 +23,20 @@
       "properties": {
         "test": {"type": "string"},
         "command": {"type": "string"},
-        "version_check": {"type": "string"}
+        "version_check": {"type": "string"},
+        "matrix": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["runner", "command"],
+            "properties": {
+              "runner": {"type": "string", "minLength": 1},
+              "command": {"type": "string", "minLength": 1},
+              "version_check": {"type": "string"}
+            }
+          }
+        }
       }
     },
     "assets": {

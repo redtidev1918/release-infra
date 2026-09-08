@@ -19,6 +19,15 @@ class ReleaseTest(unittest.TestCase):
         self.assertEqual(result["tag"], "v1.2.3")
         self.assertEqual(result["run_release"], "1")
 
+    def test_policy_matrix_is_exported_for_github_actions(self):
+        policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "build": {"matrix": [{"runner": "ubuntu-latest", "command": "make linux"}, {"runner": "windows-latest", "command": "make windows"}]}, "assets": {"required": ["linux", "windows.exe"]}, "registries": {"github": {"required": True}}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            with mock.patch.object(release, "_release", return_value=None):
+                result = release.plan(str(path))
+        self.assertEqual(json.loads(result["build_matrix"])["include"][1]["runner"], "windows-latest")
+
     def test_ghcr_channel_is_exposed_without_custom_publish_command(self):
         policy = {"kind": "hybrid", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}, "ghcr": {"required": False, "image": "ghcr.io/owner/app", "platforms": "linux/amd64,linux/arm64"}}}
         with tempfile.TemporaryDirectory() as directory:

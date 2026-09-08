@@ -54,6 +54,18 @@ def validate_policy(policy: Any) -> None:
         value = policy.get("build", {}).get(name, "")
         if not isinstance(value, str) or "\n" in value:
             raise PolicyError(f"build.{name} must be a single-line string")
+    matrix = policy.get("build", {}).get("matrix")
+    if matrix is not None:
+        if not isinstance(matrix, list) or not matrix:
+            raise PolicyError("build.matrix must be a non-empty array")
+        allowed = {"runner", "command", "version_check"}
+        for item in matrix:
+            if not isinstance(item, dict) or not isinstance(item.get("runner"), str) or not item["runner"]:
+                raise PolicyError("each build.matrix item needs a runner string")
+            if not isinstance(item.get("command"), str) or "\n" in item["command"]:
+                raise PolicyError("each build.matrix item needs a single-line command")
+            if set(item) - allowed:
+                raise PolicyError(f"unknown build.matrix field(s): {', '.join(sorted(set(item) - allowed))}")
     post_publish = policy.get("release", {}).get("post_publish", "")
     if not isinstance(post_publish, str) or "\n" in post_publish:
         raise PolicyError("release.post_publish must be a single-line string")

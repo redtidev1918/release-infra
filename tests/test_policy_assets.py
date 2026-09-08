@@ -6,7 +6,7 @@ import zipfile
 from pathlib import Path
 
 from release_infra.assets import AssetError, collect_assets, write_checksums
-from release_infra.policy import PolicyError, desired_version, load_policy
+from release_infra.policy import PolicyError, desired_version, load_policy, validate_policy
 from release_infra.release import ReleaseError, assert_no_cleanup_tag
 
 
@@ -32,6 +32,12 @@ class PolicyAssetsTest(unittest.TestCase):
         policy = {**POLICY, "versioning": {"mode": "manual", "version": "main"}}
         with self.assertRaises(PolicyError):
             desired_version(policy)
+
+    def test_build_matrix_requires_runner_and_command(self):
+        valid = {**POLICY, "build": {"matrix": [{"runner": "ubuntu-latest", "command": "make dist"}]}}
+        validate_policy(valid)
+        with self.assertRaises(PolicyError):
+            validate_policy({**POLICY, "build": {"matrix": [{"runner": "ubuntu-latest"}]}})
 
     def test_asset_gate_and_checksums(self):
         with tempfile.TemporaryDirectory() as directory:

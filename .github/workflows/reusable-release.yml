@@ -29,11 +29,20 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  build:
+  build-plan:
     needs: release-please
     if: always() && (needs.release-please.result == 'success' || needs.release-please.result == 'skipped')
     runs-on: ubuntu-latest
     permissions: {contents: read}
+    outputs:
+      run_release: ${{ steps.plan.outputs.run_release }}
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+      test_command: ${{ steps.plan.outputs.test_command }}
+      build_matrix: ${{ steps.plan.outputs.build_matrix }}
+      pypi_enabled: ${{ steps.plan.outputs.pypi_enabled }}
+      pypi_packages_dir: ${{ steps.plan.outputs.pypi_packages_dir }}
+      ghcr_enabled: ${{ steps.plan.outputs.ghcr_enabled }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {fetch-depth: 0}
@@ -58,30 +67,50 @@ jobs:
           PYTHONPATH=.release-infra python3 -m release_infra.cli static-check
           PYTHONPATH=.release-infra python3 -m release_infra.cli workflow-plan "${args[@]}"
       - name: Test
-        if: steps.plan.outputs.run_release == '1'
+        if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.test_command != ''
         env:
           RELEASE_VERSION: ${{ steps.plan.outputs.version }}
           COMMAND: ${{ steps.plan.outputs.test_command }}
         run: bash -euo pipefail -c "$COMMAND"
+
+  build:
+    needs: build-plan
+    if: always() && needs.build-plan.result == 'success' && needs.build-plan.outputs.run_release == '1'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build-plan.outputs.build_matrix) }}
+    runs-on: ${{ matrix.runner }}
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+        if: hashFiles('pyproject.toml', 'setup.py', 'requirements*.txt') != ''
+        with:
+          python-version: "3.11"
+          cache: pip
+      - uses: actions/setup-node@cdca7365b2dadb8aadcef00c320fbd997b92aa1 # v4.0.4
+        if: hashFiles('package.json') != ''
+        with:
+          node-version: 22
+          cache: npm
       - name: Build
-        if: steps.plan.outputs.run_release == '1'
         env:
-          RELEASE_VERSION: ${{ steps.plan.outputs.version }}
-          RELEASE_TAG: ${{ steps.plan.outputs.tag }}
-          COMMAND: ${{ steps.plan.outputs.build_command }}
+          RELEASE_VERSION: ${{ needs.build-plan.outputs.version }}
+          RELEASE_TAG: ${{ needs.build-plan.outputs.tag }}
+          COMMAND: ${{ matrix.command }}
         run: bash -euo pipefail -c "$COMMAND"
       - name: Binary version gate
-        if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.version_check != ''
+        if: matrix.version_check != ''
         env:
-          RELEASE_VERSION: ${{ steps.plan.outputs.version }}
-          COMMAND: ${{ steps.plan.outputs.version_check }}
+          RELEASE_VERSION: ${{ needs.build-plan.outputs.version }}
+          COMMAND: ${{ matrix.version_check }}
         run: bash -euo pipefail -c "$COMMAND"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: upload_0
-        if: steps.plan.outputs.run_release == '1'
         continue-on-error: true
         with:
-          name: release-assets-${{ steps.plan.outputs.version }}
+          name: release-assets-${{ needs.build-plan.outputs.version }}-${{ strategy.job-index }}
           path: |
             dist/release/
             dist/pypi/
@@ -94,7 +123,7 @@ jobs:
         if: steps.upload_0.outcome == 'failure'
         continue-on-error: true
         with:
-          name: release-assets-${{ steps.plan.outputs.version }}
+          name: release-assets-${{ needs.build-plan.outputs.version }}-${{ strategy.job-index }}
           path: |
             dist/release/
             dist/pypi/
@@ -108,7 +137,7 @@ jobs:
         if: steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure'
         continue-on-error: true
         with:
-          name: release-assets-${{ steps.plan.outputs.version }}
+          name: release-assets-${{ needs.build-plan.outputs.version }}-${{ strategy.job-index }}
           path: |
             dist/release/
             dist/pypi/
@@ -121,7 +150,7 @@ jobs:
         id: upload_3
         if: steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure' && steps.upload_2.outcome == 'failure'
         with:
-          name: release-assets-${{ steps.plan.outputs.version }}
+          name: release-assets-${{ needs.build-plan.outputs.version }}-${{ strategy.job-index }}
           path: |
             dist/release/
             dist/pypi/
@@ -130,8 +159,8 @@ jobs:
           overwrite: true
 
   finalize:
-    needs: build
-    if: always() && needs.build.result == 'success'
+    needs: [build-plan, build]
+    if: always() && needs.build.result == 'success' && needs.build-plan.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -164,8 +193,9 @@ jobs:
         if: steps.plan.outputs.run_release == '1'
         continue-on-error: true
         with:
-          name: release-assets-${{ steps.plan.outputs.version }}
+          pattern: release-assets-${{ steps.plan.outputs.version }}-*
           path: dist
+          merge-multiple: true
       - if: steps.download_0.outcome == 'failure'
         run: sleep 5
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -173,8 +203,9 @@ jobs:
         if: steps.download_0.outcome == 'failure'
         continue-on-error: true
         with:
-          name: release-assets-${{ steps.plan.outputs.version }}
+          pattern: release-assets-${{ steps.plan.outputs.version }}-*
           path: dist
+          merge-multiple: true
       - if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure'
         run: sleep 20
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -182,16 +213,27 @@ jobs:
         if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure'
         continue-on-error: true
         with:
-          name: release-assets-${{ steps.plan.outputs.version }}
+          pattern: release-assets-${{ steps.plan.outputs.version }}-*
           path: dist
+          merge-multiple: true
       - if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure' && steps.download_2.outcome == 'failure'
         run: sleep 60
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         id: download_3
         if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure' && steps.download_2.outcome == 'failure'
         with:
-          name: release-assets-${{ steps.plan.outputs.version }}
+          pattern: release-assets-${{ steps.plan.outputs.version }}-*
           path: dist
+          merge-multiple: true
+      - name: Flatten merged matrix artifacts
+        if: steps.plan.outputs.run_release == '1'
+        run: |
+          set -euo pipefail
+          mkdir -p dist/release dist/pypi
+          find dist -type f ! -path 'dist/release/*' ! -path 'dist/pypi/*' -print0 |
+          while IFS= read -r -d '' file; do
+            if [[ "${{ steps.plan.outputs.pypi_enabled }}" == true && "$file" == *.whl ]]; then mv "$file" dist/pypi/; else mv "$file" dist/release/; fi
+          done
       - name: Asset gate and draft transaction
         if: steps.plan.outputs.run_release == '1'
         env:
