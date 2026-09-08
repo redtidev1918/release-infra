@@ -95,6 +95,17 @@ class ReleaseTest(unittest.TestCase):
         self.assertEqual(waiting["needs_repair"], "true")
         self.assertEqual(repairing["run_release"], "1")
 
+    def test_public_metadata_asset_is_preserved_during_repair(self):
+        asset = Path("RELEASE-METADATA.json")
+        current = {"isDraft": False, "assets": [{"name": asset.name, "size": 1}]}
+        with mock.patch.object(release, "_release", return_value=current), \
+                mock.patch.object(release, "_run") as run:
+            release._upload_idempotent("v1.2.3", [asset])
+
+        commands = [" ".join(call.args[0]) for call in run.call_args_list]
+        self.assertFalse(any("release download" in command for command in commands))
+        self.assertFalse(any("release upload" in command for command in commands))
+
     def test_retention_deletes_release_objects_without_tags(self):
         policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "2.0.0"}, "assets": {"required": []}, "registries": {"github": {"required": True}}, "retention": {"stable": 1, "prerelease": 0}}
         rows = [{"tagName": "v2", "isDraft": False, "isPrerelease": False}, {"tagName": "v1", "isDraft": False, "isPrerelease": False}, {"tagName": "v3-rc", "isDraft": False, "isPrerelease": True}]
