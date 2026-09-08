@@ -8,9 +8,10 @@ class WorkflowTest(unittest.TestCase):
         event_block = workflow.split("permissions:", 1)[0]
         self.assertNotIn("\n  push:", event_block)
 
-    def test_release_jobs_only_skip_explicit_noop(self):
+    def test_release_steps_use_same_job_numeric_plan_gate(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
-        self.assertEqual(workflow.count("needs.plan.outputs.run_release == '1'"), 2)
+        self.assertNotIn("needs.plan.outputs.run_release", workflow)
+        self.assertGreaterEqual(workflow.count("steps.plan.outputs.run_release == '1'"), 10)
 
 
 if __name__ == "__main__":
