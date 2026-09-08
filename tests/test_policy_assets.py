@@ -34,10 +34,12 @@ class PolicyAssetsTest(unittest.TestCase):
             desired_version(policy)
 
     def test_build_matrix_requires_runner_and_command(self):
-        valid = {**POLICY, "build": {"matrix": [{"runner": "ubuntu-latest", "command": "make dist"}]}}
+        valid = {**POLICY, "build": {"matrix": [{"runner": "ubuntu-latest", "shell": "bash", "command": "make dist"}]}}
         validate_policy(valid)
         with self.assertRaises(PolicyError):
             validate_policy({**POLICY, "build": {"matrix": [{"runner": "ubuntu-latest"}]}})
+        with self.assertRaises(PolicyError):
+            validate_policy({**POLICY, "build": {"matrix": [{"runner": "windows-latest", "shell": "cmd", "command": "make"}]}})
 
     def test_asset_gate_and_checksums(self):
         with tempfile.TemporaryDirectory() as directory:

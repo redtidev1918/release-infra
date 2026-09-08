@@ -100,13 +100,15 @@ jobs:
           RELEASE_VERSION: ${{ needs.build-plan.outputs.version }}
           RELEASE_TAG: ${{ needs.build-plan.outputs.tag }}
           COMMAND: ${{ matrix.command }}
-        run: bash -euo pipefail -c "$COMMAND"
+        shell: ${{ matrix.shell }}
+        run: ${{ matrix.shell == 'bash' && 'bash -euo pipefail -c "$COMMAND"' || matrix.shell == 'sh' && 'sh -eu -c "$COMMAND"' || 'Invoke-Expression "$env:COMMAND"; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }' }}
       - name: Binary version gate
         if: matrix.version_check != ''
         env:
           RELEASE_VERSION: ${{ needs.build-plan.outputs.version }}
           COMMAND: ${{ matrix.version_check }}
-        run: bash -euo pipefail -c "$COMMAND"
+        shell: ${{ matrix.shell }}
+        run: ${{ matrix.shell == 'bash' && 'bash -euo pipefail -c "$COMMAND"' || matrix.shell == 'sh' && 'sh -eu -c "$COMMAND"' || 'Invoke-Expression "$env:COMMAND"; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }' }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: upload_0
         continue-on-error: true

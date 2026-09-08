@@ -105,7 +105,7 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     healthy = bool(release and not release["isDraft"] and required.issubset(remote))
     needs_repair = bool(release and not release["isDraft"] and not healthy)
     build = policy.get("build", {})
-    matrix = build.get("matrix") or [{"runner": "ubuntu-latest", "command": build.get("command", ":"), "version_check": build.get("version_check", "")}]
+    matrix = [{**{"shell": "bash"}, **item} for item in (build.get("matrix") or [{"runner": "ubuntu-latest", "command": build.get("command", ":"), "version_check": build.get("version_check", "")}])]
     registries = policy.get("registries", {})
     ghcr = registries.get("ghcr", {})
     retry_count = 0

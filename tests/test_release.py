@@ -26,7 +26,9 @@ class ReleaseTest(unittest.TestCase):
             path.write_text(json.dumps(policy))
             with mock.patch.object(release, "_release", return_value=None):
                 result = release.plan(str(path))
-        self.assertEqual(json.loads(result["build_matrix"])["include"][1]["runner"], "windows-latest")
+        include = json.loads(result["build_matrix"])["include"]
+        self.assertEqual(include[0]["shell"], "bash")
+        self.assertEqual(include[1]["runner"], "windows-latest")
 
     def test_ghcr_channel_is_exposed_without_custom_publish_command(self):
         policy = {"kind": "hybrid", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}, "ghcr": {"required": False, "image": "ghcr.io/owner/app", "platforms": "linux/amd64,linux/arm64"}}}
