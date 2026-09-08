@@ -1,6 +1,6 @@
 # Release Fleet Dashboard
 
-Generated: `2026-09-08T15:36:26.605637+00:00`
+Generated: `2026-09-08T15:41:06.364769+00:00`
 
 | Repository | Class | Desired | Latest | Assets | Workflow | Health |
 |---|---|---:|---:|---:|---|---|
@@ -19,6 +19,6 @@ Generated: `2026-09-08T15:36:26.605637+00:00`
 | redtidev1918/pixivflow-webui | observe-only | 1.0.1 | — | 0 | success | UNMANAGED |
 | redtidev1918/ponytail | fork | — | — | 0 | — | NO_RELEASE |
 | redtidev1918/redtidev1918 | no-release | — | — | 0 | — | NO_RELEASE |
-| redtidev1918/release-infra | managed | — | v1.0.0 | 0 | success | HEALTHY |
+| redtidev1918/release-infra | managed | — | v1.0.1 | 0 | success | HEALTHY |
 | redtidev1918/TelePost | observe-only | 2.14.0 | v2.14.0 | 3 | success | UNMANAGED |
 | redtidev1918/telepress | observe-only | 0.6.1 | v0.6.1 | 2 | success | UNMANAGED |

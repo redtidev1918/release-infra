@@ -32,9 +32,9 @@
   },
   "release_infra_version": null,
   "desired_version": null,
-  "latest_release": "v1.0.0",
-  "latest_release_at": "2026-09-08T15:27:14Z",
-  "latest_tag": "v1.0.0",
+  "latest_release": "v1.0.1",
+  "latest_release_at": "2026-09-08T15:36:46Z",
+  "latest_tag": "v1.0.1",
   "draft_releases": [],
   "actual_assets": [],
   "release_workflows": [
@@ -50,8 +50,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/release-infra/actions/runs/34244824625",
-    "updated_at": "2026-09-08T15:27:20Z"
+    "url": "https://github.com/redtidev1918/release-infra/actions/runs/34245850320",
+    "updated_at": "2026-09-08T15:36:50Z"
   },
   "signals": [
     ".release-policy.yml",
@@ -65,6 +65,13 @@
   ],
   "release_history": [
     {
+      "tag": "v1.0.1",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T15:36:46Z",
+      "assets": []
+    },
+    {
       "tag": "v1.0.0",
       "draft": false,
       "prerelease": false,
@@ -74,12 +81,16 @@
   ],
   "tags": [
     {
+      "name": "v1.0.1",
+      "commit": "c8ded4eb06e7a3c899a8bf5a760452c6b65e46ac"
+    },
+    {
       "name": "v1.0.0",
       "commit": "ee8e3deda70f8d0740c064283d10b23dbfac3a7c"
     },
     {
       "name": "v1",
-      "commit": "ee8e3deda70f8d0740c064283d10b23dbfac3a7c"
+      "commit": "c8ded4eb06e7a3c899a8bf5a760452c6b65e46ac"
     }
   ],
   "release_config": {},
