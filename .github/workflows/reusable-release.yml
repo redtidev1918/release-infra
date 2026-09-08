@@ -77,7 +77,9 @@ jobs:
           COMMAND: ${{ steps.plan.outputs.version_check }}
         run: bash -euo pipefail -c "$COMMAND"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        id: upload_0
         if: steps.plan.outputs.run_release == '1'
+        continue-on-error: true
         with:
           name: release-assets-${{ steps.plan.outputs.version }}
           path: |
@@ -85,6 +87,47 @@ jobs:
             dist/pypi/
           if-no-files-found: error
           retention-days: 7
+      - if: steps.upload_0.outcome == 'failure'
+        run: sleep 5
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        id: upload_1
+        if: steps.upload_0.outcome == 'failure'
+        continue-on-error: true
+        with:
+          name: release-assets-${{ steps.plan.outputs.version }}
+          path: |
+            dist/release/
+            dist/pypi/
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
+      - if: steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure'
+        run: sleep 20
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        id: upload_2
+        if: steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure'
+        continue-on-error: true
+        with:
+          name: release-assets-${{ steps.plan.outputs.version }}
+          path: |
+            dist/release/
+            dist/pypi/
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
+      - if: steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure' && steps.upload_2.outcome == 'failure'
+        run: sleep 60
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        id: upload_3
+        if: steps.upload_0.outcome == 'failure' && steps.upload_1.outcome == 'failure' && steps.upload_2.outcome == 'failure'
+        with:
+          name: release-assets-${{ steps.plan.outputs.version }}
+          path: |
+            dist/release/
+            dist/pypi/
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
 
   finalize:
     needs: build
@@ -117,7 +160,35 @@ jobs:
           [[ "$INPUT_REPAIR" == true ]] && args+=(--repair)
           PYTHONPATH=.release-infra python3 -m release_infra.cli workflow-plan "${args[@]}"
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        id: download_0
         if: steps.plan.outputs.run_release == '1'
+        continue-on-error: true
+        with:
+          name: release-assets-${{ steps.plan.outputs.version }}
+          path: dist
+      - if: steps.download_0.outcome == 'failure'
+        run: sleep 5
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        id: download_1
+        if: steps.download_0.outcome == 'failure'
+        continue-on-error: true
+        with:
+          name: release-assets-${{ steps.plan.outputs.version }}
+          path: dist
+      - if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure'
+        run: sleep 20
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        id: download_2
+        if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure'
+        continue-on-error: true
+        with:
+          name: release-assets-${{ steps.plan.outputs.version }}
+          path: dist
+      - if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure' && steps.download_2.outcome == 'failure'
+        run: sleep 60
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        id: download_3
+        if: steps.download_0.outcome == 'failure' && steps.download_1.outcome == 'failure' && steps.download_2.outcome == 'failure'
         with:
           name: release-assets-${{ steps.plan.outputs.version }}
           path: dist
@@ -226,4 +297,5 @@ jobs:
           echo '- result: `${{ job.status }}`' >> "$GITHUB_STEP_SUMMARY"
           echo '- retry count: `${{ steps.plan.outputs.retry_count }}`' >> "$GITHUB_STEP_SUMMARY"
           echo '- cooldown: `${{ steps.plan.outputs.cooldown }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- needs repair: `${{ steps.plan.outputs.needs_repair }}`' >> "$GITHUB_STEP_SUMMARY"
           echo '- recovery: `Run workflow → repair/retry current version`' >> "$GITHUB_STEP_SUMMARY"

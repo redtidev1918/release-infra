@@ -13,6 +13,12 @@ class WorkflowTest(unittest.TestCase):
         self.assertNotIn("needs.plan.outputs.run_release", workflow)
         self.assertGreaterEqual(workflow.count("steps.plan.outputs.run_release == '1'"), 10)
 
+    def test_artifact_transfer_has_bounded_retries(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        self.assertEqual(workflow.count("actions/upload-artifact@"), 4)
+        self.assertEqual(workflow.count("actions/download-artifact@"), 4)
+        self.assertIn("sleep 60", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

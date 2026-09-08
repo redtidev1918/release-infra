@@ -103,8 +103,7 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     required = set(policy.get("assets", {}).get("required", [])) | {"SHA256SUMS", "RELEASE-METADATA.json"}
     remote = {asset["name"] for asset in (release or {}).get("assets", []) if int(asset.get("size", 0)) > 0}
     healthy = bool(release and not release["isDraft"] and required.issubset(remote))
-    if release and not release["isDraft"] and not healthy and not repair:
-        raise ReleaseError(f"public release {tag} is incomplete; rerun with repair=true")
+    needs_repair = bool(release and not release["isDraft"] and not healthy)
     registries = policy.get("registries", {})
     ghcr = registries.get("ghcr", {})
     retry_count = 0
@@ -119,10 +118,10 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
                 cooldown = dt.datetime.now(dt.UTC) - last < dt.timedelta(hours=6)
         except (ReleaseError, ValueError, KeyError):
             pass
-    should_release = force or (not healthy and not cooldown)
+    should_release = force or repair or (not healthy and not needs_repair and not cooldown)
     return {
         "should_release": str(should_release).lower(), "run_release": "1" if should_release else "0", "version": desired, "tag": tag,
-        "retry_count": str(retry_count), "cooldown": str(cooldown).lower(),
+        "retry_count": str(retry_count), "cooldown": str(cooldown).lower(), "needs_repair": str(needs_repair).lower(),
         "test_command": policy.get("build", {}).get("test", ""), "build_command": policy.get("build", {}).get("command", ""),
         "version_check": policy.get("build", {}).get("version_check", ""),
         "pypi_enabled": str("pypi" in registries).lower(), "pypi_required": str(registries.get("pypi", {}).get("required", True)).lower(),
