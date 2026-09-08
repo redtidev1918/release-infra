@@ -106,6 +106,9 @@
     }
   ],
   "release_config": {
+    ".release-please-manifest.json": {
+      ".": "4.1.1"
+    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "packages": {
@@ -116,9 +119,6 @@
           "include-component-in-tag": false
         }
       }
-    },
-    ".release-please-manifest.json": {
-      ".": "4.1.1"
     }
   },
   "registries": {

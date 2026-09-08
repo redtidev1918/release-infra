@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-08T15:21:36.624574+00:00",
+  "generated_at": "2026-09-08T15:24:21.238565+00:00",
   "repositories": [
     {
       "repo": "redtidev1918/BallonsTranslator-lite",
@@ -630,6 +630,12 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          "packages/dakit_core": "1.0.0",
+          "packages/dakit_api": "1.0.0",
+          "packages/dakit_flutter": "1.0.0",
+          "packages/dakit_cli": "0.4.1"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -666,12 +672,6 @@
               "tag-separator": "-"
             }
           }
-        },
-        ".release-please-manifest.json": {
-          "packages/dakit_core": "1.0.0",
-          "packages/dakit_api": "1.0.0",
-          "packages/dakit_flutter": "1.0.0",
-          "packages/dakit_cli": "0.4.1"
         }
       },
       "registries": {
@@ -1151,6 +1151,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "0.2.184"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -1161,9 +1164,6 @@
               "include-component-in-tag": false
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "0.2.184"
         }
       },
       "registries": {
@@ -1282,6 +1282,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "4.1.1"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -1292,9 +1295,6 @@
               "include-component-in-tag": false
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "4.1.1"
         }
       },
       "registries": {
@@ -1504,6 +1504,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "1.6.3"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -1514,9 +1517,6 @@
               "include-component-in-tag": false
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "1.6.3"
         }
       },
       "registries": {
@@ -1692,6 +1692,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "1.2.0"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -1702,9 +1705,6 @@
               "include-component-in-tag": false
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "1.2.0"
         }
       },
       "registries": {
@@ -1903,6 +1903,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "2.3.4"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -1913,9 +1916,6 @@
               "include-component-in-tag": false
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "2.3.4"
         }
       },
       "registries": {
@@ -2001,6 +2001,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "0.2.0"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2011,9 +2014,6 @@
               "include-component-in-tag": false
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "0.2.0"
         }
       },
       "registries": {
@@ -2116,6 +2116,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "2.3.0"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2126,9 +2129,6 @@
               "include-component-in-tag": false
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "2.3.0"
         }
       },
       "registries": {
@@ -2202,6 +2202,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "2.12.0"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2212,9 +2215,6 @@
               "include-component-in-tag": false
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "2.12.0"
         }
       },
       "registries": {
@@ -2329,6 +2329,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "1.10.1"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2339,9 +2342,6 @@
               "include-component-in-tag": false
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "1.10.1"
         }
       },
       "registries": {}
@@ -2398,6 +2398,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "1.0.1"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2408,9 +2411,6 @@
               "include-component-in-tag": false
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "1.0.1"
         }
       },
       "registries": {
@@ -2698,6 +2698,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "2.14.0"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2708,9 +2711,6 @@
               "include-component-in-tag": false
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "2.14.0"
         }
       },
       "registries": {}
@@ -2856,6 +2856,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "0.6.1"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "bootstrap-sha": "44ccae7439e2c00df22a213f53c223881778274b",
@@ -2871,9 +2874,6 @@
               ]
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "0.6.1"
         }
       },
       "registries": {
