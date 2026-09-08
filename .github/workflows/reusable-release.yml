@@ -143,11 +143,6 @@ jobs:
         with:
           go-version: ${{ needs.build-plan.outputs.go_version }}
           cache: true
-      - uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
-        if: needs.build-plan.outputs.needs_goreleaser == '1'
-        with:
-          version: latest
-          install-only: true
       - name: Build
         env:
           RELEASE_VERSION: ${{ needs.build-plan.outputs.version }}
