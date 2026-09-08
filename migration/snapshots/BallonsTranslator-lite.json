@@ -1,0 +1,63 @@
+{
+  "repo": "redtidev1918/BallonsTranslator-lite",
+  "default_branch": "main",
+  "visibility": "public",
+  "archived": false,
+  "fork": true,
+  "template": false,
+  "classification": "fork",
+  "health": "NO_RELEASE",
+  "release_policy": null,
+  "release_infra_version": null,
+  "desired_version": null,
+  "latest_release": null,
+  "latest_release_at": null,
+  "latest_tag": "v0.6.0",
+  "draft_releases": [],
+  "actual_assets": [],
+  "release_workflows": [],
+  "latest_release_run": null,
+  "signals": [
+    "pyproject.toml"
+  ],
+  "workflow_paths": [],
+  "release_history": [],
+  "tags": [
+    {
+      "name": "v0.6.0",
+      "commit": "cae84bc26c39d0e982dd1a018b6f2b7f5aca8a11"
+    },
+    {
+      "name": "v0.5.0",
+      "commit": "2f05a22f49346f09866d4098642c8b415e96c5c8"
+    },
+    {
+      "name": "v0.4.0",
+      "commit": "35d54c2e406a77ac70541ced8b78990d7f5e6ec0"
+    },
+    {
+      "name": "v0.3.1",
+      "commit": "1e52df8f343a5ac7a441cda642b9efe539c4e993"
+    },
+    {
+      "name": "v0.3.0",
+      "commit": "726034a6db3caf57983792666afa3e1c1c5a3dc9"
+    },
+    {
+      "name": "v0.2.1",
+      "commit": "487b487ac5655d166816199f3f716366d99b8777"
+    },
+    {
+      "name": "v0.2.0",
+      "commit": "2c0e2e45ab42be02a9d70699327dca64b8df5fdf"
+    }
+  ],
+  "release_config": {},
+  "registries": {
+    "pypi": {
+      "package": "BallonsTranslator-lite",
+      "declared": "0.6.0",
+      "published": null
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "repo": "redtidev1918/TelePost",
+  "default_branch": "main",
+  "visibility": "public",
+  "archived": false,
+  "fork": false,
+  "template": false,
+  "classification": "observe-only",
+  "health": "UNMANAGED",
+  "release_policy": null,
+  "release_infra_version": null,
+  "desired_version": "2.14.0",
+  "latest_release": "v2.14.0",
+  "latest_release_at": "2026-09-08T11:53:26Z",
+  "latest_tag": "v2.14.0",
+  "draft_releases": [],
+  "actual_assets": [
+    "telepost-linux-x64",
+    "telepost-macos-arm64",
+    "telepost-windows-x64.exe"
+  ],
+  "release_workflows": [
+    {
+      "name": "Release",
+      "path": ".github/workflows/release.yml"
+    },
+    {
+      "name": "Deploy static content to Pages",
+      "path": ".github/workflows/static.yml"
+    }
+  ],
+  "latest_release_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/redtidev1918/TelePost/actions/runs/34223057506",
+    "updated_at": "2026-09-08T11:57:36Z"
+  },
+  "signals": [
+    ".release-please-manifest.json",
+    "CHANGELOG.md",
+    "Dockerfile",
+    "release-please-config.json"
+  ],
+  "workflow_paths": [
+    ".github/workflows/notify-profile.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/static.yml"
+  ],
+  "release_history": [
+    {
+      "tag": "v2.14.0",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T11:53:26Z",
+      "assets": [
+        {
+          "name": "telepost-linux-x64",
+          "size": 33492952,
+          "sha256": "sha256:c624591fd3ec8a6f2798c2ffe90de308e9f2c9c95aa46b11826946797d06d1d5"
+        },
+        {
+          "name": "telepost-macos-arm64",
+          "size": 17877072,
+          "sha256": "sha256:e2e6ff0ddf2d690624d5a6b4fd7db1a252751f81a527e6578a686076d2da3ac4"
+        },
+        {
+          "name": "telepost-windows-x64.exe",
+          "size": 21487383,
+          "sha256": "sha256:f37cc58699d77d0ca47d06aea133f6aea2c2811af04e9f0893e732922c6009aa"
+        }
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "v2.14.0",
+      "commit": "ba60d53972ed1568d1c431699568b42dfb97f5dc"
+    }
+  ],
+  "release_config": {
+    "release-please-config.json": {
+      "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+      "packages": {
+        ".": {
+          "release-type": "simple",
+          "package-name": "TelePost",
+          "include-v-in-tag": true,
+          "include-component-in-tag": false
+        }
+      }
+    },
+    ".release-please-manifest.json": {
+      ".": "2.14.0"
+    }
+  },
+  "registries": {}
+}

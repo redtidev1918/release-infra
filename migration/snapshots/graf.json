@@ -1,0 +1,188 @@
+{
+  "repo": "redtidev1918/graf",
+  "default_branch": "master",
+  "visibility": "public",
+  "archived": false,
+  "fork": false,
+  "template": false,
+  "classification": "observe-only",
+  "health": "UNMANAGED",
+  "release_policy": null,
+  "release_infra_version": null,
+  "desired_version": "1.2.0",
+  "latest_release": "v1.2.0",
+  "latest_release_at": "2026-09-08T03:31:32Z",
+  "latest_tag": "v1.2.0",
+  "draft_releases": [],
+  "actual_assets": [
+    "checksums.txt",
+    "grafctl_darwin_amd64.tar.gz",
+    "grafctl_darwin_arm64.tar.gz",
+    "grafctl_linux_amd64.tar.gz",
+    "grafctl_linux_arm64.tar.gz",
+    "grafctl_windows_amd64.zip",
+    "grafctl_windows_arm64.zip",
+    "worker.mjs"
+  ],
+  "release_workflows": [
+    {
+      "name": "Release",
+      "path": ".github/workflows/release.yml"
+    },
+    {
+      "name": "Deploy static content to Pages",
+      "path": ".github/workflows/static.yml"
+    }
+  ],
+  "latest_release_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/redtidev1918/graf/actions/runs/34183805023",
+    "updated_at": "2026-09-08T03:32:52Z"
+  },
+  "signals": [
+    ".release-please-manifest.json",
+    "CHANGELOG.md",
+    "Dockerfile",
+    "go.mod",
+    "package.json",
+    "release-please-config.json"
+  ],
+  "workflow_paths": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/notify-profile.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/static.yml"
+  ],
+  "release_history": [
+    {
+      "tag": "v1.2.0",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T03:31:32Z",
+      "assets": [
+        {
+          "name": "checksums.txt",
+          "size": 558,
+          "sha256": "sha256:9eaebdfa072a23b12dbe47ecdd2dd585b42d73ae0296f54f48a833ebd49889bb"
+        },
+        {
+          "name": "grafctl_darwin_amd64.tar.gz",
+          "size": 2582768,
+          "sha256": "sha256:1de4dad4e7d4a92d760db474de5d6ee5bedfc782954959b521cdb8ed288c9c14"
+        },
+        {
+          "name": "grafctl_darwin_arm64.tar.gz",
+          "size": 2435057,
+          "sha256": "sha256:77fdf438745a5427cf5af996e783d99801adbc6ed0748c7b98912d0d52feefad"
+        },
+        {
+          "name": "grafctl_linux_amd64.tar.gz",
+          "size": 2540395,
+          "sha256": "sha256:5f2e947a30286d7570fc134d15d469a1ea540e53ede7b680f103409200bc7052"
+        },
+        {
+          "name": "grafctl_linux_arm64.tar.gz",
+          "size": 2349259,
+          "sha256": "sha256:8faf5bec940f9959481283434b421427944a2a004631e2ae99c9b31734c2fe26"
+        },
+        {
+          "name": "grafctl_windows_amd64.zip",
+          "size": 2568089,
+          "sha256": "sha256:a90285351a617305d2ff55ec5cef923c92da5606cd946ce382e231ebe42c09b0"
+        },
+        {
+          "name": "grafctl_windows_arm64.zip",
+          "size": 2342439,
+          "sha256": "sha256:2f826e55fff6f341936675c8400085ce3ee857b2855adc9e44b0a4837c7c5fa5"
+        },
+        {
+          "name": "worker.mjs",
+          "size": 440374,
+          "sha256": "sha256:8d42026530aedf3c4ce3fdd0374e9981047582fc5c920013f6a97b8e39fe4879"
+        }
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "v1.2.0",
+      "commit": "afb821e0f5c38a633ed6d50b3fe26b97763c45a3"
+    },
+    {
+      "name": "v1.1.0",
+      "commit": "9115c41ebb4f24c2c75c3587d7498d81ca22c4b1"
+    },
+    {
+      "name": "v1.0.2",
+      "commit": "a554ee5f57042aab6d5c566cc944a12fb887f798"
+    },
+    {
+      "name": "v1.0.1",
+      "commit": "a0c44db6a85eb128316b056ea205f9fae982e615"
+    },
+    {
+      "name": "v1.0.0",
+      "commit": "28a130f2bc6adadbb176618e8effa3cafd4a63a8"
+    },
+    {
+      "name": "v0.5.0-grafctl",
+      "commit": "32cc5c141e8c9967b40bb8cc0f175b7f7fb9d7bd"
+    },
+    {
+      "name": "v0.4.2-grafctl",
+      "commit": "9859b27353a391e20f6a5547a9f5e2c23e6ec95c"
+    },
+    {
+      "name": "v0.4.1-grafctl",
+      "commit": "1cf75881da95ad69851eb8b691deaecd3350d5c2"
+    },
+    {
+      "name": "v0.4.0-grafctl",
+      "commit": "fed0fcaba721984ac3e505808f33f55774f255e1"
+    },
+    {
+      "name": "v0.3.0-grafctl",
+      "commit": "64cf8ff2ba56300b6b03a5652f87622b3b1472b0"
+    },
+    {
+      "name": "v0.2.0-grafctl",
+      "commit": "a4d355c8b793d14a5eebc6d69c0dd12ecf010be1"
+    },
+    {
+      "name": "v0.1.0-grafctl",
+      "commit": "29c0da787117fac60b19bfe1aab461aaa854fc53"
+    },
+    {
+      "name": "legacy-django",
+      "commit": "58e97fad54dcd984693da19efd2538dd53fb9919"
+    },
+    {
+      "name": "grafctl-v0.1.0",
+      "commit": "8b4bbb64cd1ffc77063ee39b9f368738b5fc5645"
+    }
+  ],
+  "release_config": {
+    "release-please-config.json": {
+      "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+      "packages": {
+        ".": {
+          "release-type": "simple",
+          "package-name": "graf",
+          "include-v-in-tag": true,
+          "include-component-in-tag": false
+        }
+      }
+    },
+    ".release-please-manifest.json": {
+      ".": "1.2.0"
+    }
+  },
+  "registries": {
+    "npm": {
+      "package": "graf",
+      "declared": "1.0.0",
+      "published": "0.0.2"
+    }
+  }
+}

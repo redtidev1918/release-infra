@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/redtidev1918/release-infra/v1/schemas/release-policy.schema.json",
+  "title": "Release Infrastructure v1 policy",
+  "type": "object",
+  "required": ["kind", "versioning", "assets", "registries"],
+  "additionalProperties": false,
+  "properties": {
+    "kind": {"enum": ["binary", "python-library", "node-library", "flutter", "android", "container", "hybrid", "none"]},
+    "versioning": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": {"enum": ["release-please", "manual"]},
+        "manifest": {"type": "string"},
+        "package": {"type": "string"},
+        "version": {"type": "string"}
+      }
+    },
+    "tag": {"type": "object", "properties": {"template": {"type": "string"}}},
+    "build": {
+      "type": "object",
+      "properties": {
+        "test": {"type": "string"},
+        "command": {"type": "string"},
+        "version_check": {"type": "string"}
+      }
+    },
+    "assets": {
+      "type": "object",
+      "required": ["required"],
+      "properties": {
+        "required": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "optional": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+      }
+    },
+    "registries": {
+      "type": "object",
+      "propertyNames": {"enum": ["github", "pypi", "npm", "pub", "ghcr"]},
+      "additionalProperties": {
+        "type": "object",
+        "properties": {"required": {"type": "boolean"}, "publish": {"type": "string"}, "verify": {"type": "string"}}
+      }
+    },
+    "retention": {"type": "object", "properties": {"stable": {"type": "integer", "minimum": 1}, "prerelease": {"type": "integer", "minimum": 0}, "failed_draft": {"type": "integer", "minimum": 0}}},
+    "release": {"type": "object", "properties": {"prerelease": {"type": "boolean"}}},
+    "checksums": {"type": "boolean"},
+    "sbom": {"type": "boolean"}
+  }
+}

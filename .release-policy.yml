@@ -1,0 +1,9 @@
+{
+  "kind": "python-library",
+  "versioning": {"mode": "manual", "version": "1.0.0"},
+  "assets": {"required": [], "optional": []},
+  "registries": {"github": {"required": true}},
+  "retention": {"stable": 1, "prerelease": 1, "failed_draft": 3},
+  "checksums": false,
+  "sbom": false
+}

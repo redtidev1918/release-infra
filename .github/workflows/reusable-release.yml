@@ -1,0 +1,192 @@
+name: Release Infrastructure v1
+
+on:
+  workflow_call:
+    inputs:
+      version: {type: string, default: ""}
+      dry_run: {type: boolean, default: false}
+      force: {type: boolean, default: false}
+      repair: {type: boolean, default: false}
+      stage: {type: string, default: all}
+    secrets:
+      RELEASE_PLEASE_TOKEN: {required: false}
+
+jobs:
+  release-please:
+    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: googleapis/release-please-action@0dfd8538845b8e92600d271a895a5372865d4062 # v5
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  plan:
+    needs: release-please
+    if: always() && (needs.release-please.result == 'success' || needs.release-please.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      should_release: ${{ steps.plan.outputs.should_release }}
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+      test_command: ${{ steps.plan.outputs.test_command }}
+      build_command: ${{ steps.plan.outputs.build_command }}
+      version_check: ${{ steps.plan.outputs.version_check }}
+      pypi_enabled: ${{ steps.plan.outputs.pypi_enabled }}
+      pypi_required: ${{ steps.plan.outputs.pypi_required }}
+      pypi_packages_dir: ${{ steps.plan.outputs.pypi_packages_dir }}
+      required_publish: ${{ steps.plan.outputs.required_publish }}
+      required_verify: ${{ steps.plan.outputs.required_verify }}
+      optional_publish: ${{ steps.plan.outputs.optional_publish }}
+      optional_verify: ${{ steps.plan.outputs.optional_verify }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with: {fetch-depth: 0}
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: redtidev1918/release-infra
+          ref: v1
+          path: .release-infra
+      - name: Policy and release plan
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_FORCE: ${{ inputs.force }}
+          INPUT_REPAIR: ${{ inputs.repair }}
+        run: |
+          set -euo pipefail
+          args=(--github-output "$GITHUB_OUTPUT")
+          [[ -n "$INPUT_VERSION" ]] && args+=(--version "$INPUT_VERSION")
+          [[ "$INPUT_FORCE" == true ]] && args+=(--force)
+          [[ "$INPUT_REPAIR" == true ]] && args+=(--repair)
+          PYTHONPATH=.release-infra python3 -m release_infra.cli static-check
+          PYTHONPATH=.release-infra python3 -m release_infra.cli workflow-plan "${args[@]}"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with: {fetch-depth: 0}
+      - name: Test
+        if: needs.plan.outputs.test_command != ''
+        env:
+          RELEASE_VERSION: ${{ needs.plan.outputs.version }}
+          COMMAND: ${{ needs.plan.outputs.test_command }}
+        run: bash -euo pipefail -c "$COMMAND"
+      - name: Build
+        env:
+          RELEASE_VERSION: ${{ needs.plan.outputs.version }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
+          COMMAND: ${{ needs.plan.outputs.build_command }}
+        run: bash -euo pipefail -c "$COMMAND"
+      - name: Binary version gate
+        if: needs.plan.outputs.version_check != ''
+        env:
+          RELEASE_VERSION: ${{ needs.plan.outputs.version }}
+          COMMAND: ${{ needs.plan.outputs.version_check }}
+        run: bash -euo pipefail -c "$COMMAND"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-assets-${{ needs.plan.outputs.version }}
+          path: |
+            dist/release/
+            dist/pypi/
+          if-no-files-found: error
+          retention-days: 7
+
+  finalize:
+    needs: [plan, build]
+    if: needs.plan.outputs.should_release == 'true' && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with: {fetch-depth: 0}
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: redtidev1918/release-infra
+          ref: v1
+          path: .release-infra
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-assets-${{ needs.plan.outputs.version }}
+          path: dist
+      - name: Asset gate and draft transaction
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BUILD_STARTED_AT: ${{ github.event.head_commit.timestamp }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          args=(--version '${{ needs.plan.outputs.version }}')
+          [[ "$DRY_RUN" == true ]] && args+=(--dry-run)
+          PYTHONPATH=.release-infra python3 -m release_infra.cli asset-gate
+          PYTHONPATH=.release-infra python3 -m release_infra.cli stage "${args[@]}"
+      - name: Required registry publication
+        if: ${{ !inputs.dry_run && needs.plan.outputs.required_publish != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.plan.outputs.version }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
+          COMMAND: ${{ needs.plan.outputs.required_publish }}
+        run: bash -euo pipefail -c "$COMMAND"
+      - name: Publish to PyPI with OIDC
+        if: ${{ !inputs.dry_run && needs.plan.outputs.pypi_enabled == 'true' }}
+        continue-on-error: ${{ needs.plan.outputs.pypi_required != 'true' }}
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        with:
+          packages-dir: ${{ needs.plan.outputs.pypi_packages_dir }}
+      - name: Required registry verification
+        if: ${{ !inputs.dry_run && needs.plan.outputs.required_verify != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.plan.outputs.version }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
+          COMMAND: ${{ needs.plan.outputs.required_verify }}
+        run: bash -euo pipefail -c "$COMMAND"
+      - name: Optional publication channels
+        if: ${{ !inputs.dry_run && needs.plan.outputs.optional_publish != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.plan.outputs.version }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
+          COMMAND: ${{ needs.plan.outputs.optional_publish }}
+        run: bash -uo pipefail -c "$COMMAND"
+      - name: Optional channel verification
+        if: ${{ !inputs.dry_run && needs.plan.outputs.optional_verify != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.plan.outputs.version }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
+          COMMAND: ${{ needs.plan.outputs.optional_verify }}
+        run: bash -uo pipefail -c "$COMMAND"
+      - name: Publish, set Latest, audit, then prune Release objects
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          args=(--version '${{ needs.plan.outputs.version }}')
+          [[ "$DRY_RUN" == true ]] && args+=(--dry-run)
+          PYTHONPATH=.release-infra python3 -m release_infra.cli publish "${args[@]}"
+      - name: Release summary
+        if: always()
+        run: |
+          echo '## Release Infrastructure v1' >> "$GITHUB_STEP_SUMMARY"
+          echo '- version: `${{ needs.plan.outputs.version }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- stage: `${{ inputs.stage }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- result: `${{ job.status }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- recovery: `Run workflow → repair/retry current version`' >> "$GITHUB_STEP_SUMMARY"

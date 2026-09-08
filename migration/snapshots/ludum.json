@@ -1,0 +1,91 @@
+{
+  "repo": "redtidev1918/ludum",
+  "default_branch": "master",
+  "visibility": "public",
+  "archived": false,
+  "fork": false,
+  "template": false,
+  "classification": "observe-only",
+  "health": "UNMANAGED",
+  "release_policy": null,
+  "release_infra_version": null,
+  "desired_version": null,
+  "latest_release": "v1.0.0",
+  "latest_release_at": "2026-09-03T02:32:09Z",
+  "latest_tag": "v3.0.1",
+  "draft_releases": [],
+  "actual_assets": [
+    "GameLib-demo-v1.0.0.zip"
+  ],
+  "release_workflows": [
+    {
+      "name": "Publish",
+      "path": ".github/workflows/publish.yml"
+    },
+    {
+      "name": "Deploy documentation to Pages",
+      "path": ".github/workflows/static.yml"
+    }
+  ],
+  "latest_release_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/redtidev1918/ludum/actions/runs/34179909214",
+    "updated_at": "2026-09-08T02:24:06Z"
+  },
+  "signals": [
+    "CHANGELOG.md",
+    "package.json"
+  ],
+  "workflow_paths": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/notify-profile.yml",
+    ".github/workflows/publish.yml",
+    ".github/workflows/static.yml"
+  ],
+  "release_history": [
+    {
+      "tag": "v1.0.0",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-03T02:32:09Z",
+      "assets": [
+        {
+          "name": "GameLib-demo-v1.0.0.zip",
+          "size": 371457,
+          "sha256": "sha256:e17c137a6416d9511e6159e664b015932b67dcac60c6e1ae8d3291a46dbed2e9"
+        }
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "v3.0.1",
+      "commit": "8021d9fb7267c9feb85386b5f7ed59478d2ddaa7"
+    },
+    {
+      "name": "v3.0.0",
+      "commit": "de46d4ac1929b94bf79cb7b8bdb34a98a6e30dcd"
+    },
+    {
+      "name": "v3.0.0-alpha.2",
+      "commit": "ca69e15636d91171fdaed55b359997f6b87fa233"
+    },
+    {
+      "name": "v3.0.0-alpha.1",
+      "commit": "86362abffd2d6ccb8c01f5fa3acd79d6eab29cb4"
+    },
+    {
+      "name": "v1.0.0",
+      "commit": "0d7a48861bf7345841d8150b38bb2cf86016e048"
+    }
+  ],
+  "release_config": {},
+  "registries": {
+    "npm": {
+      "package": "ludum",
+      "declared": "3.0.1",
+      "published": "3.0.1"
+    }
+  }
+}

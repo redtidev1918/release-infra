@@ -1,0 +1,75 @@
+{
+  "repo": "redtidev1918/pixivflow-webui",
+  "default_branch": "master",
+  "visibility": "public",
+  "archived": false,
+  "fork": false,
+  "template": false,
+  "classification": "observe-only",
+  "health": "UNMANAGED",
+  "release_policy": null,
+  "release_infra_version": null,
+  "desired_version": "1.0.1",
+  "latest_release": null,
+  "latest_release_at": null,
+  "latest_tag": "v1.0.1",
+  "draft_releases": [],
+  "actual_assets": [],
+  "release_workflows": [
+    {
+      "name": "Release",
+      "path": ".github/workflows/release.yml"
+    },
+    {
+      "name": "Deploy static content to Pages",
+      "path": ".github/workflows/static.yml"
+    }
+  ],
+  "latest_release_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/redtidev1918/pixivflow-webui/actions/runs/34091770630",
+    "updated_at": "2026-09-07T06:39:06Z"
+  },
+  "signals": [
+    ".release-please-manifest.json",
+    "Dockerfile",
+    "package.json",
+    "release-please-config.json"
+  ],
+  "workflow_paths": [
+    ".github/workflows/notify-profile.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/static.yml"
+  ],
+  "release_history": [],
+  "tags": [
+    {
+      "name": "v1.0.1",
+      "commit": "12d300861e8bb3e6d765c5038b887ab47493e2db"
+    }
+  ],
+  "release_config": {
+    "release-please-config.json": {
+      "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+      "packages": {
+        ".": {
+          "release-type": "node",
+          "package-name": "pixivflow-webui",
+          "include-v-in-tag": true,
+          "include-component-in-tag": false
+        }
+      }
+    },
+    ".release-please-manifest.json": {
+      ".": "1.0.1"
+    }
+  },
+  "registries": {
+    "npm": {
+      "package": "pixivflow-webui",
+      "declared": "1.0.1",
+      "published": null
+    }
+  }
+}

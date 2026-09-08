@@ -1,0 +1,98 @@
+{
+  "repo": "redtidev1918/paranote",
+  "default_branch": "main",
+  "visibility": "public",
+  "archived": false,
+  "fork": false,
+  "template": false,
+  "classification": "observe-only",
+  "health": "UNMANAGED",
+  "release_policy": null,
+  "release_infra_version": null,
+  "desired_version": "0.2.0",
+  "latest_release": "v0.2.0",
+  "latest_release_at": "2026-08-27T15:54:26Z",
+  "latest_tag": "v0.2.0",
+  "draft_releases": [],
+  "actual_assets": [],
+  "release_workflows": [
+    {
+      "name": "release-please",
+      "path": ".github/workflows/release-please.yml"
+    },
+    {
+      "name": ".github/workflows/release.yml",
+      "path": ".github/workflows/release.yml"
+    },
+    {
+      "name": "Deploy documentation to Pages",
+      "path": ".github/workflows/static.yml"
+    }
+  ],
+  "latest_release_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/redtidev1918/paranote/actions/runs/34179827757",
+    "updated_at": "2026-09-08T02:22:52Z"
+  },
+  "signals": [
+    ".release-please-manifest.json",
+    "CHANGELOG.md",
+    "Dockerfile",
+    "package.json",
+    "release-please-config.json"
+  ],
+  "workflow_paths": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/notify-profile.yml",
+    ".github/workflows/release-please.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/static.yml"
+  ],
+  "release_history": [
+    {
+      "tag": "v0.2.0",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-08-27T15:54:26Z",
+      "assets": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "v0.2.0",
+      "commit": "fe3db141d7013a5a9a5a23cbc7fa2e05e3e3cfa9"
+    },
+    {
+      "name": "v0.1.2",
+      "commit": "2c659e42b84a699faa0540568aad401b73f9e40c"
+    },
+    {
+      "name": "v0.1.1",
+      "commit": "d76080b1e9ad43c2416f904da8f2090d22ade574"
+    }
+  ],
+  "release_config": {
+    "release-please-config.json": {
+      "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+      "packages": {
+        ".": {
+          "release-type": "node",
+          "package-name": "paranote",
+          "include-v-in-tag": true,
+          "include-component-in-tag": false
+        }
+      }
+    },
+    ".release-please-manifest.json": {
+      ".": "0.2.0"
+    }
+  },
+  "registries": {
+    "npm": {
+      "package": "paranote",
+      "declared": "0.2.0",
+      "published": "0.2.0"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+name: Promote stable v1
+on:
+  push:
+    tags: ["v1.*.*"]
+permissions: {contents: write}
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with: {fetch-depth: 0}
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with: {python-version: "3.11"}
+      - run: python -m unittest discover -v
+      - name: Move stable channel only after canary tests
+        run: |
+          git tag -f v1 "$GITHUB_SHA"
+          git push origin refs/tags/v1 --force
+      - run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --latest
+        env: {GH_TOKEN: "${{ github.token }}"}

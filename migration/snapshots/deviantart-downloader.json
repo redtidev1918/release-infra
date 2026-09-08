@@ -1,0 +1,131 @@
+{
+  "repo": "redtidev1918/deviantart-downloader",
+  "default_branch": "main",
+  "visibility": "public",
+  "archived": false,
+  "fork": false,
+  "template": false,
+  "classification": "observe-only",
+  "health": "UNMANAGED",
+  "release_policy": null,
+  "release_infra_version": null,
+  "desired_version": "4.1.1",
+  "latest_release": "v4.1.1",
+  "latest_release_at": "2026-09-07T05:38:32Z",
+  "latest_tag": "v4.1.1",
+  "draft_releases": [],
+  "actual_assets": [
+    "devart_dl-4.1.1-py3-none-any.whl",
+    "devart_dl-4.1.1.tar.gz"
+  ],
+  "release_workflows": [
+    {
+      "name": "Release",
+      "path": ".github/workflows/release.yml"
+    },
+    {
+      "name": "Deploy static content to Pages",
+      "path": ".github/workflows/static.yml"
+    }
+  ],
+  "latest_release_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/redtidev1918/deviantart-downloader/actions/runs/34089837979",
+    "updated_at": "2026-09-07T06:13:13Z"
+  },
+  "signals": [
+    ".release-please-manifest.json",
+    "CHANGELOG.md",
+    "pyproject.toml",
+    "release-please-config.json",
+    "setup.py"
+  ],
+  "workflow_paths": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/notify-profile.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/static.yml"
+  ],
+  "release_history": [
+    {
+      "tag": "v4.1.1",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-07T05:38:32Z",
+      "assets": [
+        {
+          "name": "devart_dl-4.1.1-py3-none-any.whl",
+          "size": 43720,
+          "sha256": "sha256:8326ec9c23ecf86bb3823f1960eb050cba886d50fba6481a5ef5ebe6fbc6f993"
+        },
+        {
+          "name": "devart_dl-4.1.1.tar.gz",
+          "size": 55156,
+          "sha256": "sha256:af39b739aa9306ccd0960f4ff8e82ce709f3b43091b75cc77a0e8fcf32e7e30e"
+        }
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "v4.1.1",
+      "commit": "b11c2e806524ac65b27a485775addfc21768d7b4"
+    },
+    {
+      "name": "v4.1.0",
+      "commit": "bd671d4a8728d42dc2bfeaade4d4de787e0eebf2"
+    },
+    {
+      "name": "v4.0.4",
+      "commit": "11aa40c6d4166502910e27b8114899477b2db8c8"
+    },
+    {
+      "name": "v4.0.3",
+      "commit": "082b9f45574d920552d5332695921242f191f54d"
+    },
+    {
+      "name": "v4.0.2",
+      "commit": "4150033addc1738124f2a2e77d4e96e32590c5bf"
+    },
+    {
+      "name": "v4.0.1",
+      "commit": "ec4c4abb301f473834b605467c24789d40a066fd"
+    },
+    {
+      "name": "v4.0.0",
+      "commit": "5f3e45450d05578d18244f7a49db61081547c1c2"
+    },
+    {
+      "name": "v3.4.0",
+      "commit": "d67b3eb559d8e42114ac3d7d570175a950fdc4ce"
+    },
+    {
+      "name": "v3.3.1",
+      "commit": "05cb69145ec52ce326e36d25561e606c007e4ad2"
+    }
+  ],
+  "release_config": {
+    "release-please-config.json": {
+      "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+      "packages": {
+        ".": {
+          "release-type": "python",
+          "package-name": "deviantart-downloader",
+          "include-v-in-tag": true,
+          "include-component-in-tag": false
+        }
+      }
+    },
+    ".release-please-manifest.json": {
+      ".": "4.1.1"
+    }
+  },
+  "registries": {
+    "pypi": {
+      "package": "devart-dl",
+      "declared": "4.1.1",
+      "published": "4.1.1"
+    }
+  }
+}

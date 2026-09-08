@@ -1,0 +1,2823 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-08T15:13:13.445871+00:00",
+  "repositories": [
+    {
+      "repo": "redtidev1918/BallonsTranslator-lite",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": true,
+      "template": false,
+      "classification": "fork",
+      "health": "NO_RELEASE",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": null,
+      "latest_release": null,
+      "latest_release_at": null,
+      "latest_tag": "v0.6.0",
+      "draft_releases": [],
+      "actual_assets": [],
+      "release_workflows": [],
+      "latest_release_run": null,
+      "signals": [
+        "pyproject.toml"
+      ],
+      "workflow_paths": [],
+      "release_history": [],
+      "tags": [
+        {
+          "name": "v0.6.0",
+          "commit": "cae84bc26c39d0e982dd1a018b6f2b7f5aca8a11"
+        },
+        {
+          "name": "v0.5.0",
+          "commit": "2f05a22f49346f09866d4098642c8b415e96c5c8"
+        },
+        {
+          "name": "v0.4.0",
+          "commit": "35d54c2e406a77ac70541ced8b78990d7f5e6ec0"
+        },
+        {
+          "name": "v0.3.1",
+          "commit": "1e52df8f343a5ac7a441cda642b9efe539c4e993"
+        },
+        {
+          "name": "v0.3.0",
+          "commit": "726034a6db3caf57983792666afa3e1c1c5a3dc9"
+        },
+        {
+          "name": "v0.2.1",
+          "commit": "487b487ac5655d166816199f3f716366d99b8777"
+        },
+        {
+          "name": "v0.2.0",
+          "commit": "2c0e2e45ab42be02a9d70699327dca64b8df5fdf"
+        }
+      ],
+      "release_config": {},
+      "registries": {
+        "pypi": {
+          "package": "BallonsTranslator-lite",
+          "declared": "0.6.0",
+          "published": null
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/dakit",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "1.0.0",
+      "latest_release": "dakit_cli-v0.4.1",
+      "latest_release_at": "2026-09-08T06:13:11Z",
+      "latest_tag": "python-preview-1.0.0a1",
+      "draft_releases": [],
+      "actual_assets": [
+        "dakit-cli-0.4.1-linux-arm64.tar.gz",
+        "dakit-cli-0.4.1-linux-x64.tar.gz",
+        "dakit-cli-0.4.1-macos-arm64-unsigned-preview.tar.gz",
+        "dakit-cli-0.4.1-macos-x64-unsigned-preview.tar.gz",
+        "dakit-cli-0.4.1-windows-x64.zip",
+        "SHA256SUMS"
+      ],
+      "release_workflows": [
+        {
+          "name": "Release",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "name": "Deploy static content to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/dakit/actions/runs/34193706997",
+        "updated_at": "2026-09-08T06:17:28Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "pubspec.yaml",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/static.yml",
+        ".github/workflows/update-download-page.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "dakit_cli-v0.4.1",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-08T06:13:11Z",
+          "assets": [
+            {
+              "name": "dakit-cli-0.4.1-linux-arm64.tar.gz",
+              "size": 3249360,
+              "sha256": "sha256:687d9d98ab170357733f4dc01211dcec720d0aa8f052b835d89db51ec17f71f1"
+            },
+            {
+              "name": "dakit-cli-0.4.1-linux-x64.tar.gz",
+              "size": 3370479,
+              "sha256": "sha256:cb28e7efaa39c4d1a9de07defe346a90283b0db7e6b38812f7fa1d69f312b7a7"
+            },
+            {
+              "name": "dakit-cli-0.4.1-macos-arm64-unsigned-preview.tar.gz",
+              "size": 3159315,
+              "sha256": "sha256:1831443bf367443f4e92bb9adfe1eef1663617352a07d5a6b6b181ba1706b482"
+            },
+            {
+              "name": "dakit-cli-0.4.1-macos-x64-unsigned-preview.tar.gz",
+              "size": 3362610,
+              "sha256": "sha256:da6dbd9ca0c61d09f67e5d89c44f6b06ee731fd28080d3383544acbd593e07e1"
+            },
+            {
+              "name": "dakit-cli-0.4.1-windows-x64.zip",
+              "size": 3440682,
+              "sha256": "sha256:747ae82ea94402ac419bf34c7cc6712b55ddda9e648f15f108c9a5e8869608e6"
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 532,
+              "sha256": "sha256:f45e4a4af55b42cc901cb2ca378a11672ae80a933582c687a22a1ab5cedf03b6"
+            }
+          ]
+        },
+        {
+          "tag": "dakit_cli-v0.4.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-07T07:41:55Z",
+          "assets": [
+            {
+              "name": "dakit-cli-0.4.0-linux-arm64.tar.gz",
+              "size": 3249062,
+              "sha256": "sha256:5e2ff90bdcfc493b95e8ddbf5f4c7867c669558a920a8975dbaa4631849d143f"
+            },
+            {
+              "name": "dakit-cli-0.4.0-linux-x64.tar.gz",
+              "size": 3370451,
+              "sha256": "sha256:a5a11ffb33709bdfdb93b9358dca18c081d673234d98a781352ab6578086124c"
+            },
+            {
+              "name": "dakit-cli-0.4.0-macos-arm64-unsigned-preview.tar.gz",
+              "size": 3159268,
+              "sha256": "sha256:070d110726af874d721c57e332e9fbb208ef4a9f4a9c7dedc0f9991134b5566d"
+            },
+            {
+              "name": "dakit-cli-0.4.0-macos-x64-unsigned-preview.tar.gz",
+              "size": 3362602,
+              "sha256": "sha256:25e827f081221de01bbf4bf19b29fdcab7023dd1133bb31cff06cfdcb1ccb778"
+            },
+            {
+              "name": "dakit-cli-0.4.0-windows-x64.zip",
+              "size": 3440674,
+              "sha256": "sha256:91bdc40fb44d77b509ddb5d8aff836bd483ac0d116e3930af587876cc9046991"
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 532,
+              "sha256": "sha256:199965f83b0fed2b711ae3519099a3f39fee55a44c87d714e7fdc90f4edf54e1"
+            }
+          ]
+        },
+        {
+          "tag": "dakit_cli-v0.3.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-06T09:19:54Z",
+          "assets": [
+            {
+              "name": "dakit-cli-0.3.0-linux-arm64.tar.gz",
+              "size": 3248739,
+              "sha256": "sha256:17501ad31b7d5d0eba278b6742144941da7e9a4cb03642647fcd2ca8a0754dad"
+            },
+            {
+              "name": "dakit-cli-0.3.0-linux-x64.tar.gz",
+              "size": 3369930,
+              "sha256": "sha256:3c9a62ea377e02f4a6eba76ceca6f726e3b5cd130d71221077d4d07e10dc3d9f"
+            },
+            {
+              "name": "dakit-cli-0.3.0-macos-arm64-unsigned-preview.tar.gz",
+              "size": 3159419,
+              "sha256": "sha256:ff67a72214d3ad348ca51f2f284ab268accbe66918a036ad4f3c3332f1e5d1dc"
+            },
+            {
+              "name": "dakit-cli-0.3.0-macos-x64-unsigned-preview.tar.gz",
+              "size": 3362614,
+              "sha256": "sha256:6ea4e3cfeff37352c29b1ccbc84b1327658c26e7e493543bbde9d1629e183c7e"
+            },
+            {
+              "name": "dakit-cli-0.3.0-windows-x64.zip",
+              "size": 3438982,
+              "sha256": "sha256:7f063d6187ecdeb642e57a2c770bf9141715e65132c45bde042e9b904de81733"
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 532,
+              "sha256": "sha256:5844fe652aa05653f54a28ee97b8eeb1b8ee27266f11b79e823f66bed08cc44e"
+            }
+          ]
+        },
+        {
+          "tag": "dakit_cli-v0.2.3",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-05T21:31:35Z",
+          "assets": [
+            {
+              "name": "dakit-cli-0.2.3-linux-arm64.tar.gz",
+              "size": 3234007,
+              "sha256": "sha256:d934afc4563dcd39eef54a7df9f49f57daf6199643a77bdd946ad4ab8a2b542d"
+            },
+            {
+              "name": "dakit-cli-0.2.3-linux-x64.tar.gz",
+              "size": 3355055,
+              "sha256": "sha256:fa560d465ffa9fa8f2e3f26c63d4995e05f3b937576ce19a2576c7dc53c8111a"
+            },
+            {
+              "name": "dakit-cli-0.2.3-macos-arm64-unsigned-preview.tar.gz",
+              "size": 3142613,
+              "sha256": "sha256:0e8c42b79d8db2d2f038bad21bdb7d9aa80d07bdc8f4e145d3194de864c59e64"
+            },
+            {
+              "name": "dakit-cli-0.2.3-macos-x64-unsigned-preview.tar.gz",
+              "size": 3348630,
+              "sha256": "sha256:7dc5e9829b4acfe1bc555a7c84d00912ef83f00bae963a63cfc1de0b48011957"
+            },
+            {
+              "name": "dakit-cli-0.2.3-windows-x64.zip",
+              "size": 3426674,
+              "sha256": "sha256:5e86928bf7446f25f28deeabcf84d217889737be22c3030815c3e998c88ded6c"
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 532,
+              "sha256": "sha256:7995fc966b0cb7bead5f194f9a2a5b2f0d0d770aaa5c332f514955a335429217"
+            }
+          ]
+        },
+        {
+          "tag": "dakit_cli-v0.2.2",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-08-26T05:04:22Z",
+          "assets": [
+            {
+              "name": "dakit-cli-0.2.2-linux-arm64.tar.gz",
+              "size": 3233950,
+              "sha256": "sha256:0576977de2986fb2bc9d5cfcc9befc438307a84f91ddf4d1f7b25052ff1f3ccd"
+            },
+            {
+              "name": "dakit-cli-0.2.2-linux-x64.tar.gz",
+              "size": 3356083,
+              "sha256": "sha256:73c0b9e62b783aea09aa3e548b502a8ed4073e405643c54eb03930bee1435088"
+            },
+            {
+              "name": "dakit-cli-0.2.2-macos-arm64-unsigned-preview.tar.gz",
+              "size": 3142397,
+              "sha256": "sha256:d79cd131b733a15ebb4e2e976b3b4c41fcb5ae718a0f502a07106edc402011ec"
+            },
+            {
+              "name": "dakit-cli-0.2.2-macos-x64-unsigned-preview.tar.gz",
+              "size": 3348545,
+              "sha256": "sha256:9b1eb0a6cd5c134ffbe4172ced36e03ff0c02ffa13a9a467a33f42a83bdef9e0"
+            },
+            {
+              "name": "dakit-cli-0.2.2-windows-x64.zip",
+              "size": 3426563,
+              "sha256": "sha256:bdff1c28c31ba39f2cb2928d1e53591f8cb5be2ec6f94ad30378cac8b12f99a5"
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 532,
+              "sha256": "sha256:40711a088a5eab820231c9a03be4cde393824df4f685b034b2b7bbb8e955ad06"
+            }
+          ]
+        },
+        {
+          "tag": "dakit_cli-v0.2.1",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-08-23T05:28:45Z",
+          "assets": [
+            {
+              "name": "dakit-cli-0.2.1-linux-arm64.tar.gz",
+              "size": 3212236,
+              "sha256": "sha256:f7220650ceaa83def14041fd5d4785b02fa3955bfdf61b6cbd31b83801fd1843"
+            },
+            {
+              "name": "dakit-cli-0.2.1-linux-x64.tar.gz",
+              "size": 3332230,
+              "sha256": "sha256:34b54acee93d33a7f8b14dee1c9baca2478007c311a2f694a28ac663c50ec3c0"
+            },
+            {
+              "name": "dakit-cli-0.2.1-macos-arm64-unsigned-preview.tar.gz",
+              "size": 3115561,
+              "sha256": "sha256:05b4c88ed8b04289e2ff1fb1578fd6a6c77785d98017904cdc1a724cfc8ab18d"
+            },
+            {
+              "name": "dakit-cli-0.2.1-macos-x64-unsigned-preview.tar.gz",
+              "size": 3321172,
+              "sha256": "sha256:2fc7f2665df4ead4ce0f49c5938dab7cb87ceee50c9550c9f92e409fc59273de"
+            },
+            {
+              "name": "dakit-cli-0.2.1-windows-x64.zip",
+              "size": 3399884,
+              "sha256": "sha256:d0d0bfc4f92b1a4795176895e8d34c0c7be8f2f5738c439bf27760fb0bab0ad6"
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 532,
+              "sha256": "sha256:c306c8a10eb4c3dbc5c772867f2e39d88f11be21da9b3c762fd6d71a57101e8a"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "name": "python-preview-1.0.0a1",
+          "commit": "a38360da35e93fee39ed9a9cff31ecd2908bbbdd"
+        },
+        {
+          "name": "dakit_flutter-v1.0.0",
+          "commit": "6828bbca3bbe8655c7ed6de6d5bd9ecbb894e9da"
+        },
+        {
+          "name": "dakit_flutter-v0.1.13",
+          "commit": "60ec841094979eb94b6af7f88aee869945904aae"
+        },
+        {
+          "name": "dakit_flutter-v0.1.12",
+          "commit": "c9ad7fdc56789466fe3e73ff7de7b1bbf4b881a4"
+        },
+        {
+          "name": "dakit_flutter-v0.1.11",
+          "commit": "2deabc3f312a021802ec521e696b6006e625d524"
+        },
+        {
+          "name": "dakit_flutter-v0.1.10",
+          "commit": "ccf95a071f1d3b1cf5897faf51b0528826f7fe16"
+        },
+        {
+          "name": "dakit_flutter-v0.1.9",
+          "commit": "cb2ccf828aec0e5b50a4e2a78603663ee538f5cf"
+        },
+        {
+          "name": "dakit_flutter-v0.1.8",
+          "commit": "244e00e31d25bfc9b16e74c6fa05fcaead7f4885"
+        },
+        {
+          "name": "dakit_flutter-v0.1.7",
+          "commit": "b9bcff9d4a6e4c2bf01f1aff240b5acc5b0e8369"
+        },
+        {
+          "name": "dakit_flutter-v0.1.6",
+          "commit": "c8eded56accb641953f6625b20def38de5742e95"
+        },
+        {
+          "name": "dakit_flutter-v0.1.5",
+          "commit": "874f7dfa6632c6a55a6f626c4ac612a4685f24c1"
+        },
+        {
+          "name": "dakit_flutter-v0.1.4",
+          "commit": "9e596ddf16cb0a9d44e3c05efb5a9f895ecba078"
+        },
+        {
+          "name": "dakit_flutter-v0.1.3",
+          "commit": "8e00235157e73ca029d348928ae65df2fe8a6e2c"
+        },
+        {
+          "name": "dakit_flutter-v0.1.2",
+          "commit": "602f0f6aa5eb4d450baee42b037e48619876935b"
+        },
+        {
+          "name": "dakit_flutter-v0.1.1",
+          "commit": "d6a8d886135bba25c54549ed0659c9f3e048b58f"
+        },
+        {
+          "name": "dakit_core-v1.0.0",
+          "commit": "4c4aec379ff513391c6948ea95d796dd59d1140c"
+        },
+        {
+          "name": "dakit_core-v0.2.0",
+          "commit": "b93927cb208d388ecdf3198a5f00e8994f3dfff8"
+        },
+        {
+          "name": "dakit_core-v0.1.15",
+          "commit": "c9ad7fdc56789466fe3e73ff7de7b1bbf4b881a4"
+        },
+        {
+          "name": "dakit_core-v0.1.14",
+          "commit": "2deabc3f312a021802ec521e696b6006e625d524"
+        },
+        {
+          "name": "dakit_core-v0.1.13",
+          "commit": "1209d3a897db1a2f7a5ee5bacfe1c49ce21db6e0"
+        },
+        {
+          "name": "dakit_core-v0.1.12",
+          "commit": "cad0323c0a26cb0c62c505499fb0d729ef9542f8"
+        },
+        {
+          "name": "dakit_core-v0.1.11",
+          "commit": "244e00e31d25bfc9b16e74c6fa05fcaead7f4885"
+        },
+        {
+          "name": "dakit_core-v0.1.10",
+          "commit": "243bfa05a0eba44f73e333d50ebec89372c843a4"
+        },
+        {
+          "name": "dakit_core-v0.1.9",
+          "commit": "b535604ea6e87610ea62d66f5b14e833a74461c8"
+        },
+        {
+          "name": "dakit_core-v0.1.8",
+          "commit": "0bdf15061294d2287f68286d19890f46699a3eaf"
+        },
+        {
+          "name": "dakit_core-v0.1.7",
+          "commit": "f6a2674ad084a66a04bfc5217a867309af716729"
+        },
+        {
+          "name": "dakit_core-v0.1.6",
+          "commit": "9e596ddf16cb0a9d44e3c05efb5a9f895ecba078"
+        },
+        {
+          "name": "dakit_core-v0.1.5",
+          "commit": "602f0f6aa5eb4d450baee42b037e48619876935b"
+        },
+        {
+          "name": "dakit_core-v0.1.4",
+          "commit": "c78cfbff7abb51bde09b8c2bed842a840fb5904b"
+        },
+        {
+          "name": "dakit_core-v0.1.3",
+          "commit": "2dc6271ee055b6499b84e0012681aa6b913b95bd"
+        },
+        {
+          "name": "dakit_core-v0.1.2",
+          "commit": "00e4749c717fff928e5087b861ec192711c1a6d7"
+        },
+        {
+          "name": "dakit_core-v0.1.1",
+          "commit": "11d8c49c5c313821801236b73022fde84f80c4a3"
+        },
+        {
+          "name": "dakit_cli-v0.4.1",
+          "commit": "708f86620dca8a0be26bc39b19dd8f5e74bbbcf7"
+        },
+        {
+          "name": "dakit_cli-v0.4.0",
+          "commit": "4c4aec379ff513391c6948ea95d796dd59d1140c"
+        },
+        {
+          "name": "dakit_cli-v0.3.0",
+          "commit": "b93927cb208d388ecdf3198a5f00e8994f3dfff8"
+        },
+        {
+          "name": "dakit_cli-v0.2.3",
+          "commit": "6992ac8123aa2b1ef55e8c71e19e13e60b7d55e0"
+        },
+        {
+          "name": "dakit_cli-v0.2.2",
+          "commit": "aa4499ce59192cdb7023074db765d1aebc4545fa"
+        },
+        {
+          "name": "dakit_cli-v0.2.1",
+          "commit": "4772723931553c3fc1bfbe59348aed2a9c678b66"
+        },
+        {
+          "name": "dakit_cli-v0.2.0",
+          "commit": "31873a80865b4134c80b33e1d4ce822b5eda791b"
+        },
+        {
+          "name": "dakit_api-v1.0.0",
+          "commit": "6828bbca3bbe8655c7ed6de6d5bd9ecbb894e9da"
+        },
+        {
+          "name": "dakit_api-v0.2.0",
+          "commit": "b93927cb208d388ecdf3198a5f00e8994f3dfff8"
+        },
+        {
+          "name": "dakit_api-v0.1.30",
+          "commit": "0765cbb4b838e0bdc5b28e2016bb670a81d6df7a"
+        },
+        {
+          "name": "dakit_api-v0.1.29",
+          "commit": "c9ad7fdc56789466fe3e73ff7de7b1bbf4b881a4"
+        },
+        {
+          "name": "dakit_api-v0.1.28",
+          "commit": "2deabc3f312a021802ec521e696b6006e625d524"
+        },
+        {
+          "name": "dakit_api-v0.1.27",
+          "commit": "da94dc5bbc5444b21224dfde378c44cecf2f3fed"
+        },
+        {
+          "name": "dakit_api-v0.1.26",
+          "commit": "1209d3a897db1a2f7a5ee5bacfe1c49ce21db6e0"
+        },
+        {
+          "name": "dakit_api-v0.1.25",
+          "commit": "256a6c84115a0b9cb9b8460ba1a8f46cea077107"
+        },
+        {
+          "name": "dakit_api-v0.1.24",
+          "commit": "7ddd9e1b96836bc800fa37c34d7e4c269e6f1b48"
+        },
+        {
+          "name": "dakit_api-v0.1.23",
+          "commit": "4b1567e9a3de9a26e9f11f2b1b83fb1b8656189a"
+        },
+        {
+          "name": "dakit_api-v0.1.22",
+          "commit": "cade2c75271223b60b184034de7f86aea9a60d6b"
+        },
+        {
+          "name": "dakit_api-v0.1.21",
+          "commit": "a442d7307a9b7bfec7a4310a09a065816619cb04"
+        },
+        {
+          "name": "dakit_api-v0.1.20",
+          "commit": "c31414cb6bb40ac751f9029c41ab153f980b22ce"
+        },
+        {
+          "name": "dakit_api-v0.1.19",
+          "commit": "cad0323c0a26cb0c62c505499fb0d729ef9542f8"
+        },
+        {
+          "name": "dakit_api-v0.1.18",
+          "commit": "50f95308fdc69a2199706d4969a0d87e360809e9"
+        },
+        {
+          "name": "dakit_api-v0.1.17",
+          "commit": "8b811295e3f7da215182d7ac4f45d0e1cb40f392"
+        },
+        {
+          "name": "dakit_api-v0.1.16",
+          "commit": "96afbeea1403a5f9c1eb86d32bb42e2fd9c3e6b3"
+        },
+        {
+          "name": "dakit_api-v0.1.15",
+          "commit": "244e00e31d25bfc9b16e74c6fa05fcaead7f4885"
+        },
+        {
+          "name": "dakit_api-v0.1.14",
+          "commit": "4e8853620dcaca172da6570982fece8d7ac124cf"
+        },
+        {
+          "name": "dakit_api-v0.1.13",
+          "commit": "bcf677eb707356fb25cb9473ee8a3777980b506c"
+        },
+        {
+          "name": "dakit_api-v0.1.12",
+          "commit": "243bfa05a0eba44f73e333d50ebec89372c843a4"
+        },
+        {
+          "name": "dakit_api-v0.1.11",
+          "commit": "b535604ea6e87610ea62d66f5b14e833a74461c8"
+        },
+        {
+          "name": "dakit_api-v0.1.10",
+          "commit": "0bdf15061294d2287f68286d19890f46699a3eaf"
+        },
+        {
+          "name": "dakit_api-v0.1.9",
+          "commit": "2c9de59512e52b8d6c783862710912be71d11323"
+        },
+        {
+          "name": "dakit_api-v0.1.8",
+          "commit": "bd2984b3d9b2860aca67bfba75705565f8e48240"
+        },
+        {
+          "name": "dakit_api-v0.1.7",
+          "commit": "d1df323270242ad262589118aecc8012ad128ef6"
+        },
+        {
+          "name": "dakit_api-v0.1.6",
+          "commit": "5c357d9b4e643a1e51dafa417ea9abd0bf756441"
+        },
+        {
+          "name": "dakit_api-v0.1.5",
+          "commit": "0943d413bad9de9a50d1c073dd6573b47d626c1b"
+        },
+        {
+          "name": "dakit_api-v0.1.4",
+          "commit": "b0fbfbbd57468836e165da927640c53faf7737dc"
+        },
+        {
+          "name": "dakit_api-v0.1.3",
+          "commit": "c78cfbff7abb51bde09b8c2bed842a840fb5904b"
+        },
+        {
+          "name": "dakit_api-v0.1.2",
+          "commit": "2dc6271ee055b6499b84e0012681aa6b913b95bd"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            "packages/dakit_core": {
+              "release-type": "dart",
+              "package-name": "dakit_core",
+              "component": "dakit_core",
+              "include-v-in-tag": true,
+              "include-component-in-tag": true,
+              "tag-separator": "-"
+            },
+            "packages/dakit_api": {
+              "release-type": "dart",
+              "package-name": "dakit_api",
+              "component": "dakit_api",
+              "include-v-in-tag": true,
+              "include-component-in-tag": true,
+              "tag-separator": "-"
+            },
+            "packages/dakit_flutter": {
+              "release-type": "dart",
+              "package-name": "dakit_flutter",
+              "component": "dakit_flutter",
+              "include-v-in-tag": true,
+              "include-component-in-tag": true,
+              "tag-separator": "-"
+            },
+            "packages/dakit_cli": {
+              "release-type": "dart",
+              "package-name": "dakit_cli",
+              "component": "dakit_cli",
+              "include-v-in-tag": true,
+              "include-component-in-tag": true,
+              "tag-separator": "-"
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          "packages/dakit_core": "1.0.0",
+          "packages/dakit_api": "1.0.0",
+          "packages/dakit_flutter": "1.0.0",
+          "packages/dakit_cli": "0.4.1"
+        }
+      },
+      "registries": {
+        "pub": {
+          "package": "dakit_workspace",
+          "declared": "0.1.0",
+          "published": null
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/daviewer",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "0.2.184",
+      "latest_release": "v0.2.184",
+      "latest_release_at": "2026-09-06T20:33:21Z",
+      "latest_tag": "v0.2.184",
+      "draft_releases": [],
+      "actual_assets": [
+        "DAViewer-0.2.184-macos-unsigned-preview.zip",
+        "DAViewer-0.2.184-windows.zip",
+        "DAViewer-0.2.184.apk"
+      ],
+      "release_workflows": [
+        {
+          "name": "Release",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "name": "Deploy static content to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": null,
+      "signals": [
+        ".release-please-manifest.json",
+        "CHANGELOG.md",
+        "pubspec.yaml",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/static.yml",
+        ".github/workflows/update-download-page.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v0.2.184",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-06T20:33:21Z",
+          "assets": [
+            {
+              "name": "DAViewer-0.2.184-macos-unsigned-preview.zip",
+              "size": 24800988,
+              "sha256": "sha256:c4cbe037261932be0f071c7f32f65c5a65e311550518d159588c87c036948e03"
+            },
+            {
+              "name": "DAViewer-0.2.184-windows.zip",
+              "size": 14607132,
+              "sha256": "sha256:5309131019170e8a2a392c2b17e46006795c8c939bcd7f6ab9828b4d9d1dcf99"
+            },
+            {
+              "name": "DAViewer-0.2.184.apk",
+              "size": 65422234,
+              "sha256": "sha256:f2f83711fe379fe3a5a3f18b8103de38448771a015dae7f9c5956d3d174e085c"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "name": "v0.2.184",
+          "commit": "62c60d41eccc5bc09c80070e1e984215b5717207"
+        },
+        {
+          "name": "v0.2.183",
+          "commit": "6f05e3a6924f0d23016214aefb7e04f6b335e4f5"
+        },
+        {
+          "name": "v0.2.182",
+          "commit": "bf7d76faa481b13e6411d801c09fbc7202be9955"
+        },
+        {
+          "name": "v0.2.181",
+          "commit": "35c259ef0e82c908d830d6350cd53d91a67c5562"
+        },
+        {
+          "name": "v0.2.180",
+          "commit": "0d5a60224902f89884a74aa6cde2521f14eeb313"
+        },
+        {
+          "name": "v0.2.179",
+          "commit": "e0e027455e6616f755119e84c54577dc5d032676"
+        },
+        {
+          "name": "v0.2.178",
+          "commit": "6281a0b33c5a7fadbc2e538de26929254a9ba854"
+        },
+        {
+          "name": "v0.2.177",
+          "commit": "1ad466c1188b73524e66213b6c956267499a200c"
+        },
+        {
+          "name": "v0.2.176",
+          "commit": "67175671ba036978ac53f9f17d4258d4914c3db5"
+        },
+        {
+          "name": "v0.2.175",
+          "commit": "b39b258f6fd378530871c0c957a1ceb2999dea67"
+        },
+        {
+          "name": "v0.2.174",
+          "commit": "ee4dc795dadfbebc3373a1de05aec8c2e9a43f78"
+        },
+        {
+          "name": "v0.2.173",
+          "commit": "a5526dadfef664312387637e7c2e2edc13d6f1db"
+        },
+        {
+          "name": "v0.2.172",
+          "commit": "aec4f1e5d1f348afc513a1fe7d02b4d913dfb0a8"
+        },
+        {
+          "name": "v0.2.171",
+          "commit": "c58d5fa495ad09d9bbc4c70c03a22edb0c5cec5f"
+        },
+        {
+          "name": "v0.2.170",
+          "commit": "31ea240b1efbed1fee2b58c5479fcf056fb5c761"
+        },
+        {
+          "name": "v0.2.169",
+          "commit": "3ab78367c555ce2062b3ba15cb9f69b0950895f6"
+        },
+        {
+          "name": "v0.2.168",
+          "commit": "6dd41eefe6d58bdc2129fe3980c151d3a1a586a2"
+        },
+        {
+          "name": "v0.2.167",
+          "commit": "30d2191220eb4ca87ffe0a5daf0a9609108b8353"
+        },
+        {
+          "name": "v0.2.166",
+          "commit": "a79296ddc5ef3eca9f035343e42b6c911da43e73"
+        },
+        {
+          "name": "v0.2.165",
+          "commit": "9874f5d3b342c2b4aedbccf6f0c6d62007f71e00"
+        },
+        {
+          "name": "v0.2.164",
+          "commit": "a1583050a6160c32469fa8d87f5dbf163b8e02ed"
+        },
+        {
+          "name": "v0.2.163",
+          "commit": "6a6c08c2f2f11c50e2d0626115cfa59209a7d770"
+        },
+        {
+          "name": "v0.2.162",
+          "commit": "294aa13fab4d300c484ecb823f0c26ca18f1a92f"
+        },
+        {
+          "name": "v0.2.161",
+          "commit": "f48755b4430f75c7cd531bfb896c0fd48b64c5d5"
+        },
+        {
+          "name": "v0.2.160",
+          "commit": "b010678b0626d4bcb88f855e84b9f5563d44165a"
+        },
+        {
+          "name": "v0.2.159",
+          "commit": "9090dd11a450f361e4983b6320360d116b1b9deb"
+        },
+        {
+          "name": "v0.2.158",
+          "commit": "8a3b1fc40e727b166fd96eb4004a7d622f96e501"
+        },
+        {
+          "name": "v0.2.157",
+          "commit": "ebc57bccf43037a7dda62fc5f3065615401da16a"
+        },
+        {
+          "name": "v0.2.156",
+          "commit": "dc91bfc34a8fcac4e6f2b0b63c7fb54231f16681"
+        },
+        {
+          "name": "v0.2.155",
+          "commit": "8e7ff1132e01bca2585fc2c859f9b5a544a0642d"
+        },
+        {
+          "name": "v0.2.154",
+          "commit": "58452feb1e634c4067f56bb5d3f65887239a1b84"
+        },
+        {
+          "name": "v0.2.153",
+          "commit": "7d5c1cdebb2a8829220b06f57f734cf39cc54ba0"
+        },
+        {
+          "name": "v0.2.152",
+          "commit": "e0861055c1ae3795dc74b41cefb1ba21326ae897"
+        },
+        {
+          "name": "v0.2.151",
+          "commit": "b986392e4ef8bf10722cde2fbc0bb4fd93ebe08c"
+        },
+        {
+          "name": "v0.2.150",
+          "commit": "47b4455a69a4b6731733a62e948a7dc978011e8b"
+        },
+        {
+          "name": "v0.2.149",
+          "commit": "4b34fed3dbc7bc5e1af628aff22d0c8b12da3cf0"
+        },
+        {
+          "name": "v0.2.148",
+          "commit": "f510ba075363d3b5cfdcc7b6065da183eb4fd846"
+        },
+        {
+          "name": "v0.2.147",
+          "commit": "e4b40f65f4c5fdffb52f75675f288001f00a1393"
+        },
+        {
+          "name": "v0.2.146",
+          "commit": "ca23aa36e9e4275cbe60a5cf6716a5ce861e090a"
+        },
+        {
+          "name": "v0.2.145",
+          "commit": "a28c70d444c058221a643f130ae9e29e06c53e15"
+        },
+        {
+          "name": "v0.2.144",
+          "commit": "13619bec1fa8bca46dc56b2c7686b3b894cc2d6e"
+        },
+        {
+          "name": "v0.2.143",
+          "commit": "7f83a0566eb0d8403289162bea535b8130a243f2"
+        },
+        {
+          "name": "v0.2.142",
+          "commit": "692270af5d8cd09652219fc5c5f0242d2fefdb92"
+        },
+        {
+          "name": "v0.2.141",
+          "commit": "65b39290431844e3a8c21dfd8b8c9b0547e110e6"
+        },
+        {
+          "name": "v0.2.140",
+          "commit": "7f7c2615565b4724e367e0a7a03a8809e408e2e9"
+        },
+        {
+          "name": "v0.2.139",
+          "commit": "651412a165faded2c1bc0f8954c29f9ddb309165"
+        },
+        {
+          "name": "v0.2.138",
+          "commit": "503832ae3e430449bfbff7a6853d60245260f018"
+        },
+        {
+          "name": "v0.2.137",
+          "commit": "3f5b7328e719d7ac8d45e438e28822408d952693"
+        },
+        {
+          "name": "v0.2.136",
+          "commit": "97504d41cf792ad895a3a23c777dbd27a6ada226"
+        },
+        {
+          "name": "v0.2.135",
+          "commit": "09916cbc0fa150622c7df39f361a1c8b8f0f2454"
+        },
+        {
+          "name": "v0.2.134",
+          "commit": "2d25f2983ab8a4b5dd2ca84f64da8e4017d32182"
+        },
+        {
+          "name": "v0.2.133",
+          "commit": "eea98683c00589f8c0d013a1603a0abe373cdd0f"
+        },
+        {
+          "name": "v0.2.132",
+          "commit": "5d4a4f1a221de1a2d7c01b4deb89b0a8542b3a54"
+        },
+        {
+          "name": "v0.2.131",
+          "commit": "38fed00476d74d2be14054d2988e432aad7bb8df"
+        },
+        {
+          "name": "v0.2.130",
+          "commit": "96c4f78ac27b4f953c66c6a92b9c4d64eb5e75c0"
+        },
+        {
+          "name": "v0.2.129",
+          "commit": "b89c0683a21d1eb241458cb07b2d9ccfc0556af0"
+        },
+        {
+          "name": "v0.2.128",
+          "commit": "90bdb833f35110f2bb47cf9c50c47165e775c4a1"
+        },
+        {
+          "name": "v0.2.127",
+          "commit": "9602d9576b22fe1c0190b84bc894f472528cd536"
+        },
+        {
+          "name": "v0.2.126",
+          "commit": "3dd529043aa270c63857e5c8b0e78c0a134c97f3"
+        },
+        {
+          "name": "v0.2.125",
+          "commit": "c4210bd6976cf39b2589ecd20200812f481525a8"
+        },
+        {
+          "name": "v0.2.124",
+          "commit": "bdb6739c782fd03687ddc347fcfaae514e03fe3b"
+        },
+        {
+          "name": "v0.2.123",
+          "commit": "a5321e9e53b1cf618f45facb0e2ac3a67499a099"
+        },
+        {
+          "name": "v0.2.122",
+          "commit": "fcd2b729d5e201bf3ff74c6d49ea70826510b43a"
+        },
+        {
+          "name": "v0.2.121",
+          "commit": "58f8f420e355409ed042cece3770f54e9edd5504"
+        },
+        {
+          "name": "v0.2.120",
+          "commit": "a425359e6db417ce5964c9eb61baa4544b090589"
+        },
+        {
+          "name": "v0.2.119",
+          "commit": "b5df1da440f0511cd892e6dc52481a162658969d"
+        },
+        {
+          "name": "v0.2.118",
+          "commit": "4b3f49bccfe7ddbbb4391d35905cc7b05345b8aa"
+        },
+        {
+          "name": "v0.2.117",
+          "commit": "0a500bbb7bfe3b2eb94f777b4e9e6dbde4b2289e"
+        },
+        {
+          "name": "v0.2.116",
+          "commit": "819b45046adaddf069d331ec1998f94d49b8c268"
+        },
+        {
+          "name": "v0.2.115",
+          "commit": "7c389cecfadfbe991c8f7afa920a860c452a81b0"
+        },
+        {
+          "name": "v0.2.114",
+          "commit": "ec086e74267d70e2b454b6a2982dc0e67f5f7f63"
+        },
+        {
+          "name": "v0.2.113",
+          "commit": "2ba177f6d324f4c67aea08f6e64d19fac9aec5c4"
+        },
+        {
+          "name": "v0.2.112",
+          "commit": "804f099d52d7d31139c0ceaf5a2e990e78ec40a2"
+        },
+        {
+          "name": "v0.2.111",
+          "commit": "395f6c906a08feac64875a044cb1b82654ed147b"
+        },
+        {
+          "name": "v0.2.110",
+          "commit": "c3644378f36b10886ac4d113695eacab1a096192"
+        },
+        {
+          "name": "v0.2.109",
+          "commit": "f4dabd9ef24ef69a7e5ea93cc6696b5ff919849b"
+        },
+        {
+          "name": "v0.2.108",
+          "commit": "c410f3ab7cfc6c825c1224a37f5f53843da277d2"
+        },
+        {
+          "name": "v0.2.107",
+          "commit": "ab015a6d96444243bb373fce76a57a933e5d9487"
+        },
+        {
+          "name": "v0.2.106",
+          "commit": "fdd9813bebc371caa9cd7116af82ac7dacdbf9a3"
+        },
+        {
+          "name": "v0.2.105",
+          "commit": "bee85366628ea884a5e22d35ba80cd2a4fc621df"
+        },
+        {
+          "name": "v0.2.104",
+          "commit": "cf20847573f9bc5655a3ed9ac65188650f358f48"
+        },
+        {
+          "name": "v0.2.103",
+          "commit": "04e882ad534a6f142677276a61a7a4f228b48ab0"
+        },
+        {
+          "name": "v0.2.102",
+          "commit": "20feb50daf4700472f70d2139ada85998751f349"
+        },
+        {
+          "name": "v0.2.101",
+          "commit": "fe07ee5d8baea2d43de43dfd586b2c1ddca4ac71"
+        },
+        {
+          "name": "v0.2.100",
+          "commit": "99d2b977d6fffa8bb3064b0cbc642de543c844d4"
+        },
+        {
+          "name": "v0.2.99",
+          "commit": "723d9ab80becc879238a96585f231889d621a005"
+        },
+        {
+          "name": "v0.2.98",
+          "commit": "997759cb3987c747f8c2fec2fe453e2907096d6c"
+        },
+        {
+          "name": "v0.2.97",
+          "commit": "ae50dca3be1b151f85b0c62dbe7e8b59e4eb0b69"
+        },
+        {
+          "name": "v0.2.96",
+          "commit": "6b58c1f01fa46de0b331fa9afa03060e534a9a1a"
+        },
+        {
+          "name": "v0.2.95",
+          "commit": "a7e822ca48be842567e0cc7b46c061897c8f7dac"
+        },
+        {
+          "name": "v0.2.94",
+          "commit": "7e6dc7a2b1f9317b0cb2830dffa71a4751bcedcb"
+        },
+        {
+          "name": "v0.2.93",
+          "commit": "3d747ed621586356993dbe89bfd2d519ef4b73f1"
+        },
+        {
+          "name": "v0.2.89",
+          "commit": "3961f99fbbb4757fae2161a1b67914625955ad9a"
+        },
+        {
+          "name": "v0.2.69",
+          "commit": "71ed81851c37ecad9322362fea0d98efe7602c64"
+        },
+        {
+          "name": "v0.2.68",
+          "commit": "17414861df9f7c1798f5fe7ef51f0af499032aa6"
+        },
+        {
+          "name": "v0.2.42",
+          "commit": "879e83f30753c7836001bad5a2783ed2b913524e"
+        },
+        {
+          "name": "v0.2.41",
+          "commit": "a2db0d04e4e894d2b135a3fe70811682ebe31ce8"
+        },
+        {
+          "name": "v0.2.14",
+          "commit": "53a1668b95afbfe24d59cbd356fb486e8bbcb005"
+        },
+        {
+          "name": "v0.2.13",
+          "commit": "8654f63e32f0919c4b7611e53acc28d815a799e1"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            ".": {
+              "release-type": "dart",
+              "package-name": "daviewer",
+              "include-v-in-tag": true,
+              "include-component-in-tag": false
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "0.2.184"
+        }
+      },
+      "registries": {
+        "pub": {
+          "package": "daviewer",
+          "declared": "0.2.184",
+          "published": null
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/deviantart-downloader",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "4.1.1",
+      "latest_release": "v4.1.1",
+      "latest_release_at": "2026-09-07T05:38:32Z",
+      "latest_tag": "v4.1.1",
+      "draft_releases": [],
+      "actual_assets": [
+        "devart_dl-4.1.1-py3-none-any.whl",
+        "devart_dl-4.1.1.tar.gz"
+      ],
+      "release_workflows": [
+        {
+          "name": "Release",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "name": "Deploy static content to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/deviantart-downloader/actions/runs/34089837979",
+        "updated_at": "2026-09-07T06:13:13Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "CHANGELOG.md",
+        "pyproject.toml",
+        "release-please-config.json",
+        "setup.py"
+      ],
+      "workflow_paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/static.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v4.1.1",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-07T05:38:32Z",
+          "assets": [
+            {
+              "name": "devart_dl-4.1.1-py3-none-any.whl",
+              "size": 43720,
+              "sha256": "sha256:8326ec9c23ecf86bb3823f1960eb050cba886d50fba6481a5ef5ebe6fbc6f993"
+            },
+            {
+              "name": "devart_dl-4.1.1.tar.gz",
+              "size": 55156,
+              "sha256": "sha256:af39b739aa9306ccd0960f4ff8e82ce709f3b43091b75cc77a0e8fcf32e7e30e"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "name": "v4.1.1",
+          "commit": "b11c2e806524ac65b27a485775addfc21768d7b4"
+        },
+        {
+          "name": "v4.1.0",
+          "commit": "bd671d4a8728d42dc2bfeaade4d4de787e0eebf2"
+        },
+        {
+          "name": "v4.0.4",
+          "commit": "11aa40c6d4166502910e27b8114899477b2db8c8"
+        },
+        {
+          "name": "v4.0.3",
+          "commit": "082b9f45574d920552d5332695921242f191f54d"
+        },
+        {
+          "name": "v4.0.2",
+          "commit": "4150033addc1738124f2a2e77d4e96e32590c5bf"
+        },
+        {
+          "name": "v4.0.1",
+          "commit": "ec4c4abb301f473834b605467c24789d40a066fd"
+        },
+        {
+          "name": "v4.0.0",
+          "commit": "5f3e45450d05578d18244f7a49db61081547c1c2"
+        },
+        {
+          "name": "v3.4.0",
+          "commit": "d67b3eb559d8e42114ac3d7d570175a950fdc4ce"
+        },
+        {
+          "name": "v3.3.1",
+          "commit": "05cb69145ec52ce326e36d25561e606c007e4ad2"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            ".": {
+              "release-type": "python",
+              "package-name": "deviantart-downloader",
+              "include-v-in-tag": true,
+              "include-component-in-tag": false
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "4.1.1"
+        }
+      },
+      "registries": {
+        "pypi": {
+          "package": "devart-dl",
+          "declared": "4.1.1",
+          "published": "4.1.1"
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/deviantdrop",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "1.6.3",
+      "latest_release": "v1.6.3",
+      "latest_release_at": "2026-09-07T05:31:34Z",
+      "latest_tag": "v1.6.3",
+      "draft_releases": [],
+      "actual_assets": [],
+      "release_workflows": [
+        {
+          "name": "Deploy",
+          "path": ".github/workflows/deploy.yml"
+        },
+        {
+          "name": "Release",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "name": "Deploy static content to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/deviantdrop/actions/runs/34089843506",
+        "updated_at": "2026-09-07T06:13:16Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "CHANGELOG.md",
+        "Dockerfile",
+        "package.json",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/deploy.yml",
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/static.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v1.6.3",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-07T05:31:34Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.6.2",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-06T20:05:18Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.6.1",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-06T08:37:12Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.6.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-06T08:11:58Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.5.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-06T04:11:07Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.4.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-05T23:56:34Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.3.2",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-05T22:53:18Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.3.1",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-05T22:20:45Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.3.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-05T22:09:55Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.2.1",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-05T21:24:22Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.2.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-05T21:02:51Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.1.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-05T20:10:08Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.0.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-05T18:55:26Z",
+          "assets": []
+        }
+      ],
+      "tags": [
+        {
+          "name": "v1.6.3",
+          "commit": "06a813390ea75cfee904a3b04dee8252a17e7984"
+        },
+        {
+          "name": "v1.6.2",
+          "commit": "60b9946514b304e24b0a4409f0bbc750e570b2ce"
+        },
+        {
+          "name": "v1.6.1",
+          "commit": "54a1d249aa5aeb51c2fa02c6fe4b7a358c9bd93d"
+        },
+        {
+          "name": "v1.6.0",
+          "commit": "03fd3704fcc2a1ab55319fdeaf11d7032ba13678"
+        },
+        {
+          "name": "v1.5.0",
+          "commit": "920f20c535a1e0be9263e846a5e5a6588c0cb12a"
+        },
+        {
+          "name": "v1.4.0",
+          "commit": "5c21db8c17967a12f8346f342a31be6b0d9bd8e2"
+        },
+        {
+          "name": "v1.3.2",
+          "commit": "079cf0c8abc59cceb4d970f255261f70c3189ebc"
+        },
+        {
+          "name": "v1.3.1",
+          "commit": "8151625ddf302bceff1d0e57dd24fec0f7b8ba64"
+        },
+        {
+          "name": "v1.3.0",
+          "commit": "6a53b4f6b3465b2f73113e9ca1af8c8072233e8b"
+        },
+        {
+          "name": "v1.2.1",
+          "commit": "746e0e82a343a6a920f5dec1d6c2aae9761513a9"
+        },
+        {
+          "name": "v1.2.0",
+          "commit": "89c6702c70ba034e790366a9132a72b1cd09d771"
+        },
+        {
+          "name": "v1.1.0",
+          "commit": "3c645e88c7dbef3f15c38ec19a15647dd7de74f8"
+        },
+        {
+          "name": "v1.0.0",
+          "commit": "8b5a347586b701599833f05bf0c59bc752d5e282"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            ".": {
+              "release-type": "node",
+              "package-name": "deviantdrop",
+              "include-v-in-tag": true,
+              "include-component-in-tag": false
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "1.6.3"
+        }
+      },
+      "registries": {
+        "npm": {
+          "package": "deviantdrop",
+          "declared": "1.6.3",
+          "published": null
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/graf",
+      "default_branch": "master",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "1.2.0",
+      "latest_release": "v1.2.0",
+      "latest_release_at": "2026-09-08T03:31:32Z",
+      "latest_tag": "v1.2.0",
+      "draft_releases": [],
+      "actual_assets": [
+        "checksums.txt",
+        "grafctl_darwin_amd64.tar.gz",
+        "grafctl_darwin_arm64.tar.gz",
+        "grafctl_linux_amd64.tar.gz",
+        "grafctl_linux_arm64.tar.gz",
+        "grafctl_windows_amd64.zip",
+        "grafctl_windows_arm64.zip",
+        "worker.mjs"
+      ],
+      "release_workflows": [
+        {
+          "name": "Release",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "name": "Deploy static content to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/graf/actions/runs/34183805023",
+        "updated_at": "2026-09-08T03:32:52Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "CHANGELOG.md",
+        "Dockerfile",
+        "go.mod",
+        "package.json",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/static.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v1.2.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-08T03:31:32Z",
+          "assets": [
+            {
+              "name": "checksums.txt",
+              "size": 558,
+              "sha256": "sha256:9eaebdfa072a23b12dbe47ecdd2dd585b42d73ae0296f54f48a833ebd49889bb"
+            },
+            {
+              "name": "grafctl_darwin_amd64.tar.gz",
+              "size": 2582768,
+              "sha256": "sha256:1de4dad4e7d4a92d760db474de5d6ee5bedfc782954959b521cdb8ed288c9c14"
+            },
+            {
+              "name": "grafctl_darwin_arm64.tar.gz",
+              "size": 2435057,
+              "sha256": "sha256:77fdf438745a5427cf5af996e783d99801adbc6ed0748c7b98912d0d52feefad"
+            },
+            {
+              "name": "grafctl_linux_amd64.tar.gz",
+              "size": 2540395,
+              "sha256": "sha256:5f2e947a30286d7570fc134d15d469a1ea540e53ede7b680f103409200bc7052"
+            },
+            {
+              "name": "grafctl_linux_arm64.tar.gz",
+              "size": 2349259,
+              "sha256": "sha256:8faf5bec940f9959481283434b421427944a2a004631e2ae99c9b31734c2fe26"
+            },
+            {
+              "name": "grafctl_windows_amd64.zip",
+              "size": 2568089,
+              "sha256": "sha256:a90285351a617305d2ff55ec5cef923c92da5606cd946ce382e231ebe42c09b0"
+            },
+            {
+              "name": "grafctl_windows_arm64.zip",
+              "size": 2342439,
+              "sha256": "sha256:2f826e55fff6f341936675c8400085ce3ee857b2855adc9e44b0a4837c7c5fa5"
+            },
+            {
+              "name": "worker.mjs",
+              "size": 440374,
+              "sha256": "sha256:8d42026530aedf3c4ce3fdd0374e9981047582fc5c920013f6a97b8e39fe4879"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "name": "v1.2.0",
+          "commit": "afb821e0f5c38a633ed6d50b3fe26b97763c45a3"
+        },
+        {
+          "name": "v1.1.0",
+          "commit": "9115c41ebb4f24c2c75c3587d7498d81ca22c4b1"
+        },
+        {
+          "name": "v1.0.2",
+          "commit": "a554ee5f57042aab6d5c566cc944a12fb887f798"
+        },
+        {
+          "name": "v1.0.1",
+          "commit": "a0c44db6a85eb128316b056ea205f9fae982e615"
+        },
+        {
+          "name": "v1.0.0",
+          "commit": "28a130f2bc6adadbb176618e8effa3cafd4a63a8"
+        },
+        {
+          "name": "v0.5.0-grafctl",
+          "commit": "32cc5c141e8c9967b40bb8cc0f175b7f7fb9d7bd"
+        },
+        {
+          "name": "v0.4.2-grafctl",
+          "commit": "9859b27353a391e20f6a5547a9f5e2c23e6ec95c"
+        },
+        {
+          "name": "v0.4.1-grafctl",
+          "commit": "1cf75881da95ad69851eb8b691deaecd3350d5c2"
+        },
+        {
+          "name": "v0.4.0-grafctl",
+          "commit": "fed0fcaba721984ac3e505808f33f55774f255e1"
+        },
+        {
+          "name": "v0.3.0-grafctl",
+          "commit": "64cf8ff2ba56300b6b03a5652f87622b3b1472b0"
+        },
+        {
+          "name": "v0.2.0-grafctl",
+          "commit": "a4d355c8b793d14a5eebc6d69c0dd12ecf010be1"
+        },
+        {
+          "name": "v0.1.0-grafctl",
+          "commit": "29c0da787117fac60b19bfe1aab461aaa854fc53"
+        },
+        {
+          "name": "legacy-django",
+          "commit": "58e97fad54dcd984693da19efd2538dd53fb9919"
+        },
+        {
+          "name": "grafctl-v0.1.0",
+          "commit": "8b4bbb64cd1ffc77063ee39b9f368738b5fc5645"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            ".": {
+              "release-type": "simple",
+              "package-name": "graf",
+              "include-v-in-tag": true,
+              "include-component-in-tag": false
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "1.2.0"
+        }
+      },
+      "registries": {
+        "npm": {
+          "package": "graf",
+          "declared": "1.0.0",
+          "published": "0.0.2"
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/ludum",
+      "default_branch": "master",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": null,
+      "latest_release": "v1.0.0",
+      "latest_release_at": "2026-09-03T02:32:09Z",
+      "latest_tag": "v3.0.1",
+      "draft_releases": [],
+      "actual_assets": [
+        "GameLib-demo-v1.0.0.zip"
+      ],
+      "release_workflows": [
+        {
+          "name": "Publish",
+          "path": ".github/workflows/publish.yml"
+        },
+        {
+          "name": "Deploy documentation to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/ludum/actions/runs/34179909214",
+        "updated_at": "2026-09-08T02:24:06Z"
+      },
+      "signals": [
+        "CHANGELOG.md",
+        "package.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/publish.yml",
+        ".github/workflows/static.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v1.0.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-03T02:32:09Z",
+          "assets": [
+            {
+              "name": "GameLib-demo-v1.0.0.zip",
+              "size": 371457,
+              "sha256": "sha256:e17c137a6416d9511e6159e664b015932b67dcac60c6e1ae8d3291a46dbed2e9"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "name": "v3.0.1",
+          "commit": "8021d9fb7267c9feb85386b5f7ed59478d2ddaa7"
+        },
+        {
+          "name": "v3.0.0",
+          "commit": "de46d4ac1929b94bf79cb7b8bdb34a98a6e30dcd"
+        },
+        {
+          "name": "v3.0.0-alpha.2",
+          "commit": "ca69e15636d91171fdaed55b359997f6b87fa233"
+        },
+        {
+          "name": "v3.0.0-alpha.1",
+          "commit": "86362abffd2d6ccb8c01f5fa3acd79d6eab29cb4"
+        },
+        {
+          "name": "v1.0.0",
+          "commit": "0d7a48861bf7345841d8150b38bb2cf86016e048"
+        }
+      ],
+      "release_config": {},
+      "registries": {
+        "npm": {
+          "package": "ludum",
+          "declared": "3.0.1",
+          "published": "3.0.1"
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/NekoTime",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "2.3.4",
+      "latest_release": "v2.3.4",
+      "latest_release_at": "2026-08-27T05:11:06Z",
+      "latest_tag": "v2.3.4",
+      "draft_releases": [],
+      "actual_assets": [
+        "NekoTime-Linux-x64-v2.3.4.tar.gz",
+        "NekoTime-macOS-v2.3.4.dmg",
+        "NekoTime-macOS-v2.3.4.zip",
+        "NekoTime-Windows-v2.3.4.zip",
+        "SHA256SUMS.txt"
+      ],
+      "release_workflows": [
+        {
+          "name": "release-please",
+          "path": ".github/workflows/release-please.yml"
+        },
+        {
+          "name": "Deploy documentation to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/NekoTime/actions/runs/34196729466",
+        "updated_at": "2026-09-08T06:54:12Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "CHANGELOG.md",
+        "pubspec.yaml",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/build-all-platforms.yml",
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release-please.yml",
+        ".github/workflows/static.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v2.3.4",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-08-27T05:11:06Z",
+          "assets": [
+            {
+              "name": "NekoTime-Linux-x64-v2.3.4.tar.gz",
+              "size": 8433765,
+              "sha256": "sha256:099a7b8753240161dc8e6a3dfe0f41470efe5a0937e6fd6aa8513a2521f299b7"
+            },
+            {
+              "name": "NekoTime-macOS-v2.3.4.dmg",
+              "size": 14615670,
+              "sha256": "sha256:2883a7dd9b5648c41b75b2ecbe4b71d6bb0935cf154cbff28cada551c75a00f4"
+            },
+            {
+              "name": "NekoTime-macOS-v2.3.4.zip",
+              "size": 43872387,
+              "sha256": "sha256:b037c85e8e18c532909cfc88636f25f1f89a650fd94e070cec688916db5fbc6e"
+            },
+            {
+              "name": "NekoTime-Windows-v2.3.4.zip",
+              "size": 10390929,
+              "sha256": "sha256:7325ee3cc950f74ad650462c2db4768b426f0db54f3a61035b67e1d03aeebc63"
+            },
+            {
+              "name": "SHA256SUMS.txt",
+              "size": 378,
+              "sha256": "sha256:fc22cfea82fc78b6fa00f342333e482df90b24926f88e907423cb68a8f91b9e3"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "name": "v2.3.4",
+          "commit": "e0bb75b2f0bc9dbe8661f122ac0bd8d70ba61d18"
+        },
+        {
+          "name": "v2.3.2",
+          "commit": "9b9f528901ecc54d040d1c6b48adc34727058080"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            ".": {
+              "release-type": "dart",
+              "package-name": "NekoTime",
+              "include-v-in-tag": true,
+              "include-component-in-tag": false
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "2.3.4"
+        }
+      },
+      "registries": {
+        "pub": {
+          "package": "neko_time",
+          "declared": "2.3.4",
+          "published": null
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/paranote",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "0.2.0",
+      "latest_release": "v0.2.0",
+      "latest_release_at": "2026-08-27T15:54:26Z",
+      "latest_tag": "v0.2.0",
+      "draft_releases": [],
+      "actual_assets": [],
+      "release_workflows": [
+        {
+          "name": "release-please",
+          "path": ".github/workflows/release-please.yml"
+        },
+        {
+          "name": ".github/workflows/release.yml",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "name": "Deploy documentation to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/paranote/actions/runs/34179827757",
+        "updated_at": "2026-09-08T02:22:52Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "CHANGELOG.md",
+        "Dockerfile",
+        "package.json",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release-please.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/static.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v0.2.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-08-27T15:54:26Z",
+          "assets": []
+        }
+      ],
+      "tags": [
+        {
+          "name": "v0.2.0",
+          "commit": "fe3db141d7013a5a9a5a23cbc7fa2e05e3e3cfa9"
+        },
+        {
+          "name": "v0.1.2",
+          "commit": "2c659e42b84a699faa0540568aad401b73f9e40c"
+        },
+        {
+          "name": "v0.1.1",
+          "commit": "d76080b1e9ad43c2416f904da8f2090d22ade574"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            ".": {
+              "release-type": "node",
+              "package-name": "paranote",
+              "include-v-in-tag": true,
+              "include-component-in-tag": false
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "0.2.0"
+        }
+      },
+      "registries": {
+        "npm": {
+          "package": "paranote",
+          "declared": "0.2.0",
+          "published": "0.2.0"
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/pixiv-token-getter",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "2.3.0",
+      "latest_release": "v2.3.0",
+      "latest_release_at": "2026-09-06T08:17:59Z",
+      "latest_tag": "v2.3.0",
+      "draft_releases": [],
+      "actual_assets": [],
+      "release_workflows": [
+        {
+          "name": "CI & Release",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "name": "Deploy documentation to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/pixiv-token-getter/actions/runs/34179828334",
+        "updated_at": "2026-09-08T02:22:49Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "package.json",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/static.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v2.3.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-06T08:17:59Z",
+          "assets": []
+        },
+        {
+          "tag": "v2.2.1",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-01T09:02:54Z",
+          "assets": []
+        },
+        {
+          "tag": "v2.2.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-08-27T15:06:08Z",
+          "assets": []
+        },
+        {
+          "tag": "v2.1.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-08-27T14:29:40Z",
+          "assets": []
+        }
+      ],
+      "tags": [
+        {
+          "name": "v2.3.0",
+          "commit": "06f30db7a41fe8f24319d7b6d5d87c7753e29310"
+        },
+        {
+          "name": "v2.2.1",
+          "commit": "fc1b1d99f0be0b963b35c133bdaa6ecd3d19f95e"
+        },
+        {
+          "name": "v2.2.0",
+          "commit": "e8b72b9f4b83603d6b54d50f1ee6c83fa40c1ffe"
+        },
+        {
+          "name": "v2.1.0",
+          "commit": "f8c120f3c6521e5cc1cdd19281caee94ea586d1e"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            ".": {
+              "release-type": "node",
+              "package-name": "pixiv-token-getter",
+              "include-v-in-tag": true,
+              "include-component-in-tag": false
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "2.3.0"
+        }
+      },
+      "registries": {
+        "npm": {
+          "package": "pixiv-token-getter",
+          "declared": "2.3.0",
+          "published": "2.3.0"
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/PixivFlow",
+      "default_branch": "master",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "2.12.0",
+      "latest_release": "v2.12.0",
+      "latest_release_at": "2026-09-08T11:53:21Z",
+      "latest_tag": "v2.12.0",
+      "draft_releases": [],
+      "actual_assets": [],
+      "release_workflows": [
+        {
+          "name": "Deploy static content to Pages",
+          "path": ".github/workflows/static.yml"
+        },
+        {
+          "name": "Release",
+          "path": ".github/workflows/release.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/PixivFlow/actions/runs/34223050804",
+        "updated_at": "2026-09-08T12:05:56Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "CHANGELOG.md",
+        "Dockerfile",
+        "package.json",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/static.yml",
+        ".github/workflows/test.yml",
+        ".github/workflows/version-sync-check.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v2.12.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-08T11:53:21Z",
+          "assets": []
+        }
+      ],
+      "tags": [
+        {
+          "name": "v2.12.0",
+          "commit": "620c96e7c6d359dfe7db04c5fa16eb143a2062b2"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            ".": {
+              "release-type": "node",
+              "package-name": "PixivFlow",
+              "include-v-in-tag": true,
+              "include-component-in-tag": false
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "2.12.0"
+        }
+      },
+      "registries": {
+        "npm": {
+          "package": "pixivflow",
+          "declared": "2.12.0",
+          "published": "2.12.0"
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/pixivflow-telepost-deploy",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "1.10.1",
+      "latest_release": "v1.10.1",
+      "latest_release_at": "2026-09-08T14:21:26Z",
+      "latest_tag": "v1.10.1",
+      "draft_releases": [],
+      "actual_assets": [
+        "deploy-darwin-amd64.tar.gz",
+        "deploy-darwin-arm64.tar.gz",
+        "deploy-linux-amd64.tar.gz",
+        "deploy-linux-arm64.tar.gz",
+        "deploy-windows-amd64.tar.gz",
+        "deploy-windows-arm64.tar.gz"
+      ],
+      "release_workflows": [
+        {
+          "name": "Release",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "name": "Deploy static content to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/pixivflow-telepost-deploy/actions/runs/34238949585",
+        "updated_at": "2026-09-08T14:36:02Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "CHANGELOG.md",
+        "go.mod",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/schedule-watchdog.yml",
+        ".github/workflows/static.yml",
+        ".github/workflows/validate.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v1.10.1",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-08T14:21:26Z",
+          "assets": [
+            {
+              "name": "deploy-darwin-amd64.tar.gz",
+              "size": 2438765,
+              "sha256": "sha256:dd0317ab942b04cc984a9da354fea440112d8d6c00a6f257a1d76c4818524a1b"
+            },
+            {
+              "name": "deploy-darwin-arm64.tar.gz",
+              "size": 2280482,
+              "sha256": "sha256:39b4809bdcebd688496da7946214ecaad300a6a2c5cbd32572ddf8d4e191e23c"
+            },
+            {
+              "name": "deploy-linux-amd64.tar.gz",
+              "size": 2406000,
+              "sha256": "sha256:b77fa49f2d9908599e335d88df84b3f28d5e84a0c8430ebfc4819a7b7c637c51"
+            },
+            {
+              "name": "deploy-linux-arm64.tar.gz",
+              "size": 2203759,
+              "sha256": "sha256:aa04331c1c192fb9115c1d49a8eb6c2868e7bee1e1be338fa9d44e15b53e9874"
+            },
+            {
+              "name": "deploy-windows-amd64.tar.gz",
+              "size": 2464159,
+              "sha256": "sha256:341ba99ff4339d6046fdac03512f593f5c9aabaeefd5f4e727b1b6cb5aca1b3c"
+            },
+            {
+              "name": "deploy-windows-arm64.tar.gz",
+              "size": 2230891,
+              "sha256": "sha256:9f072046a30ed4d123f5a98613733c1dbcd5c07ff0e84fd0cba28b8cc50cbef8"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "name": "v1.10.1",
+          "commit": "675214c0801972eabb0f81137bfd90772d8bd47b"
+        },
+        {
+          "name": "v1.9.1",
+          "commit": "e7ef8b239deb73d24f040e1838310f74460615a8"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            ".": {
+              "release-type": "go",
+              "package-name": "pixivflow-telepost-deploy",
+              "include-v-in-tag": true,
+              "include-component-in-tag": false
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "1.10.1"
+        }
+      },
+      "registries": {}
+    },
+    {
+      "repo": "redtidev1918/pixivflow-webui",
+      "default_branch": "master",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "1.0.1",
+      "latest_release": null,
+      "latest_release_at": null,
+      "latest_tag": "v1.0.1",
+      "draft_releases": [],
+      "actual_assets": [],
+      "release_workflows": [
+        {
+          "name": "Release",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "name": "Deploy static content to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/pixivflow-webui/actions/runs/34091770630",
+        "updated_at": "2026-09-07T06:39:06Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "Dockerfile",
+        "package.json",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/static.yml"
+      ],
+      "release_history": [],
+      "tags": [
+        {
+          "name": "v1.0.1",
+          "commit": "12d300861e8bb3e6d765c5038b887ab47493e2db"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            ".": {
+              "release-type": "node",
+              "package-name": "pixivflow-webui",
+              "include-v-in-tag": true,
+              "include-component-in-tag": false
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "1.0.1"
+        }
+      },
+      "registries": {
+        "npm": {
+          "package": "pixivflow-webui",
+          "declared": "1.0.1",
+          "published": null
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/ponytail",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": true,
+      "template": false,
+      "classification": "fork",
+      "health": "NO_RELEASE",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": null,
+      "latest_release": null,
+      "latest_release_at": null,
+      "latest_tag": "v4.9.0",
+      "draft_releases": [],
+      "actual_assets": [],
+      "release_workflows": [],
+      "latest_release_run": null,
+      "signals": [
+        "package.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/publish.yml",
+        ".github/workflows/test.yml"
+      ],
+      "release_history": [],
+      "tags": [
+        {
+          "name": "v4.9.0",
+          "commit": "0a4dd63ad4541f4f655c4108a295916f3c1d8fda"
+        },
+        {
+          "name": "v4.8.4",
+          "commit": "bc9ee949d5f439e8b9f3bb92c6d6d3d1e6ebd324"
+        },
+        {
+          "name": "v4.8.3",
+          "commit": "025da371cd7539c3eb0ad859b08b3ca55e695f16"
+        },
+        {
+          "name": "v4.8.2",
+          "commit": "17e277387deab5faddf417a3f554e1db4e5d08ec"
+        },
+        {
+          "name": "v4.8.1",
+          "commit": "763e04deeeb59551aba28557dc46bde6092f2e21"
+        },
+        {
+          "name": "v4.8.0",
+          "commit": "dedc97ca7c8a1e7463ac5b36f7fe4b28c3c435a2"
+        },
+        {
+          "name": "v4.7.0",
+          "commit": "adad50d9b393926b2dd5ed7225dcb1848b9df408"
+        },
+        {
+          "name": "v4.6.0",
+          "commit": "ce153bc95fad5e966c756299bf9f73a13687bed1"
+        },
+        {
+          "name": "v4.5.0",
+          "commit": "60a75f8159de451320055afb2e0796b3fea636f6"
+        },
+        {
+          "name": "v4.4.0",
+          "commit": "1c420ad2f306b2a096dd1e7c1b8c5ebbb4cdf3d4"
+        },
+        {
+          "name": "v4.3.0",
+          "commit": "b545f1536a37435a27b90eb4ac211bf0e223194a"
+        },
+        {
+          "name": "v4.2.0",
+          "commit": "24b0b98e16f5c66de296654f2cb480c22ea8debc"
+        },
+        {
+          "name": "v4.1.0",
+          "commit": "8c279cbfb3a23bb110a654b40aee263674e0d4eb"
+        },
+        {
+          "name": "v4.0.0",
+          "commit": "cf97ccc509c758485d1b7b2e980f83128f8e5d08"
+        },
+        {
+          "name": "v1.0.0",
+          "commit": "95ba2bafcb1fcff082ea9b330c73d930090b5a9f"
+        }
+      ],
+      "release_config": {},
+      "registries": {
+        "npm": {
+          "package": "@dietrichgebert/ponytail",
+          "declared": "4.9.0",
+          "published": "4.9.0"
+        }
+      }
+    },
+    {
+      "repo": "redtidev1918/redtidev1918",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "no-release",
+      "health": "NO_RELEASE",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": null,
+      "latest_release": null,
+      "latest_release_at": null,
+      "latest_tag": null,
+      "draft_releases": [],
+      "actual_assets": [],
+      "release_workflows": [],
+      "latest_release_run": null,
+      "signals": [],
+      "workflow_paths": [
+        ".github/workflows/readme-stats.yml"
+      ],
+      "release_history": [],
+      "tags": [],
+      "release_config": {},
+      "registries": {}
+    },
+    {
+      "repo": "redtidev1918/release-infra",
+      "visibility": "public",
+      "health": "BROKEN",
+      "error": "gh: Git Repository is empty. (HTTP 409)"
+    },
+    {
+      "repo": "redtidev1918/TelePost",
+      "default_branch": "main",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "2.14.0",
+      "latest_release": "v2.14.0",
+      "latest_release_at": "2026-09-08T11:53:26Z",
+      "latest_tag": "v2.14.0",
+      "draft_releases": [],
+      "actual_assets": [
+        "telepost-linux-x64",
+        "telepost-macos-arm64",
+        "telepost-windows-x64.exe"
+      ],
+      "release_workflows": [
+        {
+          "name": "Release",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "name": "Deploy static content to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/TelePost/actions/runs/34223057506",
+        "updated_at": "2026-09-08T11:57:36Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "CHANGELOG.md",
+        "Dockerfile",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/static.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v2.14.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-08T11:53:26Z",
+          "assets": [
+            {
+              "name": "telepost-linux-x64",
+              "size": 33492952,
+              "sha256": "sha256:c624591fd3ec8a6f2798c2ffe90de308e9f2c9c95aa46b11826946797d06d1d5"
+            },
+            {
+              "name": "telepost-macos-arm64",
+              "size": 17877072,
+              "sha256": "sha256:e2e6ff0ddf2d690624d5a6b4fd7db1a252751f81a527e6578a686076d2da3ac4"
+            },
+            {
+              "name": "telepost-windows-x64.exe",
+              "size": 21487383,
+              "sha256": "sha256:f37cc58699d77d0ca47d06aea133f6aea2c2811af04e9f0893e732922c6009aa"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "name": "v2.14.0",
+          "commit": "ba60d53972ed1568d1c431699568b42dfb97f5dc"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "packages": {
+            ".": {
+              "release-type": "simple",
+              "package-name": "TelePost",
+              "include-v-in-tag": true,
+              "include-component-in-tag": false
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "2.14.0"
+        }
+      },
+      "registries": {}
+    },
+    {
+      "repo": "redtidev1918/telepress",
+      "default_branch": "master",
+      "visibility": "public",
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "observe-only",
+      "health": "UNMANAGED",
+      "release_policy": null,
+      "release_infra_version": null,
+      "desired_version": "0.6.1",
+      "latest_release": "v0.6.1",
+      "latest_release_at": "2026-09-08T06:02:14Z",
+      "latest_tag": "v0.6.1",
+      "draft_releases": [],
+      "actual_assets": [
+        "telepress-0.6.1-py3-none-any.whl",
+        "telepress-0.6.1.tar.gz"
+      ],
+      "release_workflows": [
+        {
+          "name": "Release",
+          "path": ".github/workflows/release.yml"
+        },
+        {
+          "name": "Deploy documentation to Pages",
+          "path": ".github/workflows/static.yml"
+        }
+      ],
+      "latest_release_run": {
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/redtidev1918/telepress/actions/runs/34192950973",
+        "updated_at": "2026-09-08T06:03:29Z"
+      },
+      "signals": [
+        ".release-please-manifest.json",
+        "CHANGELOG.md",
+        "pyproject.toml",
+        "release-please-config.json"
+      ],
+      "workflow_paths": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/notify-profile.yml",
+        ".github/workflows/release.yml",
+        ".github/workflows/static.yml"
+      ],
+      "release_history": [
+        {
+          "tag": "v0.6.1",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-08T06:02:14Z",
+          "assets": [
+            {
+              "name": "telepress-0.6.1-py3-none-any.whl",
+              "size": 38487,
+              "sha256": "sha256:28e62da71ebb358459599b55ef830f67b764c320d49e48e281a9ee82fbc02b4a"
+            },
+            {
+              "name": "telepress-0.6.1.tar.gz",
+              "size": 70920,
+              "sha256": "sha256:e7f8a60c69cee75ccfd8dcbb6df81023cd9b10a5e46efb1099122cae35d5a314"
+            }
+          ]
+        },
+        {
+          "tag": "v0.6.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-07T05:31:38Z",
+          "assets": [
+            {
+              "name": "telepress-0.6.0-py3-none-any.whl",
+              "size": 38488,
+              "sha256": "sha256:b8a73187e89fcff6b4892bbcecd9f5de2fe5435535dc8c1773574b6b12b4747b"
+            },
+            {
+              "name": "telepress-0.6.0.tar.gz",
+              "size": 70903,
+              "sha256": "sha256:b1d9c8f910a25dd0f9417d5606518cb85ed75dcf632ab12ce814266b27b2f59d"
+            }
+          ]
+        },
+        {
+          "tag": "v0.5.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-08-30T12:07:18Z",
+          "assets": [
+            {
+              "name": "telepress-0.5.0-py3-none-any.whl",
+              "size": 37852,
+              "sha256": "sha256:fbac283ec36a6050041eb5c012c641386daa8bfd66dffb5cf50385b04874b202"
+            },
+            {
+              "name": "telepress-0.5.0.tar.gz",
+              "size": 69592,
+              "sha256": "sha256:4a2f1d14e38c48577af199362fe00154593ac6f492da5aa550b37bc05e01b523"
+            }
+          ]
+        },
+        {
+          "tag": "v0.4.0",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-08-27T16:26:39Z",
+          "assets": [
+            {
+              "name": "telepress-0.4.0-py3-none-any.whl",
+              "size": 35838,
+              "sha256": "sha256:86c382c64ca661e5daf1adabb9f6a5242da42b6ced4cf78d9746d13b2bb09644"
+            },
+            {
+              "name": "telepress-0.4.0.tar.gz",
+              "size": 65254,
+              "sha256": "sha256:831f722d8dcd8a57d13ba0e8f7fc4776d204fda71b70f3e81d2706ff459b4723"
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "name": "v0.6.1",
+          "commit": "4bd66bda51592c013f203eefce318073211473a4"
+        },
+        {
+          "name": "v0.6.0",
+          "commit": "f1bd2ad269e314e1ef4ebbb1162021d37dacbaaf"
+        },
+        {
+          "name": "v0.5.0",
+          "commit": "6d166c292d1902bdf44592728dd38ba95574a8a7"
+        },
+        {
+          "name": "v0.4.0",
+          "commit": "bcb5db1241dd86f5e94b8eb3771a9a8f628b0ee5"
+        }
+      ],
+      "release_config": {
+        "release-please-config.json": {
+          "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+          "bootstrap-sha": "44ccae7439e2c00df22a213f53c223881778274b",
+          "packages": {
+            ".": {
+              "release-type": "python",
+              "package-name": "telepress",
+              "bump-minor-pre-major": true,
+              "include-component-in-tag": false,
+              "include-v-in-tag": true,
+              "extra-files": [
+                "src/telepress/version.py"
+              ]
+            }
+          }
+        },
+        ".release-please-manifest.json": {
+          ".": "0.6.1"
+        }
+      },
+      "registries": {
+        "pypi": {
+          "package": "telepress",
+          "declared": null,
+          "published": "0.6.1"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+from pathlib import Path
+from typing import Any
+
+
+KINDS = {"binary", "python-library", "node-library", "flutter", "android", "container", "hybrid", "none"}
+VERSIONING = {"release-please", "manual"}
+REGISTRIES = {"github", "pypi", "npm", "pub", "ghcr"}
+
+
+class PolicyError(ValueError):
+    pass
+
+
+def load_policy(path: str | Path = ".release-policy.yml") -> dict[str, Any]:
+    raw = Path(path).read_bytes()
+    try:
+        policy = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise PolicyError("policy must use JSON syntax (valid YAML 1.2)") from exc
+    validate_policy(policy)
+    policy["_hash"] = hashlib.sha256(raw).hexdigest()
+    return policy
+
+
+def validate_policy(policy: Any) -> None:
+    if not isinstance(policy, dict):
+        raise PolicyError("policy must be an object")
+    if policy.get("kind") not in KINDS:
+        raise PolicyError(f"kind must be one of: {', '.join(sorted(KINDS))}")
+    versioning = policy.get("versioning")
+    if not isinstance(versioning, dict) or versioning.get("mode") not in VERSIONING:
+        raise PolicyError("versioning.mode must be release-please or manual")
+    assets = policy.get("assets", {})
+    for key in ("required", "optional"):
+        if not isinstance(assets.get(key, []), list) or not all(isinstance(v, str) and v for v in assets.get(key, [])):
+            raise PolicyError(f"assets.{key} must be a list of non-empty strings")
+    registries = policy.get("registries", {})
+    unknown = set(registries) - REGISTRIES
+    if unknown:
+        raise PolicyError(f"unknown registries: {', '.join(sorted(unknown))}")
+    for name, config in registries.items():
+        if not isinstance(config, dict) or config.get("required", True) not in (True, False):
+            raise PolicyError(f"registries.{name} must be an object with boolean required")
+    for name in ("test", "command", "version_check"):
+        value = policy.get("build", {}).get(name, "")
+        if not isinstance(value, str) or "\n" in value:
+            raise PolicyError(f"build.{name} must be a single-line string")
+
+
+def desired_version(policy: dict[str, Any], explicit: str | None = None, root: str | Path = ".") -> str:
+    if explicit:
+        version = explicit.removeprefix("v")
+        if not re.fullmatch(r"[0-9]+(?:\.[0-9A-Za-z-]+)+", version):
+            raise PolicyError(f"invalid release version: {explicit}")
+        return version
+    versioning = policy["versioning"]
+    if versioning["mode"] == "manual":
+        version = versioning.get("version")
+        if not version:
+            raise PolicyError("manual versioning requires versioning.version or --version")
+        return desired_version({"versioning": {"mode": "manual", "version": None}}, str(version))
+    manifest_path = Path(root) / versioning.get("manifest", ".release-please-manifest.json")
+    manifest = json.loads(manifest_path.read_text())
+    package = versioning.get("package", ".")
+    if package not in manifest:
+        raise PolicyError(f"manifest has no package {package!r}")
+    return desired_version({"versioning": {"mode": "manual", "version": None}}, str(manifest[package]))

@@ -1,0 +1,86 @@
+{
+  "repo": "redtidev1918/PixivFlow",
+  "default_branch": "master",
+  "visibility": "public",
+  "archived": false,
+  "fork": false,
+  "template": false,
+  "classification": "observe-only",
+  "health": "UNMANAGED",
+  "release_policy": null,
+  "release_infra_version": null,
+  "desired_version": "2.12.0",
+  "latest_release": "v2.12.0",
+  "latest_release_at": "2026-09-08T11:53:21Z",
+  "latest_tag": "v2.12.0",
+  "draft_releases": [],
+  "actual_assets": [],
+  "release_workflows": [
+    {
+      "name": "Deploy static content to Pages",
+      "path": ".github/workflows/static.yml"
+    },
+    {
+      "name": "Release",
+      "path": ".github/workflows/release.yml"
+    }
+  ],
+  "latest_release_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/redtidev1918/PixivFlow/actions/runs/34223050804",
+    "updated_at": "2026-09-08T12:05:56Z"
+  },
+  "signals": [
+    ".release-please-manifest.json",
+    "CHANGELOG.md",
+    "Dockerfile",
+    "package.json",
+    "release-please-config.json"
+  ],
+  "workflow_paths": [
+    ".github/workflows/notify-profile.yml",
+    ".github/workflows/release.yml",
+    ".github/workflows/static.yml",
+    ".github/workflows/test.yml",
+    ".github/workflows/version-sync-check.yml"
+  ],
+  "release_history": [
+    {
+      "tag": "v2.12.0",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T11:53:21Z",
+      "assets": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "v2.12.0",
+      "commit": "620c96e7c6d359dfe7db04c5fa16eb143a2062b2"
+    }
+  ],
+  "release_config": {
+    "release-please-config.json": {
+      "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+      "packages": {
+        ".": {
+          "release-type": "node",
+          "package-name": "PixivFlow",
+          "include-v-in-tag": true,
+          "include-component-in-tag": false
+        }
+      }
+    },
+    ".release-please-manifest.json": {
+      ".": "2.12.0"
+    }
+  },
+  "registries": {
+    "npm": {
+      "package": "pixivflow",
+      "declared": "2.12.0",
+      "published": "2.12.0"
+    }
+  }
+}
