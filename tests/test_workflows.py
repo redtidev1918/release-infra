@@ -30,6 +30,15 @@ class WorkflowTest(unittest.TestCase):
         self.assertEqual(workflow.count("actions/download-artifact@"), 4)
         self.assertIn("sleep 60", workflow)
 
+    def test_finalize_configures_git_identity_for_annotated_release_tags(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        finalize = workflow.split("  finalize:", 1)[1]
+        self.assertIn('git config user.name "github-actions[bot]"', finalize)
+        self.assertIn(
+            'git config user.email "41898282+github-actions[bot]@users.noreply.github.com"',
+            finalize,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -177,6 +177,10 @@ jobs:
           repository: redtidev1918/release-infra
           ref: v1
           path: .release-infra
+      - name: Configure Git identity for release tags
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
       - name: Reload release plan
         id: plan
         env:
