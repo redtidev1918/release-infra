@@ -40,6 +40,7 @@ jobs:
     permissions: {contents: read}
     outputs:
       run_release: ${{ steps.plan.outputs.run_release }}
+      release_health: ${{ steps.plan.outputs.release_health }}
       version: ${{ steps.plan.outputs.version }}
       tag: ${{ steps.plan.outputs.tag }}
       test_command: ${{ steps.plan.outputs.test_command }}
@@ -301,7 +302,7 @@ jobs:
             fi
           done
       - name: Asset gate and draft transaction
-        if: steps.plan.outputs.run_release == '1'
+        if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy'
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_BUILD_STARTED_AT: ${{ github.event.head_commit.timestamp }}
@@ -313,12 +314,12 @@ jobs:
           PYTHONPATH=.release-infra python3 -m release_infra.cli asset-gate
           PYTHONPATH=.release-infra python3 -m release_infra.cli stage "${args[@]}"
       - uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
-        if: steps.plan.outputs.run_release == '1' && contains(steps.plan.outputs.required_publish, 'npm publish')
+        if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy' && contains(steps.plan.outputs.required_publish, 'npm publish')
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
       - name: Required registry publication
-        if: ${{ steps.plan.outputs.run_release == '1' && !inputs.dry_run && steps.plan.outputs.required_publish != '' }}
+        if: ${{ steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy' && !inputs.dry_run && steps.plan.outputs.required_publish != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ steps.plan.outputs.version }}
@@ -326,24 +327,24 @@ jobs:
           COMMAND: ${{ steps.plan.outputs.required_publish }}
         run: bash -euo pipefail -c "$COMMAND"
       - name: Publish to PyPI with OIDC
-        if: ${{ steps.plan.outputs.run_release == '1' && !inputs.dry_run && steps.plan.outputs.pypi_enabled == 'true' }}
+        if: ${{ steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy' && !inputs.dry_run && steps.plan.outputs.pypi_enabled == 'true' }}
         continue-on-error: ${{ steps.plan.outputs.pypi_required != 'true' }}
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
         with:
           packages-dir: ${{ steps.plan.outputs.pypi_packages_dir }}
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
-        if: ${{ steps.plan.outputs.run_release == '1' && !inputs.dry_run && steps.plan.outputs.ghcr_enabled == 'true' }}
+        if: ${{ steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy' && !inputs.dry_run && steps.plan.outputs.ghcr_enabled == 'true' }}
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-        if: ${{ steps.plan.outputs.run_release == '1' && !inputs.dry_run && steps.plan.outputs.ghcr_enabled == 'true' }}
+        if: ${{ steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy' && !inputs.dry_run && steps.plan.outputs.ghcr_enabled == 'true' }}
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
-        if: ${{ steps.plan.outputs.run_release == '1' && !inputs.dry_run && steps.plan.outputs.ghcr_enabled == 'true' }}
+        if: ${{ steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy' && !inputs.dry_run && steps.plan.outputs.ghcr_enabled == 'true' }}
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
       - name: Publish GHCR image
         id: ghcr
-        if: ${{ steps.plan.outputs.run_release == '1' && !inputs.dry_run && steps.plan.outputs.ghcr_enabled == 'true' }}
+        if: ${{ steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy' && !inputs.dry_run && steps.plan.outputs.ghcr_enabled == 'true' }}
         continue-on-error: ${{ steps.plan.outputs.ghcr_required != 'true' }}
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
@@ -389,9 +390,13 @@ jobs:
           RELEASE_RETRY_COUNT: ${{ steps.plan.outputs.retry_count }}
         run: |
           set -euo pipefail
-          args=(--version '${{ steps.plan.outputs.version }}')
-          [[ "$DRY_RUN" == true ]] && args+=(--dry-run)
-          PYTHONPATH=.release-infra python3 -m release_infra.cli publish "${args[@]}"
+          if [[ '${{ steps.plan.outputs.release_health }}' == healthy ]]; then
+            PYTHONPATH=.release-infra python3 -m release_infra.cli audit --version '${{ steps.plan.outputs.version }}'
+          else
+            args=(--version '${{ steps.plan.outputs.version }}')
+            [[ "$DRY_RUN" == true ]] && args+=(--dry-run)
+            PYTHONPATH=.release-infra python3 -m release_infra.cli publish "${args[@]}"
+          fi
       - name: Optional post-release task
         if: ${{ steps.plan.outputs.run_release == '1' && !inputs.dry_run && steps.plan.outputs.post_publish != '' }}
         continue-on-error: true
