@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import fnmatch
 import json
 import os
 import subprocess
@@ -16,6 +17,10 @@ from .retry import retry
 
 class ReleaseError(RuntimeError):
     pass
+
+
+def _required_assets_present(required: set[str], remote: set[str]) -> bool:
+    return all(any(fnmatch.fnmatch(name, pattern) for name in remote) for pattern in required)
 
 
 def _run(command: list[str], *, capture: bool = False) -> str:
@@ -110,7 +115,7 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     if checksums_enabled:
         required.add("SHA256SUMS")
     remote = {asset["name"] for asset in (release or {}).get("assets", []) if int(asset.get("size", 0)) > 0}
-    healthy = bool(release and not release["isDraft"] and required.issubset(remote))
+    healthy = bool(release and not release["isDraft"] and _required_assets_present(required, remote))
     needs_repair = bool(release and not release["isDraft"] and not healthy)
     build = policy.get("build", {})
     matrix = build.get("matrix") or [{"runner": "ubuntu-latest", "command": build.get("command", ":"), "version_check": build.get("version_check", "")}]
@@ -210,7 +215,10 @@ def audit(policy_path: str = ".release-policy.yml", version: str | None = None) 
     required = set(policy.get("assets", {}).get("required", [])) | {"RELEASE-METADATA.json"}
     if policy.get("checksums", True) and policy.get("assets", {}).get("required"):
         required.add("SHA256SUMS")
-    missing = [name for name in required if name not in remote or int(remote[name].get("size", 0)) <= 0]
+    missing = [
+        pattern for pattern in required
+        if not any(fnmatch.fnmatch(name, pattern) and int(asset.get("size", 0)) > 0 for name, asset in remote.items())
+    ]
     if missing:
         raise ReleaseError(f"release assets missing or empty: {', '.join(sorted(missing))}")
     if not release["isPrerelease"] and not release["isLatest"]:

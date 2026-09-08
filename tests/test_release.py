@@ -20,10 +20,10 @@ class ReleaseTest(unittest.TestCase):
         self.assertEqual(result["run_release"], "1")
 
     def test_plan_reports_healthy_public_release(self):
-        policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}}}
+        policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app-*.tgz"]}, "registries": {"github": {"required": True}}}
         release_info = {
             "isDraft": False,
-            "assets": [{"name": "app", "size": 1}, {"name": "SHA256SUMS", "size": 1}, {"name": "RELEASE-METADATA.json", "size": 1}],
+            "assets": [{"name": "app-1.2.3.tgz", "size": 1}, {"name": "SHA256SUMS", "size": 1}, {"name": "RELEASE-METADATA.json", "size": 1}],
         }
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / ".release-policy.yml"
