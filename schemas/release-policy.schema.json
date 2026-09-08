@@ -47,7 +47,7 @@
       }
     },
     "retention": {"type": "object", "properties": {"stable": {"type": "integer", "minimum": 1}, "prerelease": {"type": "integer", "minimum": 0}, "failed_draft": {"type": "integer", "minimum": 0}}},
-    "release": {"type": "object", "properties": {"prerelease": {"type": "boolean"}}},
+    "release": {"type": "object", "properties": {"prerelease": {"type": "boolean"}, "post_publish": {"type": "string"}}},
     "checksums": {"type": "boolean"},
     "sbom": {"type": "boolean"}
   }

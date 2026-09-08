@@ -105,8 +105,21 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
         raise ReleaseError(f"public release {tag} is incomplete; rerun with repair=true")
     registries = policy.get("registries", {})
     ghcr = registries.get("ghcr", {})
+    retry_count = 0
+    cooldown = False
+    if os.environ.get("GITHUB_EVENT_NAME") == "schedule":
+        try:
+            runs = json.loads(_run(["gh", "run", "list", "--limit", "10", "--json", "conclusion,createdAt,event"], capture=True))
+            failures = [run for run in runs if run.get("conclusion") == "failure"]
+            retry_count = len(failures)
+            if retry_count >= 3:
+                last = dt.datetime.fromisoformat(failures[0]["createdAt"].replace("Z", "+00:00"))
+                cooldown = dt.datetime.now(dt.UTC) - last < dt.timedelta(hours=6)
+        except (ReleaseError, ValueError, KeyError):
+            pass
     return {
-        "should_release": str(force or not healthy).lower(), "version": desired, "tag": tag,
+        "should_release": str(force or (not healthy and not cooldown)).lower(), "version": desired, "tag": tag,
+        "retry_count": str(retry_count), "cooldown": str(cooldown).lower(),
         "test_command": policy.get("build", {}).get("test", ""), "build_command": policy.get("build", {}).get("command", ""),
         "version_check": policy.get("build", {}).get("version_check", ""),
         "pypi_enabled": str("pypi" in registries).lower(), "pypi_required": str(registries.get("pypi", {}).get("required", True)).lower(),
@@ -118,6 +131,7 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
         "required_verify": " && ".join(config.get("verify", ":") for config in registries.values() if config.get("required", True) and config.get("verify")),
         "optional_publish": "; ".join(f"({config['publish']}) || true" for name, config in registries.items() if name != "ghcr" and not config.get("required", True) and config.get("publish")),
         "optional_verify": "; ".join(f"({config['verify']}) || true" for config in registries.values() if not config.get("required", True) and config.get("verify")),
+        "post_publish": policy.get("release", {}).get("post_publish", ""),
     }
 
 

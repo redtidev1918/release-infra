@@ -54,6 +54,9 @@ def validate_policy(policy: Any) -> None:
         value = policy.get("build", {}).get(name, "")
         if not isinstance(value, str) or "\n" in value:
             raise PolicyError(f"build.{name} must be a single-line string")
+    post_publish = policy.get("release", {}).get("post_publish", "")
+    if not isinstance(post_publish, str) or "\n" in post_publish:
+        raise PolicyError("release.post_publish must be a single-line string")
 
 
 def desired_version(policy: dict[str, Any], explicit: str | None = None, root: str | Path = ".") -> str:

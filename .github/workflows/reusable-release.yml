@@ -51,6 +51,9 @@ jobs:
       ghcr_file: ${{ steps.plan.outputs.ghcr_file }}
       ghcr_image: ${{ steps.plan.outputs.ghcr_image }}
       ghcr_platforms: ${{ steps.plan.outputs.ghcr_platforms }}
+      retry_count: ${{ steps.plan.outputs.retry_count }}
+      cooldown: ${{ steps.plan.outputs.cooldown }}
+      post_publish: ${{ steps.plan.outputs.post_publish }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {fetch-depth: 0}
@@ -118,6 +121,9 @@ jobs:
       contents: write
       packages: write
       id-token: write
+    concurrency:
+      group: release-${{ github.repository }}-${{ needs.plan.outputs.version }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {fetch-depth: 0}
@@ -209,11 +215,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DRY_RUN: ${{ inputs.dry_run }}
           CONTAINER_DIGEST: ${{ steps.ghcr.outputs.digest }}
+          RELEASE_RETRY_COUNT: ${{ needs.plan.outputs.retry_count }}
         run: |
           set -euo pipefail
           args=(--version '${{ needs.plan.outputs.version }}')
           [[ "$DRY_RUN" == true ]] && args+=(--dry-run)
           PYTHONPATH=.release-infra python3 -m release_infra.cli publish "${args[@]}"
+      - name: Optional post-release task
+        if: ${{ !inputs.dry_run && needs.plan.outputs.post_publish != '' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.plan.outputs.version }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag }}
+          COMMAND: ${{ needs.plan.outputs.post_publish }}
+        run: bash -euo pipefail -c "$COMMAND"
       - name: Release summary
         if: always()
         run: |
@@ -221,4 +237,6 @@ jobs:
           echo '- version: `${{ needs.plan.outputs.version }}`' >> "$GITHUB_STEP_SUMMARY"
           echo '- stage: `${{ inputs.stage }}`' >> "$GITHUB_STEP_SUMMARY"
           echo '- result: `${{ job.status }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- retry count: `${{ needs.plan.outputs.retry_count }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- cooldown: `${{ needs.plan.outputs.cooldown }}`' >> "$GITHUB_STEP_SUMMARY"
           echo '- recovery: `Run workflow → repair/retry current version`' >> "$GITHUB_STEP_SUMMARY"
