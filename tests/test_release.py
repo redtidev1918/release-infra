@@ -19,6 +19,20 @@ class ReleaseTest(unittest.TestCase):
         self.assertEqual(result["tag"], "v1.2.3")
         self.assertEqual(result["run_release"], "1")
 
+    def test_plan_reports_healthy_public_release(self):
+        policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}}}
+        release_info = {
+            "isDraft": False,
+            "assets": [{"name": "app", "size": 1}, {"name": "SHA256SUMS", "size": 1}, {"name": "RELEASE-METADATA.json", "size": 1}],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            with mock.patch.object(release, "_release", return_value=release_info):
+                result = release.plan(str(path), repair=True)
+        self.assertEqual(result["release_health"], "healthy")
+        self.assertEqual(result["run_release"], "1")
+
     def test_policy_matrix_is_exported_for_github_actions(self):
         policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "build": {"matrix": [{"runner": "ubuntu-latest", "command": "make linux"}, {"runner": "windows-latest", "command": "make windows"}]}, "assets": {"required": ["linux", "windows.exe"]}, "registries": {"github": {"required": True}}}
         with tempfile.TemporaryDirectory() as directory:

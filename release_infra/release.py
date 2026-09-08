@@ -136,8 +136,10 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
             pass
     should_release = force or repair or (not healthy and not needs_repair and not cooldown)
     return {
-        "should_release": str(should_release).lower(), "run_release": "1" if should_release else "0", "version": desired, "tag": tag,
-        "retry_count": str(retry_count), "cooldown": str(cooldown).lower(), "needs_repair": str(needs_repair).lower(),
+        "should_release": str(should_release).lower(), "run_release": "1" if should_release else "0",
+        "release_health": "healthy" if healthy else ("repair" if needs_repair else "missing"),
+        "version": desired, "tag": tag, "retry_count": str(retry_count), "cooldown": str(cooldown).lower(),
+        "needs_repair": str(needs_repair).lower(),
         "test_command": policy.get("build", {}).get("test", ""), "build_command": policy.get("build", {}).get("command", ":"),
         "version_check": policy.get("build", {}).get("version_check", ""), "build_matrix": json.dumps({"include": matrix}, separators=(",", ":")),
         "has_assets": "1" if asset_patterns.get("required") or asset_patterns.get("optional") else "0",

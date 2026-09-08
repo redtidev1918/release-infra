@@ -47,6 +47,12 @@ class WorkflowTest(unittest.TestCase):
         self.assertLess(setup, publication)
         self.assertIn("registry-url: https://registry.npmjs.org/", finalize)
 
+    def test_healthy_public_repair_skips_mutation_and_runs_audit(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        finalize = workflow.split("  finalize:", 1)[1]
+        self.assertIn("steps.plan.outputs.release_health != 'healthy'", finalize)
+        self.assertIn('release_infra.cli audit --version', finalize)
+
 
 if __name__ == "__main__":
     unittest.main()
