@@ -139,6 +139,9 @@
     }
   ],
   "release_config": {
+    ".release-please-manifest.json": {
+      ".": "0.6.1"
+    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "bootstrap-sha": "44ccae7439e2c00df22a213f53c223881778274b",
@@ -154,9 +157,6 @@
           ]
         }
       }
-    },
-    ".release-please-manifest.json": {
-      ".": "0.6.1"
     }
   },
   "registries": {
