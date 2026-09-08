@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-08T15:13:13.445871+00:00",
+  "generated_at": "2026-09-08T15:21:36.624574+00:00",
   "repositories": [
     {
       "repo": "redtidev1918/BallonsTranslator-lite",
@@ -2549,9 +2549,74 @@
     },
     {
       "repo": "redtidev1918/release-infra",
+      "default_branch": "main",
       "visibility": "public",
-      "health": "BROKEN",
-      "error": "gh: Git Repository is empty. (HTTP 409)"
+      "archived": false,
+      "fork": false,
+      "template": false,
+      "classification": "managed",
+      "health": "DEGRADED",
+      "release_policy": {
+        "kind": "python-library",
+        "versioning": {
+          "mode": "manual",
+          "version": "1.0.0"
+        },
+        "assets": {
+          "required": [],
+          "optional": []
+        },
+        "registries": {
+          "github": {
+            "required": true
+          }
+        },
+        "retention": {
+          "stable": 1,
+          "prerelease": 1,
+          "failed_draft": 3
+        },
+        "checksums": false,
+        "sbom": false
+      },
+      "release_infra_version": null,
+      "desired_version": null,
+      "latest_release": null,
+      "latest_release_at": null,
+      "latest_tag": null,
+      "draft_releases": [],
+      "actual_assets": [],
+      "release_workflows": [
+        {
+          "name": "Promote stable v1",
+          "path": ".github/workflows/infra-release.yml"
+        },
+        {
+          "name": "Release Infrastructure v1",
+          "path": ".github/workflows/reusable-release.yml"
+        }
+      ],
+      "latest_release_run": null,
+      "signals": [
+        ".release-policy.yml",
+        "pyproject.toml"
+      ],
+      "workflow_paths": [
+        ".github/workflows/fleet-audit.yml",
+        ".github/workflows/infra-canary.yml",
+        ".github/workflows/infra-release.yml",
+        ".github/workflows/reusable-release.yml"
+      ],
+      "release_history": [],
+      "tags": [],
+      "release_config": {},
+      "registries": {
+        "pypi": {
+          "package": "redtide-release-infra",
+          "declared": "1.0.0",
+          "published": null
+        }
+      }
     },
     {
       "repo": "redtidev1918/TelePost",
