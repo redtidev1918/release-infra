@@ -32,7 +32,6 @@
             "required": ["runner", "command"],
             "properties": {
               "runner": {"type": "string", "minLength": 1},
-              "shell": {"enum": ["bash", "sh", "pwsh", "powershell"]},
               "command": {"type": "string", "minLength": 1},
               "version_check": {"type": "string"}
             }

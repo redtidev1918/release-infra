@@ -58,14 +58,12 @@ def validate_policy(policy: Any) -> None:
     if matrix is not None:
         if not isinstance(matrix, list) or not matrix:
             raise PolicyError("build.matrix must be a non-empty array")
-        allowed = {"runner", "shell", "command", "version_check"}
+        allowed = {"runner", "command", "version_check"}
         for item in matrix:
             if not isinstance(item, dict) or not isinstance(item.get("runner"), str) or not item["runner"]:
                 raise PolicyError("each build.matrix item needs a runner string")
             if not isinstance(item.get("command"), str) or "\n" in item["command"]:
                 raise PolicyError("each build.matrix item needs a single-line command")
-            if item.get("shell", "bash") not in {"bash", "pwsh", "powershell", "sh"}:
-                raise PolicyError("matrix shell must be bash, sh, pwsh, or powershell")
             if set(item) - allowed:
                 raise PolicyError(f"unknown build.matrix field(s): {', '.join(sorted(set(item) - allowed))}")
     post_publish = policy.get("release", {}).get("post_publish", "")

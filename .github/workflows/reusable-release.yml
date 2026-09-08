@@ -100,15 +100,15 @@ jobs:
           RELEASE_VERSION: ${{ needs.build-plan.outputs.version }}
           RELEASE_TAG: ${{ needs.build-plan.outputs.tag }}
           COMMAND: ${{ matrix.command }}
-        shell: ${{ matrix.shell }}
-        run: ${{ matrix.shell == 'bash' && 'bash -euo pipefail -c "$COMMAND"' || matrix.shell == 'sh' && 'sh -eu -c "$COMMAND"' || 'Invoke-Expression "$env:COMMAND"; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }' }}
+        shell: bash
+        run: bash -euo pipefail -c "$COMMAND"
       - name: Binary version gate
         if: matrix.version_check != ''
         env:
           RELEASE_VERSION: ${{ needs.build-plan.outputs.version }}
           COMMAND: ${{ matrix.version_check }}
-        shell: ${{ matrix.shell }}
-        run: ${{ matrix.shell == 'bash' && 'bash -euo pipefail -c "$COMMAND"' || matrix.shell == 'sh' && 'sh -eu -c "$COMMAND"' || 'Invoke-Expression "$env:COMMAND"; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }' }}
+        shell: bash
+        run: bash -euo pipefail -c "$COMMAND"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: upload_0
         continue-on-error: true
@@ -335,12 +335,21 @@ jobs:
         run: bash -euo pipefail -c "$COMMAND"
       - name: Release summary
         if: always()
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+          STAGE: ${{ inputs.stage }}
+          JOB_STATUS: ${{ job.status }}
+          RETRY_COUNT: ${{ steps.plan.outputs.retry_count }}
+          COOLDOWN: ${{ steps.plan.outputs.cooldown }}
+          NEEDS_REPAIR: ${{ steps.plan.outputs.needs_repair }}
         run: |
-          echo '## Release Infrastructure v1' >> "$GITHUB_STEP_SUMMARY"
-          echo '- version: `${{ steps.plan.outputs.version }}`' >> "$GITHUB_STEP_SUMMARY"
-          echo '- stage: `${{ inputs.stage }}`' >> "$GITHUB_STEP_SUMMARY"
-          echo '- result: `${{ job.status }}`' >> "$GITHUB_STEP_SUMMARY"
-          echo '- retry count: `${{ steps.plan.outputs.retry_count }}`' >> "$GITHUB_STEP_SUMMARY"
-          echo '- cooldown: `${{ steps.plan.outputs.cooldown }}`' >> "$GITHUB_STEP_SUMMARY"
-          echo '- needs repair: `${{ steps.plan.outputs.needs_repair }}`' >> "$GITHUB_STEP_SUMMARY"
-          echo '- recovery: `Run workflow → repair/retry current version`' >> "$GITHUB_STEP_SUMMARY"
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## Release Infrastructure v1
+          - version: \`$VERSION\`
+          - stage: \`$STAGE\`
+          - result: \`$JOB_STATUS\`
+          - retry count: \`$RETRY_COUNT\`
+          - cooldown: \`$COOLDOWN\`
+          - needs repair: \`$NEEDS_REPAIR\`
+          - recovery: \`Run workflow → repair/retry current version\`
+          EOF
