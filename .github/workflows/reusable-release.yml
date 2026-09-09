@@ -5,7 +5,7 @@ on:
     outputs:
       paths_released:
         description: "Release Please component paths released in this run"
-        value: ${{ jobs['release-please'].outputs.paths_released }}
+        value: ${{ jobs.release_please.outputs.paths_released }}
     inputs:
       version: {type: string, default: ""}
       dry_run: {type: boolean, default: false}
@@ -23,7 +23,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release-please:
+  release_please:
+    name: release-please
     if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     permissions:
@@ -41,8 +42,8 @@ jobs:
           skip-github-release: true
 
   build-plan:
-    needs: release-please
-    if: always() && (needs.release-please.result == 'success' || needs.release-please.result == 'skipped')
+    needs: release_please
+    if: always() && (needs.release_please.result == 'success' || needs.release_please.result == 'skipped')
     runs-on: ubuntu-latest
     permissions: {contents: read}
     outputs:
