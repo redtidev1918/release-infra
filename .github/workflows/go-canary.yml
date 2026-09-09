@@ -1,0 +1,33 @@
+name: ReleaseGraph Go Canary
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          [linux/amd64, linux/arm64, darwin/amd64, darwin/arm64, windows/amd64, windows/arm64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+      - run: go vet ./...
+      - run: go test ./...
+      - run: go run ./cmd/releasegraph static-check --root .
+      - name: Build cross-platform binary
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          goos="${TARGET%%/*}"
+          goarch="${TARGET#*/}"
+          ext=""
+          test "$goos" != windows || ext=.exe
+          GOOS="$goos" GOARCH="$goarch" go build -trimpath -o "releasegraph-$goos-$goarch$ext" ./cmd/releasegraph

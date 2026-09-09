@@ -1,0 +1,6 @@
+apiVersion: releasegraph.dev/v1
+projects:
+  app:
+    repo: {owner: acme, name: app}
+    dependsOn:
+      - id: core

@@ -1,13 +1,98 @@
-# Release Infrastructure v1
+# ReleaseGraph
 
-One release protocol for `redtidev1918` repositories: Release Please proposes versions; the reusable workflow tests and builds before creating a draft, gates required assets, publishes registries, verifies and publishes GitHub Release, sets Latest, audits, then prunes Release objects without deleting tags.
+Serverless, declarative, DAG-driven release orchestration for GitHub Actions.
 
-## Daily use
+```text
+        core
+       /    \
+     cli    web
+       \    /
+      deploy
+```
 
-1. Write conventional commits.
-2. Merge the Release Please PR.
-3. The repository watchdog resumes the same version after a transient failure.
+ReleaseGraph determines what is ready, dispatches it, verifies releases, and recovers incomplete transactions. No server, database, or polling daemon is required.
 
-Manual recovery: **Actions → Release → Run workflow**, select `repair`, and optionally enter the existing version. Fleet health is in [STATUS.md](STATUS.md); machine-readable state is [status.json](status.json).
+## Status
 
-Policies use JSON syntax in `.release-policy.yml` (JSON is valid YAML 1.2), keeping the runner dependency-free. See [POLICY.md](docs/POLICY.md).
+The repository is migrating from the production-proven Python implementation to a standalone Go binary. The Python reusable workflow remains the mutating release path.
+
+The Go core is currently safe for read-only adoption:
+
+```bash
+releasegraph doctor
+releasegraph fleet --owner acme --public-only --output json
+releasegraph graph --file release-graph.yml --format mermaid
+releasegraph inspect --path .release-policy.yml
+releasegraph audit --path .release-policy.yml --root dist/release --output json
+releasegraph plan --path .release-policy.yml --root . --output json
+releasegraph plan --graph release-graph.yml --state health.json --output json
+```
+
+Mutating release, repair, dispatch, registry publishing, and retention remain on the Python v1 path until Python/Go contract canaries pass.
+
+## Serverless control repository
+
+A thin control repository contains user topology and ephemeral reconcile workers:
+
+```text
+release-graph.yml
+.github/workflows/orchestrate.yml
+.github/workflows/watchdog.yml
+```
+
+Copy the minimal callers from [`examples/control`](examples/control). A reconcile event computes a plan and exits; completion starts a new run rather than holding a long-lived job.
+
+## 30-second read-only trial
+
+```bash
+go build -o releasegraph ./cmd/releasegraph
+./releasegraph doctor
+./releasegraph graph --file examples/control/release-graph.yml --format mermaid
+./releasegraph inspect --path examples/policy/.release-policy.yml
+```
+
+Audit-only commands never call a write API. Grant write permission only when adopting the existing reusable release workflow; grant cross-repository dispatch permission only after validating the graph.
+
+## Declarative graph
+
+```yaml
+apiVersion: releasegraph.dev/v1
+projects:
+  core:
+    repo: {owner: acme, name: core}
+  cli:
+    repo: {owner: acme, name: cli}
+    dependsOn:
+      - {id: core, condition: healthy}
+```
+
+Events request reconciliation. They are not state: every plan is computed from fresh Git refs, GitHub Releases, workflow state, policies, and registry state. A healthy upstream wakes downstream, but it never forces a meaningless downstream version bump.
+
+## Project policy
+
+A managed repository declares its required contract in `.release-policy.yml`:
+
+```yaml
+apiVersion: releasegraph.dev/v1
+kind: binary
+versioning:
+  provider: release-please
+assets:
+  required:
+    - app-*-linux-amd64.tar.gz
+    - app-*-darwin-arm64.tar.gz
+registries:
+  github:
+    required: true
+checksums: true
+metadata: true
+```
+
+Build adapters own compilers and package managers and place candidates in `dist/release/`. ReleaseGraph validates ordering, the asset contract, checksums/metadata, immutable tags, registries, and recovery.
+
+See:
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Policy](docs/POLICY.md)
+- [Migration](docs/MIGRATION.md)
+- [Recovery](docs/RECOVERY.md)

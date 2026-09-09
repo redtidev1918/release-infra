@@ -1,0 +1,14 @@
+name: ReleaseGraph Watchdog
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */5 * * *"
+permissions:
+  contents: read
+jobs:
+  reconcile:
+    uses: redtidev1918/release-infra/.github/workflows/reusable-readonly-plan.yml@v1
+    with:
+      owner: acme
+      graph: release-graph.yml
+      state: health.json

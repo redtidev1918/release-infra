@@ -1,0 +1,5 @@
+apiVersion: releasegraph.dev/v1
+projects:
+  a: {repo: {owner: acme, name: a}, dependsOn: [{id: c}]}
+  b: {repo: {owner: acme, name: b}, dependsOn: [{id: a}]}
+  c: {repo: {owner: acme, name: c}, dependsOn: [{id: b}]}

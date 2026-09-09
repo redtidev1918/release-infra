@@ -25,6 +25,12 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn("RELEASE-METADATA.json", workflow)
         self.assertIn("gh release create", workflow)
 
+    def test_readonly_plan_workflow_cannot_dispatch(self):
+        workflow = Path(".github/workflows/reusable-readonly-plan.yml").read_text()
+        self.assertNotIn("gh workflow run", workflow)
+        self.assertNotIn("repository-dispatch", workflow)
+        self.assertIn("contents: read", workflow)
+
     def test_release_please_only_manages_version(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
         self.assertIn("skip-github-release: true", workflow)

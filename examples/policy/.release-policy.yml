@@ -1,0 +1,18 @@
+apiVersion: releasegraph.dev/v1
+kind: binary
+versioning:
+  provider: release-please
+assets:
+  required:
+    - app-*-linux-amd64.tar.gz
+    - app-*-darwin-arm64.tar.gz
+    - app-*-windows-amd64.zip
+registries:
+  github:
+    required: true
+checksums: true
+metadata: true
+retention:
+  stable: 5
+  prerelease: 1
+  failedDraft: 2
