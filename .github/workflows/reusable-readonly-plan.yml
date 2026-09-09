@@ -34,15 +34,15 @@ jobs:
       - name: Build read-only CLI
         run: (cd .releasegraph-engine && go build -trimpath -o ../releasegraph ./cmd/releasegraph)
       - name: Discover public fleet
-        run: releasegraph fleet --owner "${{ inputs.owner }}" --public-only --output json > fleet.json
+        run: ./releasegraph fleet --owner "${{ inputs.owner }}" --public-only --output json > fleet.json
         env:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Compute graph plan
         run: |
           if [ -f "${{ inputs.state }}" ]; then
-            releasegraph plan --graph "${{ inputs.graph }}" --state "${{ inputs.state }}" --output json > release-plan.json
+            ./releasegraph plan --graph "${{ inputs.graph }}" --state "${{ inputs.state }}" --output json > release-plan.json
           else
-            releasegraph graph --file "${{ inputs.graph }}" --output json > release-plan.json
+            ./releasegraph graph --file "${{ inputs.graph }}" --output json > release-plan.json
           fi
       - name: Show plan
         run: cat release-plan.json
