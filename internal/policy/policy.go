@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
@@ -22,6 +23,10 @@ type Versioning struct {
 	Package  string `json:"package,omitempty" yaml:"package,omitempty"`
 	Manifest string `json:"manifest,omitempty" yaml:"manifest,omitempty"`
 	Version  string `json:"version,omitempty" yaml:"version,omitempty"`
+}
+
+type Tag struct {
+	Template string `json:"template,omitempty" yaml:"template,omitempty"`
 }
 
 type BuildMatrixItem struct {
@@ -56,6 +61,7 @@ type Policy struct {
 	APIVersion string              `json:"apiVersion,omitempty" yaml:"apiVersion,omitempty"`
 	Kind       string              `json:"kind" yaml:"kind"`
 	Versioning Versioning          `json:"versioning" yaml:"versioning"`
+	Tag        Tag                 `json:"tag,omitempty" yaml:"tag,omitempty"`
 	Build      Build               `json:"build,omitempty" yaml:"build,omitempty"`
 	Assets     Assets              `json:"assets" yaml:"assets"`
 	Registries map[string]Registry `json:"registries,omitempty" yaml:"registries,omitempty"`
@@ -75,6 +81,10 @@ func Load(path string) (*Policy, error) {
 	if err != nil {
 		return nil, rgerrors.Wrap(rgerrors.Policy, "read policy", err)
 	}
+	return Parse(raw)
+}
+
+func Parse(raw []byte) (*Policy, error) {
 	var p Policy
 	if err := config.Unmarshal(raw, &p); err != nil {
 		return nil, rgerrors.Wrap(rgerrors.Policy, "parse policy", err)
@@ -113,6 +123,9 @@ func Validate(p *Policy) error {
 	}
 	if !versionModes[mode] {
 		return rgerrors.New(rgerrors.Policy, "versioning.mode must be release-please, manual, or tag")
+	}
+	if p.Tag.Template != "" && !strings.Contains(p.Tag.Template, "{version}") {
+		return rgerrors.New(rgerrors.Policy, "tag.template must contain {version}")
 	}
 	for _, key := range []string{"required", "optional"} {
 		values := map[string][]string{"required": p.Assets.Required, "optional": p.Assets.Optional}[key]
@@ -170,6 +183,10 @@ func DesiredVersion(p *Policy, explicit, root string) (string, error) {
 	if err != nil {
 		return "", rgerrors.Wrap(rgerrors.Policy, "read release manifest", err)
 	}
+	return DesiredVersionFromManifest(p, raw)
+}
+
+func DesiredVersionFromManifest(p *Policy, raw []byte) (string, error) {
 	var manifest map[string]string
 	if err := json.Unmarshal(raw, &manifest); err != nil {
 		return "", rgerrors.Wrap(rgerrors.Policy, "parse release manifest", err)
@@ -179,10 +196,12 @@ func DesiredVersion(p *Policy, explicit, root string) (string, error) {
 	if !ok {
 		return "", rgerrors.New(rgerrors.Policy, fmt.Sprintf("manifest has no package %q", packageName))
 	}
-	return DesiredVersion(&Policy{Versioning: Versioning{Mode: "manual", Version: version}}, version, root)
+	return DesiredVersion(&Policy{Versioning: Versioning{Mode: "manual", Version: version}}, version, ".")
 }
 
-func Tag(p *Policy, version string) string { return "v" + version }
+func ReleaseTag(p *Policy, version string) string {
+	return strings.ReplaceAll(defaultValue(p.Tag.Template, "v{version}"), "{version}", version)
+}
 
 func defaultValue(value, fallback string) string {
 	if value != "" {

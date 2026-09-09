@@ -33,6 +33,13 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn("path: .releasegraph-engine", workflow)
         self.assertIn("./releasegraph fleet", workflow)
         self.assertIn("contents: read", workflow)
+        self.assertIn('plan --graph "$GRAPH_PATH" --live', workflow)
+
+    def test_docs_workflow_uses_pinned_actions(self):
+        workflow = Path(".github/workflows/docs.yml").read_text()
+        for action in re.findall(r"uses:\s*([^\s#]+)@([0-9a-f]+)", workflow):
+            self.assertEqual(len(action[1]), 40, action)
+        self.assertIn("pages: write", workflow)
 
     def test_release_please_only_manages_version(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()

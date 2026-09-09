@@ -27,6 +27,10 @@ func TestDiscoverOwnerAgnosticFleet(t *testing.T) {
 			_, _ = w.Write([]byte(`{"encoding":"base64","content":"` + content + `"}`))
 			return
 		}
+		if r.URL.Path == "/repos/acme/app/releases" {
+			_, _ = w.Write([]byte(`[{"tag_name":"v1.0.0","draft":false,"prerelease":false,"assets":[{"name":"app.zip"}]}]`))
+			return
+		}
 		w.WriteHeader(http.StatusNotFound)
 	}))
 	defer server.Close()
@@ -38,7 +42,7 @@ func TestDiscoverOwnerAgnosticFleet(t *testing.T) {
 	if len(out.Repositories) != 2 {
 		t.Fatalf("repos=%+v", out.Repositories)
 	}
-	if !out.Repositories[0].Managed || out.Repositories[0].Health != domain.HealthNeedsReview {
+	if !out.Repositories[0].Managed || out.Repositories[0].Health != domain.HealthNeedsReview || out.Repositories[0].LatestRelease != "v1.0.0" {
 		t.Fatalf("app=%+v", out.Repositories[0])
 	}
 	if out.Repositories[1].Classification != "fork" {

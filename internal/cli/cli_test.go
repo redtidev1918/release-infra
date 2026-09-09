@@ -35,3 +35,11 @@ func TestGraphMermaid(t *testing.T) {
 		}
 	}
 }
+
+func TestLivePlanRejectsFixtureState(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"plan", "--graph", "../../testdata/graph/diamond.yml", "--live", "--state", "../../testdata/graph/diamond-health.json"}, &stdout, &stderr)
+	if code != 1 || !strings.Contains(stderr.String(), "mutually exclusive") {
+		t.Fatalf("code=%d stderr=%s", code, stderr.String())
+	}
+}

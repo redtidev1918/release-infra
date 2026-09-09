@@ -9,10 +9,11 @@ on:
       state:
         required: false
         type: string
-        default: health.json
+        default: ""
       owner:
-        required: true
+        required: false
         type: string
+        default: ""
 permissions:
   contents: read
 jobs:
@@ -34,15 +35,20 @@ jobs:
       - name: Build read-only CLI
         run: (cd .releasegraph-engine && go build -trimpath -o ../releasegraph ./cmd/releasegraph)
       - name: Discover public fleet
+        if: inputs.owner != ''
         run: ./releasegraph fleet --owner "${{ inputs.owner }}" --public-only --output json > fleet.json
         env:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Compute graph plan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GRAPH_PATH: ${{ inputs.graph }}
+          STATE_PATH: ${{ inputs.state }}
         run: |
-          if [ -f "${{ inputs.state }}" ]; then
-            ./releasegraph plan --graph "${{ inputs.graph }}" --state "${{ inputs.state }}" --output json > release-plan.json
+          if [ -n "$STATE_PATH" ]; then
+            ./releasegraph plan --graph "$GRAPH_PATH" --state "$STATE_PATH" --output json > release-plan.json
           else
-            ./releasegraph graph --file "${{ inputs.graph }}" --output json > release-plan.json
+            ./releasegraph plan --graph "$GRAPH_PATH" --live --output json > release-plan.json
           fi
       - name: Show plan
         run: cat release-plan.json

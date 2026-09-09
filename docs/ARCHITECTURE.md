@@ -60,3 +60,5 @@ The release transaction key is `repository + version`. A missing tag is created;
 - **DAG Orchestration**: short-lived cross-repository dispatch token via GitHub App installation token, with fine-grained PAT as fallback.
 
 No classic all-repository super PAT is required.
+
+The current Go canary stops after a live, read-only plan. Registry inspection, dispatch, and mutation remain on the Python path until their contracts are implemented and canaried.

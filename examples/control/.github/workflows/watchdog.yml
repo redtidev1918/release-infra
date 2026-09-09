@@ -11,4 +11,3 @@ jobs:
     with:
       owner: acme
       graph: release-graph.yml
-      state: health.json
