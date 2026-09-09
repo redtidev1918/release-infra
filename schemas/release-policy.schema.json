@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/redtidev1918/release-infra/v1/schemas/release-policy.schema.json",
+  "$id": "https://raw.githubusercontent.com/redtidev1918/releasegraph/v1/schemas/release-policy.schema.json",
   "title": "Release Infrastructure v1 policy",
   "type": "object",
   "required": ["kind", "versioning", "assets", "registries"],

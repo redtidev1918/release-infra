@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	rgdomain "github.com/redtidev1918/release-infra/internal/domain"
-	"github.com/redtidev1918/release-infra/internal/github"
+	rgdomain "github.com/redtidev1918/releasegraph/internal/domain"
+	"github.com/redtidev1918/releasegraph/internal/github"
 )
 
 type Repository struct {

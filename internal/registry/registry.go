@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	rgerrors "github.com/redtidev1918/release-infra/internal/errors"
-	"github.com/redtidev1918/release-infra/internal/policy"
+	rgerrors "github.com/redtidev1918/releasegraph/internal/errors"
+	"github.com/redtidev1918/releasegraph/internal/policy"
 )
 
 type Verifier struct {

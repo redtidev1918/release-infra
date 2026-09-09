@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	rgerrors "github.com/redtidev1918/release-infra/internal/errors"
+	rgerrors "github.com/redtidev1918/releasegraph/internal/errors"
 )
 
 type Client struct {

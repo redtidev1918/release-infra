@@ -13,8 +13,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/redtidev1918/release-infra/internal/config"
-	rgerrors "github.com/redtidev1918/release-infra/internal/errors"
+	"github.com/redtidev1918/releasegraph/internal/config"
+	rgerrors "github.com/redtidev1918/releasegraph/internal/errors"
 )
 
 type Versioning struct {

@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/redtidev1918/release-infra/internal/config"
-	rgdomain "github.com/redtidev1918/release-infra/internal/domain"
-	rgerrors "github.com/redtidev1918/release-infra/internal/errors"
+	"github.com/redtidev1918/releasegraph/internal/config"
+	rgdomain "github.com/redtidev1918/releasegraph/internal/domain"
+	rgerrors "github.com/redtidev1918/releasegraph/internal/errors"
 )
 
 type View struct {
