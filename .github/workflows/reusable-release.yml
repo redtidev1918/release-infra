@@ -2,6 +2,10 @@ name: Release Infrastructure v1
 
 on:
   workflow_call:
+    outputs:
+      paths_released:
+        description: "Release Please component paths released in this run"
+        value: ${{ jobs.release-please.outputs.paths_released }}
     inputs:
       version: {type: string, default: ""}
       dry_run: {type: boolean, default: false}
@@ -25,8 +29,11 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    outputs:
+      paths_released: ${{ steps.rp.outputs.paths_released }}
     steps:
-      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+      - id: rp
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
           config-file: release-please-config.json

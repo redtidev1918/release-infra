@@ -39,6 +39,11 @@ class WorkflowTest(unittest.TestCase):
             finalize,
         )
 
+    def test_reusable_workflow_exposes_release_please_component_paths(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        self.assertIn("paths_released:", workflow)
+        self.assertIn("steps.rp.outputs.paths_released", workflow)
+
     def test_finalize_configures_node_registry_before_npm_publication(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
         finalize = workflow.split("  finalize:", 1)[1]
