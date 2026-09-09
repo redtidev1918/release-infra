@@ -22,8 +22,10 @@ class WorkflowTest(unittest.TestCase):
 
     def test_central_release_attaches_metadata(self):
         workflow = Path(".github/workflows/infra-release.yml").read_text()
-        self.assertIn("RELEASE-METADATA.json", workflow)
-        self.assertIn("gh release create", workflow)
+        self.assertIn("release_infra.cli publish", workflow)
+        self.assertLess(workflow.index("release_infra.cli audit"), workflow.index("git tag -f v1"))
+        for target in ("linux/amd64", "linux/arm64", "darwin/amd64", "darwin/arm64", "windows/amd64", "windows/arm64"):
+            self.assertIn(target, workflow)
 
     def test_readonly_plan_workflow_cannot_dispatch(self):
         workflow = Path(".github/workflows/reusable-readonly-plan.yml").read_text()

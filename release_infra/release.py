@@ -177,10 +177,13 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
 def _metadata(policy: dict, version: str, tag: str, assets: list[Path]) -> dict:
     started = os.environ.get("RELEASE_BUILD_STARTED_AT") or dt.datetime.now(dt.UTC).isoformat()
     sha = os.environ.get("GITHUB_SHA") or _run(["git", "rev-parse", "HEAD"], capture=True)
+    workflow_url = f"{os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/{os.environ.get('GITHUB_REPOSITORY')}/actions/runs/{os.environ.get('GITHUB_RUN_ID')}"
     return {
         "repository": os.environ.get("GITHUB_REPOSITORY"), "version": version, "tag": tag, "commit_sha": sha,
-        "build_run_id": os.environ.get("GITHUB_RUN_ID"), "build_run_url": f"{os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/{os.environ.get('GITHUB_REPOSITORY')}/actions/runs/{os.environ.get('GITHUB_RUN_ID')}",
-        "release_infra_version": __version__, "release_policy_hash": policy["_hash"], "build_started_at": started,
+        "build_run_id": os.environ.get("GITHUB_RUN_ID"), "build_run_url": workflow_url,
+        "workflow_run_id": os.environ.get("GITHUB_RUN_ID"), "workflow_run_url": workflow_url,
+        "releasegraph_version": os.environ.get("RELEASEGRAPH_VERSION", __version__),
+        "release_infra_version": __version__, "policy_hash": policy["_hash"], "release_policy_hash": policy["_hash"], "build_started_at": started,
         "published_at": dt.datetime.now(dt.UTC).isoformat(), "assets": [path.name for path in assets],
         "asset_sha256": {path.name: sha256(path) for path in assets}, "registries": policy.get("registries", {}),
         "container_digest": os.environ.get("CONTAINER_DIGEST"), "package_versions": {name: version for name in policy.get("registries", {})},

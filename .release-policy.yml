@@ -1,9 +1,21 @@
 {
-  "kind": "python-library",
-  "versioning": {"mode": "manual", "version": "1.0.0"},
-  "assets": {"required": [], "optional": []},
+  "apiVersion": "releasegraph.dev/v1",
+  "kind": "hybrid",
+  "versioning": {"mode": "manual", "version": "1.0.33"},
+  "assets": {
+    "required": [
+      "releasegraph-linux-amd64",
+      "releasegraph-linux-arm64",
+      "releasegraph-darwin-amd64",
+      "releasegraph-darwin-arm64",
+      "releasegraph-windows-amd64.exe",
+      "releasegraph-windows-arm64.exe"
+    ],
+    "optional": []
+  },
   "registries": {"github": {"required": true}},
   "retention": {"stable": 1, "prerelease": 1, "failed_draft": 3},
-  "checksums": false,
+  "checksums": true,
+  "metadata": true,
   "sbom": false
 }

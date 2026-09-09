@@ -57,6 +57,17 @@ type Registry struct {
 	Image    string `json:"image,omitempty" yaml:"image,omitempty"`
 }
 
+type Retention struct {
+	Stable      int `json:"stable,omitempty" yaml:"stable,omitempty"`
+	Prerelease  int `json:"prerelease,omitempty" yaml:"prerelease,omitempty"`
+	FailedDraft int `json:"failed_draft,omitempty" yaml:"failed_draft,omitempty"`
+}
+
+type Release struct {
+	Prerelease  bool   `json:"prerelease,omitempty" yaml:"prerelease,omitempty"`
+	PostPublish string `json:"post_publish,omitempty" yaml:"post_publish,omitempty"`
+}
+
 type Policy struct {
 	APIVersion string              `json:"apiVersion,omitempty" yaml:"apiVersion,omitempty"`
 	Kind       string              `json:"kind" yaml:"kind"`
@@ -65,8 +76,11 @@ type Policy struct {
 	Build      Build               `json:"build,omitempty" yaml:"build,omitempty"`
 	Assets     Assets              `json:"assets" yaml:"assets"`
 	Registries map[string]Registry `json:"registries,omitempty" yaml:"registries,omitempty"`
+	Retention  Retention           `json:"retention,omitempty" yaml:"retention,omitempty"`
+	Release    Release             `json:"release,omitempty" yaml:"release,omitempty"`
 	Checksums  bool                `json:"checksums" yaml:"checksums"`
 	Metadata   bool                `json:"metadata,omitempty" yaml:"metadata,omitempty"`
+	SBOM       bool                `json:"sbom,omitempty" yaml:"sbom,omitempty"`
 	Hash       string              `json:"hash,omitempty" yaml:"-"`
 }
 
@@ -156,6 +170,9 @@ func Validate(p *Policy) error {
 		if containsNewline(item.Command) {
 			return rgerrors.New(rgerrors.Policy, "build matrix commands must be single-line strings")
 		}
+	}
+	if containsNewline(p.Release.PostPublish) {
+		return rgerrors.New(rgerrors.Policy, "release.post_publish must be a single-line command")
 	}
 	return nil
 }
