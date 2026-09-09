@@ -24,7 +24,7 @@ func TestDoctorJSONEnvelope(t *testing.T) {
 
 func TestGraphMermaid(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	code := Run([]string{"graph", "--file", "../../examples/graph/release-graph.yml", "--format", "mermaid"}, &stdout, &stderr)
+	code := Run([]string{"graph", "--file", "../../examples/control/release-graph.yml", "--format", "mermaid"}, &stdout, &stderr)
 	if code != 0 {
 		t.Fatalf("code=%d stderr=%s", code, stderr.String())
 	}

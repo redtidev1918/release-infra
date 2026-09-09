@@ -30,12 +30,24 @@ releasegraph plan --graph release-graph.yml --state health.json --output json
 
 Mutating release, repair, dispatch, registry publishing, and retention remain on the Python v1 path until Python/Go contract canaries pass.
 
+## Serverless control repository
+
+A thin control repository contains user topology and ephemeral reconcile workers:
+
+```text
+release-graph.yml
+.github/workflows/orchestrate.yml
+.github/workflows/watchdog.yml
+```
+
+Copy the minimal callers from [`examples/control`](examples/control). A reconcile event computes a plan and exits; completion starts a new run rather than holding a long-lived job.
+
 ## 30-second read-only trial
 
 ```bash
 go build -o releasegraph ./cmd/releasegraph
 ./releasegraph doctor
-./releasegraph graph --file examples/graph/release-graph.yml --format mermaid
+./releasegraph graph --file examples/control/release-graph.yml --format mermaid
 ./releasegraph inspect --path examples/policy/.release-policy.yml
 ```
 

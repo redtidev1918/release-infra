@@ -1,0 +1,14 @@
+name: ReleaseGraph Reconcile
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [release-reconcile]
+permissions:
+  contents: read
+jobs:
+  plan:
+    uses: redtidev1918/release-infra/.github/workflows/reusable-readonly-plan.yml@v1
+    with:
+      owner: acme
+      graph: release-graph.yml
+      state: health.json
