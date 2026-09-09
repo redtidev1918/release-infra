@@ -400,7 +400,11 @@ jobs:
           COMMAND: ${{ steps.plan.outputs.optional_verify }}
         run: bash -uo pipefail -c "$COMMAND"
       - name: Publish, set Latest, audit, then prune Release objects
-        if: steps.plan.outputs.run_release == '1'
+        # A pull request can never equal a released tag commit, so auditing the
+        # remote Release from a PR dry-run hard-fails with "tag commit mismatch".
+        # Skip the remote-audit/retention step for PR events only; manual
+        # dry_run dispatches still exercise publish/audit with --dry-run.
+        if: steps.plan.outputs.run_release == '1' && github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           DRY_RUN: ${{ inputs.dry_run }}
