@@ -5,10 +5,54 @@
   "archived": false,
   "fork": false,
   "template": false,
-  "classification": "observe-only",
-  "health": "UNMANAGED",
-  "release_policy": null,
-  "release_infra_version": null,
+  "classification": "managed",
+  "health": "HEALTHY",
+  "release_policy": {
+    "kind": "hybrid",
+    "versioning": {
+      "mode": "release-please"
+    },
+    "build": {
+      "test": "go test ./... && ./scripts/validate.sh --examples",
+      "command": "./scripts/build-release",
+      "version_check": "tmp=$(mktemp -d) && tar -xzf dist/release/deploy-linux-amd64.tar.gz -C $tmp && $tmp/deploy-linux-amd64 version | grep -F \"deploy v$RELEASE_VERSION\""
+    },
+    "assets": {
+      "required": [
+        "deploy-linux-amd64.tar.gz",
+        "deploy-linux-arm64.tar.gz",
+        "deploy-windows-amd64.tar.gz",
+        "deploy-windows-arm64.tar.gz",
+        "deploy-darwin-amd64.tar.gz",
+        "deploy-darwin-arm64.tar.gz"
+      ],
+      "optional": []
+    },
+    "registries": {
+      "github": {
+        "required": true
+      },
+      "ghcr": {
+        "required": false,
+        "context": ".",
+        "file": "docker/combined.Dockerfile",
+        "image": "ghcr.io/redtidev1918/pixivflow-telepost-deploy",
+        "platforms": "linux/amd64,linux/arm64",
+        "verify": "docker buildx imagetools inspect ghcr.io/redtidev1918/pixivflow-telepost-deploy:$RELEASE_VERSION"
+      }
+    },
+    "release": {
+      "post_publish": "python3 .github/scripts/update_download_page.py && git config user.name github-actions[bot] && git config user.email 41898282+github-actions[bot]@users.noreply.github.com && git add docs/download.md && (git diff --cached --quiet || (git commit -m 'docs: update release download page' && git push))"
+    },
+    "retention": {
+      "stable": 1,
+      "prerelease": 1,
+      "failed_draft": 3
+    },
+    "checksums": true,
+    "sbom": true
+  },
+  "release_infra_version": "v1",
   "desired_version": "1.10.1",
   "latest_release": "v1.10.1",
   "latest_release_at": "2026-09-08T14:21:26Z",
@@ -35,11 +79,12 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/pixivflow-telepost-deploy/actions/runs/34238949585",
-    "updated_at": "2026-09-08T14:36:02Z"
+    "url": "https://github.com/redtidev1918/pixivflow-telepost-deploy/actions/runs/34298650343",
+    "updated_at": "2026-09-09T01:18:37Z"
   },
   "signals": [
     ".release-please-manifest.json",
+    ".release-policy.yml",
     "CHANGELOG.md",
     "go.mod",
     "release-please-config.json"
@@ -104,6 +149,7 @@
   "release_config": {
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+      "skip-github-release": true,
       "packages": {
         ".": {
           "release-type": "go",

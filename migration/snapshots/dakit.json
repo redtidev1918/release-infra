@@ -5,10 +5,67 @@
   "archived": false,
   "fork": false,
   "template": false,
-  "classification": "observe-only",
-  "health": "UNMANAGED",
-  "release_policy": null,
-  "release_infra_version": null,
+  "classification": "managed",
+  "health": "HEALTHY",
+  "release_policy": {
+    "kind": "binary",
+    "versioning": {
+      "mode": "release-please",
+      "package": "packages/dakit_cli"
+    },
+    "tag": {
+      "template": "dakit_cli-v{version}"
+    },
+    "build": {
+      "test": "flutter analyze && flutter test packages/dakit_cli/test",
+      "flutter_version": "3.47.1",
+      "matrix": [
+        {
+          "runner": "ubuntu-24.04",
+          "command": "TARGET=linux-x64 scripts/build-release"
+        },
+        {
+          "runner": "ubuntu-24.04",
+          "command": "TARGET=linux-arm64 scripts/build-release"
+        },
+        {
+          "runner": "macos-15",
+          "command": "TARGET=macos-arm64-unsigned-preview scripts/build-release"
+        },
+        {
+          "runner": "macos-15-intel",
+          "command": "TARGET=macos-x64-unsigned-preview scripts/build-release"
+        },
+        {
+          "runner": "windows-2025",
+          "command": "TARGET=windows-x64 scripts/build-release"
+        }
+      ]
+    },
+    "assets": {
+      "required": [
+        "dakit-cli-*-linux-x64.tar.gz",
+        "dakit-cli-*-linux-arm64.tar.gz",
+        "dakit-cli-*-macos-arm64-unsigned-preview.tar.gz",
+        "dakit-cli-*-macos-x64-unsigned-preview.tar.gz",
+        "dakit-cli-*-windows-x64.zip"
+      ],
+      "optional": []
+    },
+    "registries": {
+      "github": {
+        "required": true
+      }
+    },
+    "retention": {
+      "stable": 5,
+      "prerelease": 1,
+      "failed_draft": 2
+    },
+    "checksums": true,
+    "sbom": false
+  },
+  "release_infra_version": "v1",
   "desired_version": "1.0.0",
   "latest_release": "dakit_cli-v0.4.1",
   "latest_release_at": "2026-09-08T06:13:11Z",
@@ -35,11 +92,12 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/dakit/actions/runs/34193706997",
-    "updated_at": "2026-09-08T06:17:28Z"
+    "url": "https://github.com/redtidev1918/dakit/actions/runs/34309174953",
+    "updated_at": "2026-09-09T03:59:04Z"
   },
   "signals": [
     ".release-please-manifest.json",
+    ".release-policy.yml",
     "pubspec.yaml",
     "release-please-config.json"
   ],
@@ -572,7 +630,8 @@
           "component": "dakit_core",
           "include-v-in-tag": true,
           "include-component-in-tag": true,
-          "tag-separator": "-"
+          "tag-separator": "-",
+          "skip-github-release": true
         },
         "packages/dakit_api": {
           "release-type": "dart",
@@ -580,7 +639,8 @@
           "component": "dakit_api",
           "include-v-in-tag": true,
           "include-component-in-tag": true,
-          "tag-separator": "-"
+          "tag-separator": "-",
+          "skip-github-release": true
         },
         "packages/dakit_flutter": {
           "release-type": "dart",
@@ -588,7 +648,8 @@
           "component": "dakit_flutter",
           "include-v-in-tag": true,
           "include-component-in-tag": true,
-          "tag-separator": "-"
+          "tag-separator": "-",
+          "skip-github-release": true
         },
         "packages/dakit_cli": {
           "release-type": "dart",
@@ -596,7 +657,8 @@
           "component": "dakit_cli",
           "include-v-in-tag": true,
           "include-component-in-tag": true,
-          "tag-separator": "-"
+          "tag-separator": "-",
+          "skip-github-release": true
         }
       }
     },

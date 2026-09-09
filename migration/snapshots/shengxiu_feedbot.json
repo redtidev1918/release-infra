@@ -1,0 +1,132 @@
+{
+  "repo": "redtidev1918/shengxiu_feedbot",
+  "default_branch": "main",
+  "visibility": "public",
+  "archived": false,
+  "fork": true,
+  "template": false,
+  "classification": "fork",
+  "health": "NO_RELEASE",
+  "release_policy": null,
+  "release_infra_version": null,
+  "desired_version": null,
+  "latest_release": null,
+  "latest_release_at": null,
+  "latest_tag": "v0.14.0",
+  "draft_releases": [],
+  "actual_assets": [],
+  "release_workflows": [],
+  "latest_release_run": null,
+  "signals": [
+    "CHANGELOG.md",
+    "pyproject.toml"
+  ],
+  "workflow_paths": [],
+  "release_history": [],
+  "tags": [
+    {
+      "name": "v0.14.0",
+      "commit": "5bce7cee628e93458dfdbeeeb3cd8fc753029138"
+    },
+    {
+      "name": "v0.13.1",
+      "commit": "a1446fa9de9dce6e8dc79fc2a7e0b65bda692963"
+    },
+    {
+      "name": "v0.13.0",
+      "commit": "24676aa00c279830222996f46ba882e5e9cc03aa"
+    },
+    {
+      "name": "v0.12.3",
+      "commit": "633ac79e24fcb32f65f04e82846fcc7b69fc8c0d"
+    },
+    {
+      "name": "v0.12.2",
+      "commit": "db671d7fd84c691e691a760626f4da9fdd255782"
+    },
+    {
+      "name": "v0.12.1",
+      "commit": "7c492bd4e7f98fe425fef4a17d1bc6e599012236"
+    },
+    {
+      "name": "v0.12.0",
+      "commit": "1574144d42278077b82f3166f67c1aa73ffa2480"
+    },
+    {
+      "name": "v0.11.0",
+      "commit": "c4dec0e02a324f3c9ebd5b42278fb3765895d9da"
+    },
+    {
+      "name": "v0.10.3",
+      "commit": "7f91d8da5e23f145d59bb290868561963073c935"
+    },
+    {
+      "name": "v0.10.2",
+      "commit": "6c48ff438f64070bfe7878b9990c785456bf0c8a"
+    },
+    {
+      "name": "v0.10.1",
+      "commit": "00fa4967145b01b5ccb6707f58e4459351576b9d"
+    },
+    {
+      "name": "v0.10.0",
+      "commit": "b30b52afabea417c3dc5f4bc7fafe3dd82686b9b"
+    },
+    {
+      "name": "v0.9.0",
+      "commit": "56c19422bd95d352c2df914126e2de7dd413303a"
+    },
+    {
+      "name": "v0.8.3",
+      "commit": "c6939962cd36954294f41d52debe6e97910aea24"
+    },
+    {
+      "name": "v0.8.2",
+      "commit": "f74d3228230688b86004217032174bb82b26790b"
+    },
+    {
+      "name": "v0.8.1",
+      "commit": "8f971d63a5b4f567931337e512eac3383ddce474"
+    },
+    {
+      "name": "v0.8.0",
+      "commit": "c6178b75b013e003f647ea0597e2ec010c0168a7"
+    },
+    {
+      "name": "v0.7.1",
+      "commit": "7b162ac1fa44728e8f47a674bb708414d975d6e5"
+    },
+    {
+      "name": "v0.7.0",
+      "commit": "818a07d1d2fc0c53d921c6cc28823af83cec6bcb"
+    },
+    {
+      "name": "v0.6.1",
+      "commit": "6f9b41ea741724027309dd5ea50ac670c252e383"
+    },
+    {
+      "name": "v0.6.0",
+      "commit": "dbf47a221e8f96c55d387b153587fbc7aa6fb299"
+    },
+    {
+      "name": "v0.5.0",
+      "commit": "24a7ed721aaf12d9841836aa8dda61ca9420fbc6"
+    },
+    {
+      "name": "v0.4.3",
+      "commit": "c5cc950afde481254ddee782568089a78f35f4d5"
+    },
+    {
+      "name": "v0.4.2",
+      "commit": "232f9fd8bba4476a06cb5d50e1a0edb799fc3955"
+    }
+  ],
+  "release_config": {},
+  "registries": {
+    "pypi": {
+      "package": "pixiv-feed-bot",
+      "declared": "0.14.0",
+      "published": null
+    }
+  }
+}

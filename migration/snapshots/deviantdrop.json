@@ -5,10 +5,35 @@
   "archived": false,
   "fork": false,
   "template": false,
-  "classification": "observe-only",
-  "health": "UNMANAGED",
-  "release_policy": null,
-  "release_infra_version": null,
+  "classification": "managed",
+  "health": "HEALTHY",
+  "release_policy": {
+    "kind": "none",
+    "versioning": {
+      "mode": "release-please"
+    },
+    "build": {
+      "test": "npm ci && npm test && npx wrangler deploy --dry-run --outdir dist/wrangler",
+      "command": "npm ci && npm run check"
+    },
+    "assets": {
+      "required": [],
+      "optional": []
+    },
+    "registries": {
+      "github": {
+        "required": true
+      }
+    },
+    "retention": {
+      "stable": 1,
+      "prerelease": 1,
+      "failed_draft": 2
+    },
+    "checksums": false,
+    "sbom": false
+  },
+  "release_infra_version": "v1",
   "desired_version": "1.6.3",
   "latest_release": "v1.6.3",
   "latest_release_at": "2026-09-07T05:31:34Z",
@@ -32,11 +57,12 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/deviantdrop/actions/runs/34089843506",
-    "updated_at": "2026-09-07T06:13:16Z"
+    "url": "https://github.com/redtidev1918/deviantdrop/actions/runs/34312679397",
+    "updated_at": "2026-09-09T04:52:58Z"
   },
   "signals": [
     ".release-please-manifest.json",
+    ".release-policy.yml",
     "CHANGELOG.md",
     "Dockerfile",
     "package.json",
@@ -204,7 +230,8 @@
           "release-type": "node",
           "package-name": "deviantdrop",
           "include-v-in-tag": true,
-          "include-component-in-tag": false
+          "include-component-in-tag": false,
+          "skip-github-release": true
         }
       }
     },

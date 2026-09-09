@@ -5,10 +5,40 @@
   "archived": false,
   "fork": false,
   "template": false,
-  "classification": "observe-only",
-  "health": "UNMANAGED",
-  "release_policy": null,
-  "release_infra_version": null,
+  "classification": "managed",
+  "health": "HEALTHY",
+  "release_policy": {
+    "kind": "node-library",
+    "versioning": {
+      "mode": "release-please"
+    },
+    "build": {
+      "test": "npm install --no-audit --no-fund && node cli.js --version && node cli.js --help >/dev/null",
+      "command": "npm install --no-audit --no-fund"
+    },
+    "assets": {
+      "required": [],
+      "optional": []
+    },
+    "registries": {
+      "github": {
+        "required": true
+      },
+      "npm": {
+        "required": true,
+        "publish": "npm publish --provenance --access public",
+        "verify": "npm view pixiv-token-getter@$RELEASE_VERSION version | grep -Fx $RELEASE_VERSION"
+      }
+    },
+    "retention": {
+      "stable": 1,
+      "prerelease": 1,
+      "failed_draft": 2
+    },
+    "checksums": false,
+    "sbom": false
+  },
+  "release_infra_version": "v1",
   "desired_version": "2.3.0",
   "latest_release": "v2.3.0",
   "latest_release_at": "2026-09-06T08:17:59Z",
@@ -17,7 +47,7 @@
   "actual_assets": [],
   "release_workflows": [
     {
-      "name": "CI & Release",
+      "name": "Release",
       "path": ".github/workflows/release.yml"
     },
     {
@@ -28,11 +58,12 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/pixiv-token-getter/actions/runs/34179828334",
-    "updated_at": "2026-09-08T02:22:49Z"
+    "url": "https://github.com/redtidev1918/pixiv-token-getter/actions/runs/34298498884",
+    "updated_at": "2026-09-09T01:16:18Z"
   },
   "signals": [
     ".release-please-manifest.json",
+    ".release-policy.yml",
     "package.json",
     "release-please-config.json"
   ],
@@ -97,7 +128,8 @@
           "release-type": "node",
           "package-name": "pixiv-token-getter",
           "include-v-in-tag": true,
-          "include-component-in-tag": false
+          "include-component-in-tag": false,
+          "skip-github-release": true
         }
       }
     },

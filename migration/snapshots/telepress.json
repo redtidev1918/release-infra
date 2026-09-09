@@ -5,10 +5,43 @@
   "archived": false,
   "fork": false,
   "template": false,
-  "classification": "observe-only",
-  "health": "UNMANAGED",
-  "release_policy": null,
-  "release_infra_version": null,
+  "classification": "managed",
+  "health": "HEALTHY",
+  "release_policy": {
+    "kind": "python-library",
+    "versioning": {
+      "mode": "release-please"
+    },
+    "build": {
+      "test": "python -m pip install --upgrade build twine && python -m pip install -e '.[dev]' && python -m pytest -q",
+      "command": "scripts/build-release",
+      "version_check": "python -c \"import os,zipfile,pathlib; w=list(pathlib.Path('dist/pypi').glob('*.whl')); assert len(w)==1; z=zipfile.ZipFile(w[0]); s=z.read('telepress/version.py').decode(); assert os.environ['RELEASE_VERSION'] in s\""
+    },
+    "assets": {
+      "required": [
+        "*.whl",
+        "*.tar.gz"
+      ],
+      "optional": []
+    },
+    "registries": {
+      "github": {
+        "required": true
+      },
+      "pypi": {
+        "required": true,
+        "packages_dir": "dist/pypi"
+      }
+    },
+    "retention": {
+      "stable": 1,
+      "prerelease": 1,
+      "failed_draft": 2
+    },
+    "checksums": true,
+    "sbom": false
+  },
+  "release_infra_version": "v1",
   "desired_version": "0.6.1",
   "latest_release": "v0.6.1",
   "latest_release_at": "2026-09-08T06:02:14Z",
@@ -31,11 +64,12 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/telepress/actions/runs/34192950973",
-    "updated_at": "2026-09-08T06:03:29Z"
+    "url": "https://github.com/redtidev1918/telepress/actions/runs/34299429112",
+    "updated_at": "2026-09-09T01:30:14Z"
   },
   "signals": [
     ".release-please-manifest.json",
+    ".release-policy.yml",
     "CHANGELOG.md",
     "pyproject.toml",
     "release-please-config.json"
@@ -151,7 +185,8 @@
           "include-v-in-tag": true,
           "extra-files": [
             "src/telepress/version.py"
-          ]
+          ],
+          "skip-github-release": true
         }
       }
     },

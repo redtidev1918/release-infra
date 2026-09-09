@@ -5,10 +5,40 @@
   "archived": false,
   "fork": false,
   "template": false,
-  "classification": "observe-only",
-  "health": "UNMANAGED",
-  "release_policy": null,
-  "release_infra_version": null,
+  "classification": "managed",
+  "health": "HEALTHY",
+  "release_policy": {
+    "kind": "node-library",
+    "versioning": {
+      "mode": "release-please"
+    },
+    "build": {
+      "test": "npm ci && npm run lint && npm test && npm run build:embed",
+      "command": "npm ci && npm run build:embed"
+    },
+    "assets": {
+      "required": [],
+      "optional": []
+    },
+    "registries": {
+      "github": {
+        "required": true
+      },
+      "npm": {
+        "required": true,
+        "publish": "npm publish --provenance --access public",
+        "verify": "npm view paranote@$RELEASE_VERSION version | grep -Fx $RELEASE_VERSION"
+      }
+    },
+    "retention": {
+      "stable": 1,
+      "prerelease": 1,
+      "failed_draft": 2
+    },
+    "checksums": false,
+    "sbom": false
+  },
+  "release_infra_version": "v1",
   "desired_version": "0.2.0",
   "latest_release": "v0.2.0",
   "latest_release_at": "2026-08-27T15:54:26Z",
@@ -17,11 +47,7 @@
   "actual_assets": [],
   "release_workflows": [
     {
-      "name": "release-please",
-      "path": ".github/workflows/release-please.yml"
-    },
-    {
-      "name": ".github/workflows/release.yml",
+      "name": "Release",
       "path": ".github/workflows/release.yml"
     },
     {
@@ -32,11 +58,12 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/paranote/actions/runs/34179827757",
-    "updated_at": "2026-09-08T02:22:52Z"
+    "url": "https://github.com/redtidev1918/paranote/actions/runs/34298422243",
+    "updated_at": "2026-09-09T01:15:17Z"
   },
   "signals": [
     ".release-please-manifest.json",
+    ".release-policy.yml",
     "CHANGELOG.md",
     "Dockerfile",
     "package.json",
@@ -45,7 +72,6 @@
   "workflow_paths": [
     ".github/workflows/ci.yml",
     ".github/workflows/notify-profile.yml",
-    ".github/workflows/release-please.yml",
     ".github/workflows/release.yml",
     ".github/workflows/static.yml"
   ],
@@ -80,7 +106,8 @@
           "release-type": "node",
           "package-name": "paranote",
           "include-v-in-tag": true,
-          "include-component-in-tag": false
+          "include-component-in-tag": false,
+          "skip-github-release": true
         }
       }
     },

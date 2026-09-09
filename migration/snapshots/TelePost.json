@@ -5,16 +5,74 @@
   "archived": false,
   "fork": false,
   "template": false,
-  "classification": "observe-only",
-  "health": "UNMANAGED",
-  "release_policy": null,
-  "release_infra_version": null,
-  "desired_version": "2.14.0",
-  "latest_release": "v2.14.0",
-  "latest_release_at": "2026-09-08T11:53:26Z",
-  "latest_tag": "v2.14.0",
+  "classification": "managed",
+  "health": "HEALTHY",
+  "release_policy": {
+    "kind": "hybrid",
+    "versioning": {
+      "mode": "release-please"
+    },
+    "build": {
+      "test": "python -m pip install -r requirements-dev.txt && python -m pytest -q --no-cov -o log_cli=false",
+      "matrix": [
+        {
+          "runner": "ubuntu-latest",
+          "command": "scripts/build-release",
+          "version_check": "./dist/release/telepost-linux-x64 --version | grep -F \"telepost $RELEASE_VERSION\""
+        },
+        {
+          "runner": "windows-latest",
+          "command": "scripts/build-release",
+          "version_check": "./dist/release/telepost-windows-x64.exe --version | grep -F \"telepost $RELEASE_VERSION\""
+        },
+        {
+          "runner": "macos-14",
+          "command": "scripts/build-release",
+          "version_check": "./dist/release/telepost-macos-arm64 --version | grep -F \"telepost $RELEASE_VERSION\""
+        }
+      ]
+    },
+    "assets": {
+      "required": [
+        "telepost-linux-x64",
+        "telepost-windows-x64.exe",
+        "telepost-macos-arm64"
+      ],
+      "optional": []
+    },
+    "registries": {
+      "github": {
+        "required": true
+      },
+      "ghcr": {
+        "required": false,
+        "context": ".",
+        "file": "Dockerfile",
+        "image": "ghcr.io/redtidev1918/telepost",
+        "platforms": "linux/amd64,linux/arm64",
+        "verify": "docker buildx imagetools inspect ghcr.io/redtidev1918/telepost:$RELEASE_VERSION"
+      }
+    },
+    "release": {
+      "post_publish": "python3 .github/scripts/update_download_page.py && git config user.name github-actions[bot] && git config user.email 41898282+github-actions[bot]@users.noreply.github.com && git add docs/download.md && (git diff --cached --quiet || (git commit -m 'docs: update release download page' && git push))"
+    },
+    "retention": {
+      "stable": 1,
+      "prerelease": 1,
+      "failed_draft": 2
+    },
+    "checksums": true,
+    "sbom": true
+  },
+  "release_infra_version": "v1",
+  "desired_version": "2.15.0",
+  "latest_release": "v2.15.0",
+  "latest_release_at": "2026-09-08T18:15:58Z",
+  "latest_tag": "v2.15.0",
   "draft_releases": [],
   "actual_assets": [
+    "RELEASE-METADATA.json",
+    "SHA256SUMS",
     "telepost-linux-x64",
     "telepost-macos-arm64",
     "telepost-windows-x64.exe"
@@ -32,11 +90,12 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/TelePost/actions/runs/34223057506",
-    "updated_at": "2026-09-08T11:57:36Z"
+    "url": "https://github.com/redtidev1918/TelePost/actions/runs/34298850258",
+    "updated_at": "2026-09-09T01:21:30Z"
   },
   "signals": [
     ".release-please-manifest.json",
+    ".release-policy.yml",
     "CHANGELOG.md",
     "Dockerfile",
     "release-please-config.json"
@@ -48,30 +107,44 @@
   ],
   "release_history": [
     {
-      "tag": "v2.14.0",
+      "tag": "v2.15.0",
       "draft": false,
       "prerelease": false,
-      "published_at": "2026-09-08T11:53:26Z",
+      "published_at": "2026-09-08T18:15:58Z",
       "assets": [
         {
+          "name": "RELEASE-METADATA.json",
+          "size": 1559,
+          "sha256": "sha256:4c94f2cbfa69013d0246f41f15bf8f60cce3cf88391ccf104e81bd4a72955874"
+        },
+        {
+          "name": "SHA256SUMS",
+          "size": 263,
+          "sha256": "sha256:2a9c8ba4c6ffdd10495590cfbdb1e29b6042384b4ad6b6a619b1e67c8ee02cf7"
+        },
+        {
           "name": "telepost-linux-x64",
-          "size": 33492952,
-          "sha256": "sha256:c624591fd3ec8a6f2798c2ffe90de308e9f2c9c95aa46b11826946797d06d1d5"
+          "size": 33514776,
+          "sha256": "sha256:b85c2f6281df336e75444a20a18f0af08596baeb13c076c991874884455eb0cb"
         },
         {
           "name": "telepost-macos-arm64",
-          "size": 17877072,
-          "sha256": "sha256:e2e6ff0ddf2d690624d5a6b4fd7db1a252751f81a527e6578a686076d2da3ac4"
+          "size": 18008144,
+          "sha256": "sha256:dc4094a7e032d9391d58262d647fb2f01e351ed3e86f31282723b6de03265336"
         },
         {
           "name": "telepost-windows-x64.exe",
-          "size": 21487383,
-          "sha256": "sha256:f37cc58699d77d0ca47d06aea133f6aea2c2811af04e9f0893e732922c6009aa"
+          "size": 21508478,
+          "sha256": "sha256:c087c2ba0ba0776ab558d5106c2ed1b28951825b32bdce8c883492c9774e3d01"
         }
       ]
     }
   ],
   "tags": [
+    {
+      "name": "v2.15.0",
+      "commit": "c02e15f810948f6c513a7b7d014c0a4078caa41a"
+    },
     {
       "name": "v2.14.0",
       "commit": "ba60d53972ed1568d1c431699568b42dfb97f5dc"
@@ -85,12 +158,13 @@
           "release-type": "simple",
           "package-name": "TelePost",
           "include-v-in-tag": true,
-          "include-component-in-tag": false
+          "include-component-in-tag": false,
+          "skip-github-release": true
         }
       }
     },
     ".release-please-manifest.json": {
-      ".": "2.14.0"
+      ".": "2.15.0"
     }
   },
   "registries": {}

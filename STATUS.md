@@ -1,24 +1,25 @@
 # Release Fleet Dashboard
 
-Generated: `2026-09-08T15:41:06.364769+00:00`
+Generated: `2026-09-09T05:06:12.791391+00:00`
 
 | Repository | Class | Desired | Latest | Assets | Workflow | Health |
 |---|---|---:|---:|---:|---|---|
 | redtidev1918/BallonsTranslator-lite | fork | — | — | 0 | — | NO_RELEASE |
-| redtidev1918/dakit | observe-only | 1.0.0 | dakit_cli-v0.4.1 | 6 | success | UNMANAGED |
-| redtidev1918/daviewer | observe-only | 0.2.184 | v0.2.184 | 3 | — | UNMANAGED |
-| redtidev1918/deviantart-downloader | observe-only | 4.1.1 | v4.1.1 | 2 | success | UNMANAGED |
-| redtidev1918/deviantdrop | observe-only | 1.6.3 | v1.6.3 | 0 | success | UNMANAGED |
-| redtidev1918/graf | observe-only | 1.2.0 | v1.2.0 | 8 | success | UNMANAGED |
-| redtidev1918/ludum | observe-only | — | v1.0.0 | 1 | success | UNMANAGED |
-| redtidev1918/NekoTime | observe-only | 2.3.4 | v2.3.4 | 5 | success | UNMANAGED |
-| redtidev1918/paranote | observe-only | 0.2.0 | v0.2.0 | 0 | success | UNMANAGED |
-| redtidev1918/pixiv-token-getter | observe-only | 2.3.0 | v2.3.0 | 0 | success | UNMANAGED |
-| redtidev1918/PixivFlow | observe-only | 2.12.0 | v2.12.0 | 0 | success | UNMANAGED |
-| redtidev1918/pixivflow-telepost-deploy | observe-only | 1.10.1 | v1.10.1 | 6 | success | UNMANAGED |
-| redtidev1918/pixivflow-webui | observe-only | 1.0.1 | — | 0 | success | UNMANAGED |
+| redtidev1918/dakit | managed | 1.0.0 | dakit_cli-v0.4.1 | 6 | success | HEALTHY |
+| redtidev1918/daviewer | managed | 0.2.184 | v0.2.184 | 3 | success | HEALTHY |
+| redtidev1918/deviantart-downloader | managed | 4.1.1 | v4.1.1 | 2 | success | HEALTHY |
+| redtidev1918/deviantdrop | managed | 1.6.3 | v1.6.3 | 0 | success | HEALTHY |
+| redtidev1918/graf | managed | 1.2.1 | v1.2.1 | 10 | success | HEALTHY |
+| redtidev1918/ludum | managed | 3.0.2 | v3.0.2 | 1 | success | HEALTHY |
+| redtidev1918/NekoTime | managed | 2.3.4 | v2.3.4 | 5 | success | HEALTHY |
+| redtidev1918/paranote | managed | 0.2.0 | v0.2.0 | 0 | success | HEALTHY |
+| redtidev1918/pixiv-token-getter | managed | 2.3.0 | v2.3.0 | 0 | success | HEALTHY |
+| redtidev1918/PixivFlow | managed | 2.12.1 | v2.12.1 | 3 | success | HEALTHY |
+| redtidev1918/pixivflow-telepost-deploy | managed | 1.10.1 | v1.10.1 | 6 | success | HEALTHY |
+| redtidev1918/pixivflow-webui | managed | 1.0.1 | v1.0.1 | 1 | success | HEALTHY |
 | redtidev1918/ponytail | fork | — | — | 0 | — | NO_RELEASE |
 | redtidev1918/redtidev1918 | no-release | — | — | 0 | — | NO_RELEASE |
-| redtidev1918/release-infra | managed | — | v1.0.1 | 0 | success | HEALTHY |
-| redtidev1918/TelePost | observe-only | 2.14.0 | v2.14.0 | 3 | success | UNMANAGED |
-| redtidev1918/telepress | observe-only | 0.6.1 | v0.6.1 | 2 | success | UNMANAGED |
+| redtidev1918/release-infra | managed | — | v1.0.25 | 0 | — | HEALTHY |
+| redtidev1918/shengxiu_feedbot | fork | — | — | 0 | — | NO_RELEASE |
+| redtidev1918/TelePost | managed | 2.15.0 | v2.15.0 | 5 | success | HEALTHY |
+| redtidev1918/telepress | managed | 0.6.1 | v0.6.1 | 2 | success | HEALTHY |

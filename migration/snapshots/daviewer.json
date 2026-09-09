@@ -5,10 +5,53 @@
   "archived": false,
   "fork": false,
   "template": false,
-  "classification": "observe-only",
-  "health": "UNMANAGED",
-  "release_policy": null,
-  "release_infra_version": null,
+  "classification": "managed",
+  "health": "HEALTHY",
+  "release_policy": {
+    "kind": "flutter",
+    "versioning": {
+      "mode": "release-please"
+    },
+    "build": {
+      "test": "flutter pub get && flutter analyze && dart format --output=none --set-exit-if-changed lib test && flutter test",
+      "flutter_version": "3.47.1",
+      "matrix": [
+        {
+          "runner": "ubuntu-latest",
+          "command": "scripts/build-release"
+        },
+        {
+          "runner": "macos-latest",
+          "command": "scripts/build-release"
+        },
+        {
+          "runner": "windows-2022",
+          "command": "scripts/build-release"
+        }
+      ]
+    },
+    "assets": {
+      "required": [
+        "DAViewer-v*.apk",
+        "DAViewer-v*macos-unsigned-preview.zip",
+        "DAViewer-v*windows.zip"
+      ],
+      "optional": []
+    },
+    "registries": {
+      "github": {
+        "required": true
+      }
+    },
+    "retention": {
+      "stable": 1,
+      "prerelease": 1,
+      "failed_draft": 2
+    },
+    "checksums": true,
+    "sbom": false
+  },
+  "release_infra_version": "v1",
   "desired_version": "0.2.184",
   "latest_release": "v0.2.184",
   "latest_release_at": "2026-09-06T20:33:21Z",
@@ -29,9 +72,15 @@
       "path": ".github/workflows/static.yml"
     }
   ],
-  "latest_release_run": null,
+  "latest_release_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/redtidev1918/daviewer/actions/runs/34313033046",
+    "updated_at": "2026-09-09T04:58:47Z"
+  },
   "signals": [
     ".release-please-manifest.json",
+    ".release-policy.yml",
     "CHANGELOG.md",
     "pubspec.yaml",
     "release-please-config.json"
@@ -474,7 +523,8 @@
           "release-type": "dart",
           "package-name": "daviewer",
           "include-v-in-tag": true,
-          "include-component-in-tag": false
+          "include-component-in-tag": false,
+          "skip-github-release": true
         }
       }
     },

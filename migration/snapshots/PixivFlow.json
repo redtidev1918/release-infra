@@ -5,16 +5,61 @@
   "archived": false,
   "fork": false,
   "template": false,
-  "classification": "observe-only",
-  "health": "UNMANAGED",
-  "release_policy": null,
-  "release_infra_version": null,
-  "desired_version": "2.12.0",
-  "latest_release": "v2.12.0",
-  "latest_release_at": "2026-09-08T11:53:21Z",
-  "latest_tag": "v2.12.0",
+  "classification": "managed",
+  "health": "HEALTHY",
+  "release_policy": {
+    "kind": "node-library",
+    "versioning": {
+      "mode": "release-please"
+    },
+    "build": {
+      "test": "npm ci && npm test -- --runInBand --silent",
+      "command": "scripts/build-release",
+      "version_check": "test \"$(node -p \"require('./package.json').version\")\" = \"$RELEASE_VERSION\" && tar -tzf dist/release/pixivflow-*.tgz >/dev/null"
+    },
+    "assets": {
+      "required": [
+        "pixivflow-*.tgz"
+      ],
+      "optional": []
+    },
+    "registries": {
+      "github": {
+        "required": true
+      },
+      "npm": {
+        "required": true,
+        "publish": "if npx --yes npm@11 view pixivflow@$RELEASE_VERSION version | grep -Fx \"$RELEASE_VERSION\" >/dev/null; then echo \"pixivflow@$RELEASE_VERSION already published\"; else npx --yes npm@11 publish --provenance --access public --ignore-scripts \"dist/release/pixivflow-$RELEASE_VERSION.tgz\"; fi",
+        "verify": "npm view pixivflow@$RELEASE_VERSION version | grep -Fx $RELEASE_VERSION"
+      },
+      "ghcr": {
+        "required": false,
+        "context": ".",
+        "file": "Dockerfile.scheduler",
+        "image": "ghcr.io/redtidev1918/pixivflow",
+        "platforms": "linux/amd64,linux/arm64",
+        "verify": "docker buildx imagetools inspect ghcr.io/redtidev1918/pixivflow:$RELEASE_VERSION"
+      }
+    },
+    "retention": {
+      "stable": 1,
+      "prerelease": 1,
+      "failed_draft": 2
+    },
+    "checksums": true,
+    "sbom": true
+  },
+  "release_infra_version": "v1",
+  "desired_version": "2.12.1",
+  "latest_release": "v2.12.1",
+  "latest_release_at": "2026-09-08T18:41:11Z",
+  "latest_tag": "v2.12.1",
   "draft_releases": [],
-  "actual_assets": [],
+  "actual_assets": [
+    "pixivflow-2.12.1.tgz",
+    "RELEASE-METADATA.json",
+    "SHA256SUMS"
+  ],
   "release_workflows": [
     {
       "name": "Deploy static content to Pages",
@@ -28,11 +73,12 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/PixivFlow/actions/runs/34223050804",
-    "updated_at": "2026-09-08T12:05:56Z"
+    "url": "https://github.com/redtidev1918/PixivFlow/actions/runs/34299420082",
+    "updated_at": "2026-09-09T01:30:06Z"
   },
   "signals": [
     ".release-please-manifest.json",
+    ".release-policy.yml",
     "CHANGELOG.md",
     "Dockerfile",
     "package.json",
@@ -47,6 +93,29 @@
   ],
   "release_history": [
     {
+      "tag": "v2.12.1",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T18:41:11Z",
+      "assets": [
+        {
+          "name": "pixivflow-2.12.1.tgz",
+          "size": 562116,
+          "sha256": "sha256:834bc1553734e9c215e4deb3773e7a65fa044cba5c4b5f8326b2e773899bfa55"
+        },
+        {
+          "name": "RELEASE-METADATA.json",
+          "size": 1615,
+          "sha256": "sha256:667b47aa72657de5b8e1433eb0ebbc3538dffe6cb9cb5606705ff0ccaf338b72"
+        },
+        {
+          "name": "SHA256SUMS",
+          "size": 87,
+          "sha256": "sha256:f3d9a503d1cc0e335b4c7d6fcf5a9aea647930ce51390508e127271e032c1575"
+        }
+      ]
+    },
+    {
       "tag": "v2.12.0",
       "draft": false,
       "prerelease": false,
@@ -55,6 +124,10 @@
     }
   ],
   "tags": [
+    {
+      "name": "v2.12.1",
+      "commit": "668a0951f6953d9befa4a540eebd2a92ab664a51"
+    },
     {
       "name": "v2.12.0",
       "commit": "620c96e7c6d359dfe7db04c5fa16eb143a2062b2"
@@ -68,19 +141,20 @@
           "release-type": "node",
           "package-name": "PixivFlow",
           "include-v-in-tag": true,
-          "include-component-in-tag": false
+          "include-component-in-tag": false,
+          "skip-github-release": true
         }
       }
     },
     ".release-please-manifest.json": {
-      ".": "2.12.0"
+      ".": "2.12.1"
     }
   },
   "registries": {
     "npm": {
       "package": "pixivflow",
-      "declared": "2.12.0",
-      "published": "2.12.0"
+      "declared": "2.12.1",
+      "published": "2.12.1"
     }
   }
 }

@@ -32,9 +32,9 @@
   },
   "release_infra_version": null,
   "desired_version": null,
-  "latest_release": "v1.0.1",
-  "latest_release_at": "2026-09-08T15:36:46Z",
-  "latest_tag": "v1.0.1",
+  "latest_release": "v1.0.25",
+  "latest_release_at": "2026-09-09T04:53:03Z",
+  "latest_tag": "v1.0.25",
   "draft_releases": [],
   "actual_assets": [],
   "release_workflows": [
@@ -47,12 +47,7 @@
       "path": ".github/workflows/reusable-release.yml"
     }
   ],
-  "latest_release_run": {
-    "status": "completed",
-    "conclusion": "success",
-    "url": "https://github.com/redtidev1918/release-infra/actions/runs/34245850320",
-    "updated_at": "2026-09-08T15:36:50Z"
-  },
+  "latest_release_run": null,
   "signals": [
     ".release-policy.yml",
     "pyproject.toml"
@@ -61,9 +56,178 @@
     ".github/workflows/fleet-audit.yml",
     ".github/workflows/infra-canary.yml",
     ".github/workflows/infra-release.yml",
+    ".github/workflows/notify-profile.yml",
     ".github/workflows/reusable-release.yml"
   ],
   "release_history": [
+    {
+      "tag": "v1.0.25",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-09T04:53:03Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.24",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-09T03:51:32Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.23",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-09T03:44:20Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.22",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-09T03:39:49Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.21",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-09T03:31:47Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.20",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-09T03:26:25Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.19",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-09T03:19:56Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.18",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-09T03:13:15Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.17",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T18:48:47Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.16",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T18:44:16Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.15",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T18:34:41Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.14",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T18:09:51Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.13",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T18:01:49Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.12",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T16:54:43Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.11",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T16:48:24Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.10",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T16:45:20Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.9",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T16:40:22Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.8",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T16:20:51Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.7",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T16:16:48Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.6",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T16:07:18Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.5",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T16:01:41Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.4",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T15:58:31Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.3",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T15:55:02Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.2",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-08T15:41:44Z",
+      "assets": []
+    },
     {
       "tag": "v1.0.1",
       "draft": false,
@@ -81,6 +245,102 @@
   ],
   "tags": [
     {
+      "name": "v1.0.25",
+      "commit": "1817aa7f87b26019550e1df7b5f7559d96770740"
+    },
+    {
+      "name": "v1.0.24",
+      "commit": "b4aa008e605653c9083c95c47c906cedd28abf80"
+    },
+    {
+      "name": "v1.0.23",
+      "commit": "166b76daf92b334c4dc39c3facaae6ed90c28a4a"
+    },
+    {
+      "name": "v1.0.22",
+      "commit": "203dfe92105a4baba0ab4cea101a57e9369f082a"
+    },
+    {
+      "name": "v1.0.21",
+      "commit": "fac65f9ce5f00b4cb9fa7eec79d73f53266abfdb"
+    },
+    {
+      "name": "v1.0.20",
+      "commit": "ca4317ddc346b9241dd1497d763f4aee72bac2fa"
+    },
+    {
+      "name": "v1.0.19",
+      "commit": "83d53677835938a8f398785fd56bfce343156d69"
+    },
+    {
+      "name": "v1.0.18",
+      "commit": "06b7ea795f5e38769bba632c415c5cfd9018a846"
+    },
+    {
+      "name": "v1.0.17",
+      "commit": "77664528e5c0ba7496b94432c9039b7241dec599"
+    },
+    {
+      "name": "v1.0.16",
+      "commit": "36c9da28ba68f363dcea9860d52457c782376fde"
+    },
+    {
+      "name": "v1.0.15",
+      "commit": "d0a32d23e991cd53e70581bf69db5bc9735874f6"
+    },
+    {
+      "name": "v1.0.14",
+      "commit": "4516e7755b32373960315401baae25c9bf942106"
+    },
+    {
+      "name": "v1.0.13",
+      "commit": "8ded2879fde6bdd7d6a5f31df39bb9efc3af3202"
+    },
+    {
+      "name": "v1.0.12",
+      "commit": "1e94fa8b242a7c73eb69869d0a40e35bb65f70ec"
+    },
+    {
+      "name": "v1.0.11",
+      "commit": "7d4894eeeb69484af63f9cc2595e3eafd0a50eed"
+    },
+    {
+      "name": "v1.0.10",
+      "commit": "edb4394b998c316626965c2df3a49f28856d55f5"
+    },
+    {
+      "name": "v1.0.9",
+      "commit": "0b7a80cf839e1e973357bd0b9624a778362ad9cc"
+    },
+    {
+      "name": "v1.0.8",
+      "commit": "66d21526219ac0a6612f98ea6fbe9775e377f4ea"
+    },
+    {
+      "name": "v1.0.7",
+      "commit": "efeb35b8400031198adc89a86392c2f366ced9dc"
+    },
+    {
+      "name": "v1.0.6",
+      "commit": "cbb7c8a70d0bcb21766b55d528dff043e613c7a6"
+    },
+    {
+      "name": "v1.0.5",
+      "commit": "e5627ef9c64e8b76648e373d9bcdb65ca119d592"
+    },
+    {
+      "name": "v1.0.4",
+      "commit": "2eafecc29131ad7c6309c45d4ef18ae796c3efc5"
+    },
+    {
+      "name": "v1.0.3",
+      "commit": "01b938cf056050cfb3f8356e0945bc917015fd0f"
+    },
+    {
+      "name": "v1.0.2",
+      "commit": "b4ac5975999db000b3ad66607c4ba3bb57356755"
+    },
+    {
       "name": "v1.0.1",
       "commit": "c8ded4eb06e7a3c899a8bf5a760452c6b65e46ac"
     },
@@ -90,7 +350,7 @@
     },
     {
       "name": "v1",
-      "commit": "c8ded4eb06e7a3c899a8bf5a760452c6b65e46ac"
+      "commit": "1817aa7f87b26019550e1df7b5f7559d96770740"
     }
   ],
   "release_config": {},

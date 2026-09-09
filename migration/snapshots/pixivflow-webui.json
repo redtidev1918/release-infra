@@ -5,16 +5,51 @@
   "archived": false,
   "fork": false,
   "template": false,
-  "classification": "observe-only",
-  "health": "UNMANAGED",
-  "release_policy": null,
-  "release_infra_version": null,
+  "classification": "managed",
+  "health": "HEALTHY",
+  "release_policy": {
+    "kind": "container",
+    "versioning": {
+      "mode": "release-please"
+    },
+    "build": {
+      "test": "npm ci --legacy-peer-deps && npx jest src --testPathIgnorePatterns=src/__tests__/integration --runInBand --silent",
+      "command": "npm ci --legacy-peer-deps && npm run build"
+    },
+    "assets": {
+      "required": [],
+      "optional": []
+    },
+    "registries": {
+      "github": {
+        "required": true
+      },
+      "ghcr": {
+        "required": true,
+        "context": ".",
+        "file": "Dockerfile",
+        "image": "ghcr.io/redtidev1918/pixivflow-webui",
+        "platforms": "linux/amd64,linux/arm64",
+        "verify": "docker buildx imagetools inspect ghcr.io/redtidev1918/pixivflow-webui:$RELEASE_VERSION"
+      }
+    },
+    "retention": {
+      "stable": 1,
+      "prerelease": 1,
+      "failed_draft": 2
+    },
+    "checksums": false,
+    "sbom": true
+  },
+  "release_infra_version": "v1",
   "desired_version": "1.0.1",
-  "latest_release": null,
-  "latest_release_at": null,
+  "latest_release": "v1.0.1",
+  "latest_release_at": "2026-09-09T05:01:47Z",
   "latest_tag": "v1.0.1",
   "draft_releases": [],
-  "actual_assets": [],
+  "actual_assets": [
+    "RELEASE-METADATA.json"
+  ],
   "release_workflows": [
     {
       "name": "Release",
@@ -28,11 +63,12 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/pixivflow-webui/actions/runs/34091770630",
-    "updated_at": "2026-09-07T06:39:06Z"
+    "url": "https://github.com/redtidev1918/pixivflow-webui/actions/runs/34306300755",
+    "updated_at": "2026-09-09T03:13:58Z"
   },
   "signals": [
     ".release-please-manifest.json",
+    ".release-policy.yml",
     "Dockerfile",
     "package.json",
     "release-please-config.json"
@@ -42,7 +78,21 @@
     ".github/workflows/release.yml",
     ".github/workflows/static.yml"
   ],
-  "release_history": [],
+  "release_history": [
+    {
+      "tag": "v1.0.1",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-09T05:01:47Z",
+      "assets": [
+        {
+          "name": "RELEASE-METADATA.json",
+          "size": 1393,
+          "sha256": "sha256:6ac3d5db23667cbfd407ebbf6d41ba6a9be1dcbeec6f55a27c4668a205625168"
+        }
+      ]
+    }
+  ],
   "tags": [
     {
       "name": "v1.0.1",
@@ -57,7 +107,8 @@
           "release-type": "node",
           "package-name": "pixivflow-webui",
           "include-v-in-tag": true,
-          "include-component-in-tag": false
+          "include-component-in-tag": false,
+          "skip-github-release": true
         }
       }
     },
