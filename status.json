@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-09T05:13:47.271194+00:00",
+  "generated_at": "2026-09-09T05:49:05.950869+00:00",
   "repositories": [
     {
       "repo": "redtidev1918/BallonsTranslator-lite",
@@ -144,6 +144,7 @@
         "dakit-cli-0.4.1-macos-arm64-unsigned-preview.tar.gz",
         "dakit-cli-0.4.1-macos-x64-unsigned-preview.tar.gz",
         "dakit-cli-0.4.1-windows-x64.zip",
+        "RELEASE-METADATA.json",
         "SHA256SUMS"
       ],
       "release_workflows": [
@@ -206,6 +207,11 @@
               "name": "dakit-cli-0.4.1-windows-x64.zip",
               "size": 3440682,
               "sha256": "sha256:747ae82ea94402ac419bf34c7cc6712b55ddda9e648f15f108c9a5e8869608e6"
+            },
+            {
+              "name": "RELEASE-METADATA.json",
+              "size": 1726,
+              "sha256": "sha256:71536bf45c360ea7b53774896e6cbfebcbdff01917fce23c15a19568075bd6e0"
             },
             {
               "name": "SHA256SUMS",
@@ -688,6 +694,12 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          "packages/dakit_core": "1.0.0",
+          "packages/dakit_api": "1.0.0",
+          "packages/dakit_flutter": "1.0.0",
+          "packages/dakit_cli": "0.4.1"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -728,12 +740,6 @@
               "skip-github-release": true
             }
           }
-        },
-        ".release-please-manifest.json": {
-          "packages/dakit_core": "1.0.0",
-          "packages/dakit_api": "1.0.0",
-          "packages/dakit_flutter": "1.0.0",
-          "packages/dakit_cli": "0.4.1"
         }
       },
       "registries": {
@@ -806,7 +812,12 @@
       "actual_assets": [
         "DAViewer-0.2.184-macos-unsigned-preview.zip",
         "DAViewer-0.2.184-windows.zip",
-        "DAViewer-0.2.184.apk"
+        "DAViewer-0.2.184.apk",
+        "DAViewer-v0.2.184-macos-unsigned-preview.zip",
+        "DAViewer-v0.2.184-windows.zip",
+        "DAViewer-v0.2.184.apk",
+        "RELEASE-METADATA.json",
+        "SHA256SUMS"
       ],
       "release_workflows": [
         {
@@ -859,6 +870,31 @@
               "name": "DAViewer-0.2.184.apk",
               "size": 65422234,
               "sha256": "sha256:f2f83711fe379fe3a5a3f18b8103de38448771a015dae7f9c5956d3d174e085c"
+            },
+            {
+              "name": "DAViewer-v0.2.184-macos-unsigned-preview.zip",
+              "size": 24800988,
+              "sha256": "sha256:c4cbe037261932be0f071c7f32f65c5a65e311550518d159588c87c036948e03"
+            },
+            {
+              "name": "DAViewer-v0.2.184-windows.zip",
+              "size": 14607132,
+              "sha256": "sha256:5309131019170e8a2a392c2b17e46006795c8c939bcd7f6ab9828b4d9d1dcf99"
+            },
+            {
+              "name": "DAViewer-v0.2.184.apk",
+              "size": 65422234,
+              "sha256": "sha256:f2f83711fe379fe3a5a3f18b8103de38448771a015dae7f9c5956d3d174e085c"
+            },
+            {
+              "name": "RELEASE-METADATA.json",
+              "size": 1816,
+              "sha256": "sha256:2a7145414d97c1045ad7cea694cb9a9f2ec5ae2b058e25b8592bf7e8f8d77f06"
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 587,
+              "sha256": "sha256:cce0282159aa03fd02647f3065346a3bfa0f6f4308b9bcd90c0b6938a5c03be4"
             }
           ]
         }
@@ -1262,6 +1298,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "0.2.184"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -1273,9 +1312,6 @@
               "skip-github-release": true
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "0.2.184"
         }
       },
       "registries": {
@@ -1337,7 +1373,9 @@
       "draft_releases": [],
       "actual_assets": [
         "devart_dl-4.1.1-py3-none-any.whl",
-        "devart_dl-4.1.1.tar.gz"
+        "devart_dl-4.1.1.tar.gz",
+        "RELEASE-METADATA.json",
+        "SHA256SUMS"
       ],
       "release_workflows": [
         {
@@ -1385,6 +1423,16 @@
               "name": "devart_dl-4.1.1.tar.gz",
               "size": 55156,
               "sha256": "sha256:af39b739aa9306ccd0960f4ff8e82ce709f3b43091b75cc77a0e8fcf32e7e30e"
+            },
+            {
+              "name": "RELEASE-METADATA.json",
+              "size": 1294,
+              "sha256": "sha256:e8043b440c65b300cda29eb9ba1810e2ec075e267aca925fca8ccf1c7d2a7c9f"
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 188,
+              "sha256": "sha256:69ae4f10ba5c78c62449efb200b0101b444d5ec0e0944d708e8fe7818bd0d4f7"
             }
           ]
         }
@@ -1493,7 +1541,9 @@
       "latest_release_at": "2026-09-07T05:31:34Z",
       "latest_tag": "v1.6.3",
       "draft_releases": [],
-      "actual_assets": [],
+      "actual_assets": [
+        "RELEASE-METADATA.json"
+      ],
       "release_workflows": [
         {
           "name": "Deploy",
@@ -1535,7 +1585,13 @@
           "draft": false,
           "prerelease": false,
           "published_at": "2026-09-07T05:31:34Z",
-          "assets": []
+          "assets": [
+            {
+              "name": "RELEASE-METADATA.json",
+              "size": 886,
+              "sha256": "sha256:10fd875d8f42efdf490f06370352ee3acccbf66ed58fdc8dc1b4805d68e1a61e"
+            }
+          ]
         },
         {
           "tag": "v1.6.2",
@@ -1677,6 +1733,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "1.6.3"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -1688,9 +1747,6 @@
               "skip-github-release": true
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "1.6.3"
         }
       },
       "registries": {
@@ -1921,6 +1977,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "1.2.1"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -1932,9 +1991,6 @@
               "skip-github-release": true
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "1.2.1"
         }
       },
       "registries": {
@@ -2065,6 +2121,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "3.0.2"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2076,9 +2135,6 @@
               "skip-github-release": true
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "3.0.2"
         }
       },
       "registries": {
@@ -2153,6 +2209,8 @@
         "NekoTime-macOS-v2.3.4.dmg",
         "NekoTime-macOS-v2.3.4.zip",
         "NekoTime-Windows-v2.3.4.zip",
+        "RELEASE-METADATA.json",
+        "SHA256SUMS",
         "SHA256SUMS.txt"
       ],
       "release_workflows": [
@@ -2211,6 +2269,16 @@
               "sha256": "sha256:7325ee3cc950f74ad650462c2db4768b426f0db54f3a61035b67e1d03aeebc63"
             },
             {
+              "name": "RELEASE-METADATA.json",
+              "size": 1463,
+              "sha256": "sha256:9fe2e86fc95f4af7d15bab6708166093def005cf521c404a7b34e91086d02e8c"
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 377,
+              "sha256": "sha256:04c4e886e824eb9b1d7d2bc6bf93ada4413b8e41fd3bb617f6cac44633d8daae"
+            },
+            {
               "name": "SHA256SUMS.txt",
               "size": 378,
               "sha256": "sha256:fc22cfea82fc78b6fa00f342333e482df90b24926f88e907423cb68a8f91b9e3"
@@ -2229,6 +2297,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "2.3.4"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2240,9 +2311,6 @@
               "skip-github-release": true
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "2.3.4"
         }
       },
       "registries": {
@@ -2299,7 +2367,9 @@
       "latest_release_at": "2026-08-27T15:54:26Z",
       "latest_tag": "v0.2.0",
       "draft_releases": [],
-      "actual_assets": [],
+      "actual_assets": [
+        "RELEASE-METADATA.json"
+      ],
       "release_workflows": [
         {
           "name": "Release",
@@ -2336,7 +2406,13 @@
           "draft": false,
           "prerelease": false,
           "published_at": "2026-08-27T15:54:26Z",
-          "assets": []
+          "assets": [
+            {
+              "name": "RELEASE-METADATA.json",
+              "size": 1097,
+              "sha256": "sha256:405e76790dd0370599bb14662b7c105ce5a1637fa25a29199cea01b5c7afb77e"
+            }
+          ]
         }
       ],
       "tags": [
@@ -2354,6 +2430,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "0.2.0"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2365,9 +2444,6 @@
               "skip-github-release": true
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "0.2.0"
         }
       },
       "registries": {
@@ -2424,7 +2500,9 @@
       "latest_release_at": "2026-09-06T08:17:59Z",
       "latest_tag": "v2.3.0",
       "draft_releases": [],
-      "actual_assets": [],
+      "actual_assets": [
+        "RELEASE-METADATA.json"
+      ],
       "release_workflows": [
         {
           "name": "Release",
@@ -2458,7 +2536,13 @@
           "draft": false,
           "prerelease": false,
           "published_at": "2026-09-06T08:17:59Z",
-          "assets": []
+          "assets": [
+            {
+              "name": "RELEASE-METADATA.json",
+              "size": 1117,
+              "sha256": "sha256:9f95a39dea1cd9a689a1996580ac7c85192638aeadcf508a4b3dc6542ec400b8"
+            }
+          ]
         },
         {
           "tag": "v2.2.1",
@@ -2501,6 +2585,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "2.3.0"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2512,9 +2599,6 @@
               "skip-github-release": true
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "2.3.0"
         }
       },
       "registries": {
@@ -2661,6 +2745,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "2.12.1"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2672,9 +2759,6 @@
               "skip-github-release": true
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "2.12.1"
         }
       },
       "registries": {
@@ -2751,7 +2835,9 @@
         "deploy-linux-amd64.tar.gz",
         "deploy-linux-arm64.tar.gz",
         "deploy-windows-amd64.tar.gz",
-        "deploy-windows-arm64.tar.gz"
+        "deploy-windows-arm64.tar.gz",
+        "RELEASE-METADATA.json",
+        "SHA256SUMS"
       ],
       "release_workflows": [
         {
@@ -2819,6 +2905,16 @@
               "name": "deploy-windows-arm64.tar.gz",
               "size": 2230891,
               "sha256": "sha256:9f072046a30ed4d123f5a98613733c1dbcd5c07ff0e84fd0cba28b8cc50cbef8"
+            },
+            {
+              "name": "RELEASE-METADATA.json",
+              "size": 2101,
+              "sha256": "sha256:f4104beca9fc1563d8bf7ba3926d18c896cb9a2985bdcf84c458e540a4af32c5"
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 558,
+              "sha256": "sha256:89f852778abf11758c2e42b617e4ab46d0dca3360926fbda4e9c33b9e5973c9e"
             }
           ]
         }
@@ -2954,6 +3050,9 @@
         }
       ],
       "release_config": {
+        ".release-please-manifest.json": {
+          ".": "1.0.1"
+        },
         "release-please-config.json": {
           "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
           "packages": {
@@ -2965,9 +3064,6 @@
               "skip-github-release": true
             }
           }
-        },
-        ".release-please-manifest.json": {
-          ".": "1.0.1"
         }
       },
       "registries": {
@@ -3138,9 +3234,9 @@
       },
       "release_infra_version": null,
       "desired_version": null,
-      "latest_release": "v1.0.27",
-      "latest_release_at": "2026-09-09T05:11:33Z",
-      "latest_tag": "v1.0.27",
+      "latest_release": "v1.0.28",
+      "latest_release_at": "2026-09-09T05:41:14Z",
+      "latest_tag": "v1.0.28",
       "draft_releases": [],
       "actual_assets": [],
       "release_workflows": [
@@ -3166,6 +3262,13 @@
         ".github/workflows/reusable-release.yml"
       ],
       "release_history": [
+        {
+          "tag": "v1.0.28",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-09T05:41:14Z",
+          "assets": []
+        },
         {
           "tag": "v1.0.27",
           "draft": false,
@@ -3365,6 +3468,10 @@
       ],
       "tags": [
         {
+          "name": "v1.0.28",
+          "commit": "b5f07f8952f2c651cefd9f0607bedc74c94bec1f"
+        },
+        {
           "name": "v1.0.27",
           "commit": "4295842d51b99ce5262bc00c213105a5e3f03729"
         },
@@ -3478,7 +3585,7 @@
         },
         {
           "name": "v1",
-          "commit": "4295842d51b99ce5262bc00c213105a5e3f03729"
+          "commit": "b5f07f8952f2c651cefd9f0607bedc74c94bec1f"
         }
       ],
       "release_config": {},
@@ -3843,6 +3950,8 @@
       "latest_tag": "v0.6.1",
       "draft_releases": [],
       "actual_assets": [
+        "RELEASE-METADATA.json",
+        "SHA256SUMS",
         "telepress-0.6.1-py3-none-any.whl",
         "telepress-0.6.1.tar.gz"
       ],
@@ -3882,6 +3991,16 @@
           "prerelease": false,
           "published_at": "2026-09-08T06:02:14Z",
           "assets": [
+            {
+              "name": "RELEASE-METADATA.json",
+              "size": 1282,
+              "sha256": "sha256:85c78f600106d50220c8dfa27d9a5be1d2136ec5667ed3b6c60cf7855cd5dabd"
+            },
+            {
+              "name": "SHA256SUMS",
+              "size": 188,
+              "sha256": "sha256:65fd95044d6bced6e7c43c4db4056d43d83d85f408a50834dcfb34dfd838765d"
+            },
             {
               "name": "telepress-0.6.1-py3-none-any.whl",
               "size": 38487,

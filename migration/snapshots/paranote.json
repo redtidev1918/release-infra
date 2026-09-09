@@ -44,7 +44,9 @@
   "latest_release_at": "2026-08-27T15:54:26Z",
   "latest_tag": "v0.2.0",
   "draft_releases": [],
-  "actual_assets": [],
+  "actual_assets": [
+    "RELEASE-METADATA.json"
+  ],
   "release_workflows": [
     {
       "name": "Release",
@@ -81,7 +83,13 @@
       "draft": false,
       "prerelease": false,
       "published_at": "2026-08-27T15:54:26Z",
-      "assets": []
+      "assets": [
+        {
+          "name": "RELEASE-METADATA.json",
+          "size": 1097,
+          "sha256": "sha256:405e76790dd0370599bb14662b7c105ce5a1637fa25a29199cea01b5c7afb77e"
+        }
+      ]
     }
   ],
   "tags": [
@@ -99,6 +107,9 @@
     }
   ],
   "release_config": {
+    ".release-please-manifest.json": {
+      ".": "0.2.0"
+    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "packages": {
@@ -110,9 +121,6 @@
           "skip-github-release": true
         }
       }
-    },
-    ".release-please-manifest.json": {
-      ".": "0.2.0"
     }
   },
   "registries": {

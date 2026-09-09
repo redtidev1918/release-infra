@@ -64,7 +64,9 @@
     "deploy-linux-amd64.tar.gz",
     "deploy-linux-arm64.tar.gz",
     "deploy-windows-amd64.tar.gz",
-    "deploy-windows-arm64.tar.gz"
+    "deploy-windows-arm64.tar.gz",
+    "RELEASE-METADATA.json",
+    "SHA256SUMS"
   ],
   "release_workflows": [
     {
@@ -132,6 +134,16 @@
           "name": "deploy-windows-arm64.tar.gz",
           "size": 2230891,
           "sha256": "sha256:9f072046a30ed4d123f5a98613733c1dbcd5c07ff0e84fd0cba28b8cc50cbef8"
+        },
+        {
+          "name": "RELEASE-METADATA.json",
+          "size": 2101,
+          "sha256": "sha256:f4104beca9fc1563d8bf7ba3926d18c896cb9a2985bdcf84c458e540a4af32c5"
+        },
+        {
+          "name": "SHA256SUMS",
+          "size": 558,
+          "sha256": "sha256:89f852778abf11758c2e42b617e4ab46d0dca3360926fbda4e9c33b9e5973c9e"
         }
       ]
     }
