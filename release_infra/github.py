@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import time
 from typing import Any
 
 
@@ -19,9 +20,16 @@ class GitHub:
             command.append("--paginate")
         for key, value in (fields or {}).items():
             command.extend(["-f", f"{key}={value}"])
-        result = subprocess.run(command, text=True, capture_output=True)
-        if result.returncode:
-            raise GitHubError(result.stderr.strip() or result.stdout.strip())
+        result = None
+        for attempt in range(4):
+            result = subprocess.run(command, text=True, capture_output=True)
+            if not result.returncode:
+                break
+            retryable = ("eof", "connection reset", "timed out", "operation timed out", "rate limit", "secondary rate", "http 5")
+            if attempt == 3 or not any(text in (result.stderr + result.stdout).lower() for text in retryable):
+                raise GitHubError(result.stderr.strip() or result.stdout.strip())
+            time.sleep((attempt + 1) * 5)
+        assert result is not None
         if not result.stdout.strip():
             return None
         if paginate:
