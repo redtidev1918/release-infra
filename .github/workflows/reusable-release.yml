@@ -330,6 +330,7 @@ jobs:
         if: ${{ steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy' && !inputs.dry_run && steps.plan.outputs.required_publish != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           RELEASE_VERSION: ${{ steps.plan.outputs.version }}
           RELEASE_TAG: ${{ steps.plan.outputs.tag }}
           COMMAND: ${{ steps.plan.outputs.required_publish }}

@@ -52,6 +52,12 @@ class WorkflowTest(unittest.TestCase):
         self.assertLess(setup, publication)
         self.assertIn("registry-url: https://registry.npmjs.org/", finalize)
 
+    def test_npm_publish_receives_configured_token(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        finalize = workflow.split("  finalize:", 1)[1]
+        publication = finalize.split("Required registry publication", 1)[1].split("      - name:", 1)[0]
+        self.assertIn("NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}", publication)
+
     def test_healthy_public_repair_skips_mutation_and_runs_audit(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
         finalize = workflow.split("  finalize:", 1)[1]
