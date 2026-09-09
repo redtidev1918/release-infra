@@ -1,5 +1,7 @@
 package errors
 
+import stderrors "errors"
+
 type ErrorKind string
 
 const (
@@ -14,6 +16,7 @@ const (
 	RegistryConflict   ErrorKind = "REGISTRY_CONFLICT_ERROR"
 	VersionConflict    ErrorKind = "VERSION_CONFLICT_ERROR"
 	InvariantViolation ErrorKind = "INVARIANT_VIOLATION"
+	NotFound           ErrorKind = "NOT_FOUND"
 )
 
 type Error struct {
@@ -28,4 +31,9 @@ func (e *Error) Unwrap() error { return e.Cause }
 func New(kind ErrorKind, message string) error { return &Error{Kind: kind, Message: message} }
 func Wrap(kind ErrorKind, message string, cause error) error {
 	return &Error{Kind: kind, Message: message, Cause: cause}
+}
+
+func IsKind(err error, kind ErrorKind) bool {
+	var typed *Error
+	return stderrors.As(err, &typed) && typed.Kind == kind
 }

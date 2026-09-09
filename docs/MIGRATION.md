@@ -32,7 +32,7 @@ Start with no write permissions:
 ```bash
 releasegraph graph --file release-graph.yml --output json
 releasegraph inspect --path .release-policy.yml
-releasegraph plan --graph release-graph.yml --state health.json --output json
+releasegraph plan --graph release-graph.yml --live --output json
 ```
 
 Add release write permissions only after those plans match expected behavior. Add cross-repository dispatch credentials last.

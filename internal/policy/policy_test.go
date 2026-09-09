@@ -33,3 +33,10 @@ func TestUnknownRegistryRejected(t *testing.T) {
 		t.Fatal("expected policy error")
 	}
 }
+
+func TestReleaseTagPreservesLegacyTemplate(t *testing.T) {
+	p := &Policy{Tag: Tag{Template: "cli-v{version}"}}
+	if got := ReleaseTag(p, "1.2.3"); got != "cli-v1.2.3" {
+		t.Fatalf("tag=%q", got)
+	}
+}

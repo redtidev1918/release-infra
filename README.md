@@ -2,6 +2,8 @@
 
 Serverless, declarative, DAG-driven release orchestration for GitHub Actions.
 
+[简体中文](README.zh-CN.md) · [Documentation](https://redtidev1918.github.io/release-infra/) · [中文文档](https://redtidev1918.github.io/release-infra/zh-CN/)
+
 ```text
         core
        /    \
@@ -26,6 +28,7 @@ releasegraph inspect --path .release-policy.yml
 releasegraph audit --path .release-policy.yml --root dist/release --output json
 releasegraph plan --path .release-policy.yml --root . --output json
 releasegraph plan --graph release-graph.yml --state health.json --output json
+releasegraph plan --graph release-graph.yml --live --output json
 ```
 
 Mutating release, repair, dispatch, registry publishing, and retention remain on the Python v1 path until Python/Go contract canaries pass.
@@ -40,7 +43,7 @@ release-graph.yml
 .github/workflows/watchdog.yml
 ```
 
-Copy the minimal callers from [`examples/control`](examples/control). A reconcile event computes a plan and exits; completion starts a new run rather than holding a long-lived job.
+Copy the minimal callers from [`examples/control`](examples/control). A reconcile event fetches current GitHub state, computes a plan, and exits; completion starts a new run rather than holding a long-lived job.
 
 ## 30-second read-only trial
 
@@ -93,6 +96,7 @@ Build adapters own compilers and package managers and place candidates in `dist/
 See:
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Authentication](docs/AUTHENTICATION.md)
 - [Policy](docs/POLICY.md)
 - [Migration](docs/MIGRATION.md)
 - [Recovery](docs/RECOVERY.md)

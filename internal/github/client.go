@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -41,6 +42,37 @@ func (c *Client) Get(ctx context.Context, path string, target any) error {
 		return json.Unmarshal(body, target)
 	}
 	return nil
+}
+
+func (c *Client) GetOptional(ctx context.Context, path string, target any) (bool, error) {
+	err := c.Get(ctx, path, target)
+	if rgerrors.IsKind(err, rgerrors.NotFound) {
+		return false, nil
+	}
+	return err == nil, err
+}
+
+func (c *Client) ReadFile(ctx context.Context, repo, path, ref string) ([]byte, bool, error) {
+	endpoint := fmt.Sprintf("repos/%s/contents/%s", repo, strings.TrimPrefix(path, "/"))
+	if ref != "" {
+		endpoint += "?ref=" + url.QueryEscape(ref)
+	}
+	var file struct {
+		Encoding string `json:"encoding"`
+		Content  string `json:"content"`
+	}
+	found, err := c.GetOptional(ctx, endpoint, &file)
+	if err != nil || !found {
+		return nil, found, err
+	}
+	if file.Encoding != "base64" {
+		return nil, true, rgerrors.New(rgerrors.InvariantViolation, "GitHub content is not base64 encoded")
+	}
+	data, err := base64.StdEncoding.DecodeString(strings.ReplaceAll(file.Content, "\n", ""))
+	if err != nil {
+		return nil, true, rgerrors.Wrap(rgerrors.InvariantViolation, "decode GitHub content", err)
+	}
+	return data, true, nil
 }
 
 func (c *Client) get(ctx context.Context, path string) ([]byte, http.Header, error) {
@@ -86,6 +118,9 @@ func (c *Client) get(ctx context.Context, path string) ([]byte, http.Header, err
 		if resp.StatusCode == 403 {
 			return nil, nil, rgerrors.New(rgerrors.Permission, "GitHub permission denied")
 		}
+		if resp.StatusCode == 404 {
+			return nil, nil, rgerrors.New(rgerrors.NotFound, "GitHub resource not found")
+		}
 		if resp.StatusCode >= 500 || resp.StatusCode == http.StatusTooManyRequests {
 			last = rgerrors.New(rgerrors.Transient, fmt.Sprintf("GitHub %s", resp.Status))
 			continue
@@ -118,6 +153,12 @@ func (c *Client) Paginate(ctx context.Context, path string) ([]map[string]any, e
 		next = nextLink(headers.Get("Link"), c.baseURL)
 	}
 	return values, nil
+}
+
+func (c *Client) Releases(ctx context.Context, repo string) ([]map[string]any, error) {
+	var releases []map[string]any
+	err := c.Get(ctx, fmt.Sprintf("repos/%s/releases?per_page=100", repo), &releases)
+	return releases, err
 }
 
 func nextLink(header, baseURL string) string {

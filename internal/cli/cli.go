@@ -17,6 +17,7 @@ import (
 	"github.com/redtidev1918/release-infra/internal/graph"
 	rgplan "github.com/redtidev1918/release-infra/internal/plan"
 	"github.com/redtidev1918/release-infra/internal/policy"
+	"github.com/redtidev1918/release-infra/internal/reconcile"
 	"github.com/redtidev1918/release-infra/internal/static"
 )
 
@@ -193,12 +194,14 @@ func inspect(w io.Writer, args []string) error {
 
 func planCommand(w io.Writer, args []string) error {
 	var format, policyPath, version, root, graphPath, statePath string
+	var live bool
 	fs := flags(&format)
 	fs.StringVar(&policyPath, "path", ".release-policy.yml", "policy path")
 	fs.StringVar(&version, "version", "", "explicit version")
 	fs.StringVar(&root, "root", ".", "repository root")
 	fs.StringVar(&graphPath, "graph", "", "release graph path")
 	fs.StringVar(&statePath, "state", "", "actual project health JSON")
+	fs.BoolVar(&live, "live", false, "inspect current GitHub state")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -206,6 +209,16 @@ func planCommand(w io.Writer, args []string) error {
 		g, err := graph.Load(graphPath)
 		if err != nil {
 			return err
+		}
+		if live && statePath != "" {
+			return fmt.Errorf("--live and --state are mutually exclusive")
+		}
+		if live {
+			out, err := reconcile.Inspect(context.Background(), github.New(), g)
+			if err != nil {
+				return err
+			}
+			return write(w, format, out, humanLivePlan)
 		}
 		health, err := rgplan.LoadHealth(statePath)
 		if err != nil {
@@ -250,7 +263,7 @@ func planCommand(w io.Writer, args []string) error {
 	node := rgdomain.NodePlan{ID: "local", Kind: rgdomain.NodeKindRelease, Health: rgdomain.HealthReady, Desired: &rgdomain.DesiredState{Version: rgdomain.Version(desired)}}
 	out := rgdomain.Plan{Ready: []string{"local"}, Blocked: []string{}, Noop: []string{}, Nodes: []rgdomain.NodePlan{node}}
 	return write(w, format, out, func(w io.Writer, _ any) {
-		fmt.Fprintf(w, "READY\n  local desired=%s tag=%s requiredAssets=%d\n", desired, policy.Tag(p, desired), len(p.Assets.Required))
+		fmt.Fprintf(w, "READY\n  local desired=%s tag=%s requiredAssets=%d\n", desired, policy.ReleaseTag(p, desired), len(p.Assets.Required))
 	})
 }
 
@@ -279,6 +292,21 @@ func write(w io.Writer, format string, data any, human func(io.Writer, any)) err
 	return fmt.Errorf("unsupported output format %q", format)
 }
 func humanDoctor(w io.Writer, _ any) { fmt.Fprintln(w, "ReleaseGraph read-only core: ok") }
+func humanLivePlan(w io.Writer, data any) {
+	plan := data.(*rgdomain.Plan)
+	for _, heading := range []struct {
+		name string
+		ids  []string
+	}{{"READY", plan.Ready}, {"BLOCKED", plan.Blocked}, {"NOOP", plan.Noop}} {
+		if len(heading.ids) == 0 {
+			continue
+		}
+		fmt.Fprintln(w, heading.name)
+		for _, id := range heading.ids {
+			fmt.Fprintln(w, "  "+id)
+		}
+	}
+}
 func effectiveMode(p *policy.Policy) string {
 	if p.Versioning.Mode != "" {
 		return p.Versioning.Mode

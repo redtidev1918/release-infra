@@ -2,7 +2,6 @@ package fleet
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"net/url"
 	"sort"
@@ -21,6 +20,9 @@ type Repository struct {
 	Managed        bool            `json:"managed"`
 	Classification string          `json:"classification"`
 	Health         rgdomain.Health `json:"health"`
+	LatestRelease  string          `json:"latestRelease,omitempty"`
+	DraftCount     int             `json:"draftCount"`
+	AssetCount     int             `json:"assetCount"`
 	Signals        []string        `json:"signals"`
 }
 
@@ -63,11 +65,16 @@ func Discover(ctx context.Context, client *github.Client, owner string, publicOn
 		} else if repo.Fork {
 			repo.Classification = "fork"
 			repo.Health = rgdomain.HealthNoRelease
-		} else if policy, err := readPolicy(ctx, client, fullName, repo.DefaultBranch); err == nil && policy != "" {
+		} else if policy, found, err := client.ReadFile(ctx, fullName, ".release-policy.yml", repo.DefaultBranch); err != nil {
+			return nil, err
+		} else if found && len(policy) > 0 {
 			repo.Managed = true
 			repo.Classification = "managed"
 			repo.Health = rgdomain.HealthNeedsReview
 			repo.Signals = append(repo.Signals, ".release-policy.yml")
+			if err := enrichReleaseHealth(ctx, client, &repo); err != nil {
+				return nil, err
+			}
 		}
 		sort.Strings(repo.Signals)
 		out.Repositories = append(out.Repositories, repo)
@@ -78,26 +85,32 @@ func Discover(ctx context.Context, client *github.Client, owner string, publicOn
 	return out, nil
 }
 
-func readPolicy(ctx context.Context, client *github.Client, repo, branch string) (string, error) {
-	if branch == "" {
-		return "", nil
-	}
-	var file struct {
-		Encoding string `json:"encoding"`
-		Content  string `json:"content"`
-	}
-	path := fmt.Sprintf("repos/%s/contents/.release-policy.yml?ref=%s", repo, url.PathEscape(branch))
-	if err := client.Get(ctx, path, &file); err != nil {
-		return "", err
-	}
-	if file.Encoding != "base64" {
-		return "", nil
-	}
-	data, err := base64.StdEncoding.DecodeString(strings.ReplaceAll(file.Content, "\n", ""))
+func enrichReleaseHealth(ctx context.Context, client *github.Client, repo *Repository) error {
+	releases, err := client.Releases(ctx, repo.Name)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return string(data), nil
+	var latest map[string]any
+	for _, release := range releases {
+		if release["draft"] == true || release["prerelease"] == true {
+			continue
+		}
+		latest = release
+		break
+	}
+	repo.DraftCount = 0
+	for _, release := range releases {
+		if release["draft"] == true {
+			repo.DraftCount++
+		}
+	}
+	if latest != nil {
+		repo.LatestRelease, _ = latest["tag_name"].(string)
+		if assets, ok := latest["assets"].([]any); ok {
+			repo.AssetCount = len(assets)
+		}
+	}
+	return nil
 }
 
 func stringValue(values map[string]any, key, fallback string) string {
