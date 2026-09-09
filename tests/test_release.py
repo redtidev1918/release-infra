@@ -79,6 +79,24 @@ class ReleaseTest(unittest.TestCase):
         self.assertEqual(result["needs_go"], "1")
         self.assertEqual(result["go_version"], "1.23")
 
+    def test_nested_flutter_workspace_requests_flutter(self):
+        policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            package = Path(directory) / "packages/app"
+            package.mkdir(parents=True)
+            (package / "pubspec.yaml").write_text("environment:\n  sdk: flutter\n")
+            previous = Path.cwd()
+            try:
+                import os
+                os.chdir(directory)
+                with mock.patch.object(release, "_release", return_value=None):
+                    result = release.plan(str(path))
+            finally:
+                os.chdir(previous)
+        self.assertEqual(result["needs_flutter"], "1")
+
     def test_android_project_requests_java(self):
         policy = {"kind": "flutter", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": []}, "registries": {"github": {"required": True}}}
         with tempfile.TemporaryDirectory() as directory:

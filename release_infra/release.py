@@ -119,7 +119,8 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     needs_repair = bool(release and not release["isDraft"] and not healthy)
     build = policy.get("build", {})
     matrix = build.get("matrix") or [{"runner": "ubuntu-latest", "command": build.get("command", ":"), "version_check": build.get("version_check", "")}]
-    needs_flutter = Path("pubspec.yaml").exists() and "sdk: flutter" in Path("pubspec.yaml").read_text(errors="ignore")
+    pubspecs = [Path("pubspec.yaml"), *Path(".").glob("packages/*/pubspec.yaml")]
+    needs_flutter = any(path.exists() and "sdk: flutter" in path.read_text(errors="ignore") for path in pubspecs)
     needs_java = Path("android").is_dir()
     go_version = ""
     if Path("go.mod").exists():
