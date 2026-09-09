@@ -374,7 +374,15 @@ jobs:
           RELEASE_VERSION: ${{ steps.plan.outputs.version }}
           RELEASE_TAG: ${{ steps.plan.outputs.tag }}
           COMMAND: ${{ steps.plan.outputs.required_verify }}
-        run: bash -euo pipefail -c "$COMMAND"
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            if bash -euo pipefail -c "$COMMAND"; then
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          exit 1
       - name: Optional publication channels
         if: ${{ steps.plan.outputs.run_release == '1' && !inputs.dry_run && steps.plan.outputs.optional_publish != '' }}
         env:

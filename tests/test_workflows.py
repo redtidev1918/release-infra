@@ -53,6 +53,13 @@ class WorkflowTest(unittest.TestCase):
         self.assertLess(setup, publication)
         self.assertIn("registry-url: https://registry.npmjs.org/", finalize)
 
+    def test_required_registry_verification_retries_registry_propagation(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        finalize = workflow.split("  finalize:", 1)[1]
+        verification = finalize.split("Required registry verification", 1)[1].split("      - name:", 1)[0]
+        self.assertIn("for attempt in 1 2 3 4 5 6", verification)
+        self.assertIn("sleep $((attempt * 10))", verification)
+
     def test_npm_publish_receives_configured_token(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
         finalize = workflow.split("  finalize:", 1)[1]
