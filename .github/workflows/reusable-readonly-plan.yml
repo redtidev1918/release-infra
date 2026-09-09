@@ -13,9 +13,6 @@ on:
       owner:
         required: true
         type: string
-    secrets:
-      GITHUB_TOKEN:
-        required: false
 permissions:
   contents: read
 jobs:
@@ -34,7 +31,7 @@ jobs:
       - name: Discover public fleet
         run: releasegraph fleet --owner "${{ inputs.owner }}" --public-only --output json > fleet.json
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
       - name: Compute graph plan
         run: |
           if [ -f "${{ inputs.state }}" ]; then
