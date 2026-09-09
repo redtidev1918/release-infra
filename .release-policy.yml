@@ -1,7 +1,7 @@
 {
   "apiVersion": "releasegraph.dev/v1",
   "kind": "hybrid",
-  "versioning": {"mode": "manual", "version": "1.2.1"},
+  "versioning": {"mode": "manual", "version": "1.2.2"},
   "assets": {
     "required": [
       "releasegraph-linux-amd64",
