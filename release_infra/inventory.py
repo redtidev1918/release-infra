@@ -4,6 +4,7 @@ import base64
 import concurrent.futures
 import datetime as dt
 import json
+import os
 import re
 import tomllib
 import urllib.error
@@ -159,21 +160,30 @@ def scan(owner: str, *, include_private: bool = True) -> list[dict[str, Any]]:
     sources = [repo for repo in repos if repo["owner"]["login"].lower() == owner.lower()]
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         inventory = list(executor.map(_scan_repo, sources))
+    errors = [item["error"] for item in inventory if item.get("error")]
+    if errors:
+        raise GitHubError("; ".join(errors[:5]))
     return sorted(inventory, key=lambda item: item["repo"].lower())
+
+
+def _atomic_write(path: Path, content: str) -> None:
+    temporary = path.with_name(f".{path.name}.tmp")
+    temporary.write_text(content)
+    os.replace(temporary, path)
 
 
 def write_outputs(inventory: list[dict], output: str | Path = ".") -> None:
     root = Path(output)
     root.mkdir(parents=True, exist_ok=True)
     document = {"schema_version": 1, "generated_at": dt.datetime.now(dt.UTC).isoformat(), "repositories": inventory}
-    (root / "status.json").write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n")
+    _atomic_write(root / "status.json", json.dumps(document, indent=2, ensure_ascii=False) + "\n")
     snapshots = root / "migration/snapshots"
     snapshots.mkdir(parents=True, exist_ok=True)
     for item in inventory:
         if item.get("visibility") == "public":
-            (snapshots / f"{item['repo'].split('/')[-1]}.json").write_text(json.dumps(item, indent=2, ensure_ascii=False) + "\n")
+            _atomic_write(snapshots / f"{item['repo'].split('/')[-1]}.json", json.dumps(item, indent=2, ensure_ascii=False) + "\n")
     lines = ["# Release Fleet Dashboard", "", f"Generated: `{document['generated_at']}`", "", "| Repository | Class | Desired | Latest | Assets | Workflow | Health |", "|---|---|---:|---:|---:|---|---|"]
     for item in inventory:
         run = item.get("latest_release_run") or {}
         lines.append(f"| {item['repo']} | {item.get('classification', 'needs-review')} | {item.get('desired_version') or '—'} | {item.get('latest_release') or '—'} | {len(item.get('actual_assets', []))} | {run.get('conclusion') or run.get('status') or '—'} | {item.get('health', 'NEEDS_REVIEW')} |")
-    (root / "STATUS.md").write_text("\n".join(lines) + "\n")
+    _atomic_write(root / "STATUS.md", "\n".join(lines) + "\n")

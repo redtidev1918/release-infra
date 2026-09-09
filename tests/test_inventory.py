@@ -3,13 +3,23 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from release_infra.inventory import _release_tags, write_outputs
+from unittest import mock
+
+from release_infra.github import GitHubError
+from release_infra.inventory import _release_tags, scan, write_outputs
 
 
 class InventoryTest(unittest.TestCase):
     def test_release_tags_support_plain_and_component_templates(self):
         self.assertEqual(_release_tags("1.2.3", None), {"1.2.3", "v1.2.3"})
         self.assertIn("dakit_cli-v0.4.1", _release_tags("0.4.1", {"tag": {"template": "dakit_cli-v{version}"}}))
+
+    def test_scan_fails_instead_of_publishing_network_broken_inventory(self):
+        source = [{"full_name": "owner/repo", "owner": {"login": "owner"}, "default_branch": "main", "visibility": "public", "archived": False, "fork": False}]
+        broken = {"repo": "owner/repo", "health": "BROKEN", "error": "connection reset by peer"}
+        with mock.patch("release_infra.inventory.GitHub.api", return_value=source), mock.patch("release_infra.inventory._scan_repo", return_value=broken):
+            with self.assertRaises(GitHubError):
+                scan("owner", include_private=False)
 
     def test_dashboard_keeps_every_classification(self):
         rows = [
