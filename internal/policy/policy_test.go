@@ -40,3 +40,13 @@ func TestReleaseTagPreservesLegacyTemplate(t *testing.T) {
 		t.Fatalf("tag=%q", got)
 	}
 }
+
+func TestRepositoryPolicyLoads(t *testing.T) {
+	p, err := Load("../../.release-policy.yml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.APIVersion != "releasegraph.dev/v1" || p.Retention.Stable != 1 || !p.Metadata {
+		t.Fatalf("policy=%+v", p)
+	}
+}

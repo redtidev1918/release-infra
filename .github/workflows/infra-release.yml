@@ -3,23 +3,57 @@ on:
   push:
     tags: ["v1.*.*"]
 permissions: {contents: write}
+concurrency:
+  group: release-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   promote:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {fetch-depth: 0}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with: {python-version: "3.11"}
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with: {go-version-file: go.mod}
       - run: python -m unittest discover -v
-      - name: Move stable channel only after canary tests
+      - run: go test ./...
+      - run: go vet ./...
+      - name: Build standalone binaries
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p dist/release
+          echo "RELEASEGRAPH_VERSION=$version" >> "$GITHUB_ENV"
+          echo "RELEASE_BUILD_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_ENV"
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do
+            goos="${target%/*}"
+            goarch="${target#*/}"
+            extension=""
+            test "$goos" != windows || extension=.exe
+            CGO_ENABLED=0 GOOS="$goos" GOARCH="$goarch" go build -trimpath -ldflags "-s -w -X github.com/redtidev1918/release-infra/internal/cli.version=$version" -o "dist/release/releasegraph-$goos-$goarch$extension" ./cmd/releasegraph
+          done
+      - name: Plan idempotent release
+        id: plan
+        run: |
+          python -m release_infra.cli workflow-plan --version "$RELEASEGRAPH_VERSION" --github-output "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Create or resume draft
+        if: steps.plan.outputs.run_release == '1'
+        run: python -m release_infra.cli stage --version "$RELEASEGRAPH_VERSION"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Publish and verify release
+        if: steps.plan.outputs.run_release == '1'
+        run: python -m release_infra.cli publish --version "$RELEASEGRAPH_VERSION"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Audit release
+        run: python -m release_infra.cli audit --version "$RELEASEGRAPH_VERSION"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Move stable channel after audit
         run: |
           git tag -f v1 "$GITHUB_SHA"
           git push origin refs/tags/v1 --force
-      - name: Publish metadata-backed release
-        run: |
-          mkdir -p dist/release
-          python -c 'import datetime as d, hashlib, json, os; from pathlib import Path; tag=os.environ["GITHUB_REF_NAME"]; version=tag.removeprefix("v"); policy=json.loads(Path(".release-policy.yml").read_text()); server=os.environ["GITHUB_SERVER_URL"]; repo=os.environ["GITHUB_REPOSITORY"]; run_id=os.environ["GITHUB_RUN_ID"]; policy_hash=hashlib.sha256(Path(".release-policy.yml").read_bytes()).hexdigest(); now=d.datetime.now(d.UTC).isoformat(); metadata={"repository":repo,"version":version,"tag":tag,"commit_sha":os.environ["GITHUB_SHA"],"build_run_id":run_id,"build_run_url":f"{server}/{repo}/actions/runs/{run_id}","releasegraph_version":version,"release_infra_version":version,"policy_hash":policy_hash,"release_policy_hash":policy_hash,"build_started_at":now,"published_at":now,"retry_count":0,"assets":[],"asset_sha256":{},"registries":policy.get("registries",{}),"container_digest":"","package_versions":{"github":version},"source_commit":os.environ["GITHUB_SHA"],"release_pr":None}; Path("dist/release/RELEASE-METADATA.json").write_text(json.dumps(metadata, indent=2)+"\n")'
-          gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --latest dist/release/RELEASE-METADATA.json
-        env:
-          GH_TOKEN: ${{ github.token }}

@@ -21,7 +21,7 @@ import (
 	"github.com/redtidev1918/release-infra/internal/static"
 )
 
-const version = "0.1.0-go-readonly"
+var version = "0.1.0-go-readonly"
 
 type Envelope struct {
 	SchemaVersion       int        `json:"schemaVersion"`
