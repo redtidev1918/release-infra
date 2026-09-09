@@ -1,7 +1,3 @@
----
-title: 核心概念
----
-
 # 核心概念
 
 ## Desired 与 Actual

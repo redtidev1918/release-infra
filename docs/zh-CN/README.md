@@ -1,7 +1,3 @@
----
-title: ReleaseGraph 中文文档
----
-
 # ReleaseGraph 中文文档
 
 ReleaseGraph 是一个面向 GitHub Actions 的无服务器、多仓库发布编排器。

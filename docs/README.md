@@ -1,7 +1,3 @@
----
-title: ReleaseGraph documentation
----
-
 # ReleaseGraph
 
 Serverless, declarative, DAG-driven release orchestration for GitHub Actions.
