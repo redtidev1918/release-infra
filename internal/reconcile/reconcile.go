@@ -12,6 +12,7 @@ import (
 	"github.com/redtidev1918/release-infra/internal/github"
 	"github.com/redtidev1918/release-infra/internal/graph"
 	"github.com/redtidev1918/release-infra/internal/policy"
+	"github.com/redtidev1918/release-infra/internal/registry"
 )
 
 type apiRelease struct {
@@ -32,8 +33,9 @@ func Inspect(ctx context.Context, client *github.Client, releaseGraph *domain.Re
 		return nil, err
 	}
 	nodes := make(map[string]domain.NodePlan, len(order))
+	verifier := registry.New()
 	for _, id := range order {
-		node, err := inspectProject(ctx, client, releaseGraph.Projects[id])
+		node, err := inspectProject(ctx, client, verifier, releaseGraph.Projects[id])
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +69,7 @@ func Inspect(ctx context.Context, client *github.Client, releaseGraph *domain.Re
 	return out, nil
 }
 
-func inspectProject(ctx context.Context, client *github.Client, project domain.Project) (domain.NodePlan, error) {
+func inspectProject(ctx context.Context, client *github.Client, verifier *registry.Verifier, project domain.Project) (domain.NodePlan, error) {
 	node := domain.NodePlan{ID: project.ID, Kind: project.Kind, Repository: project.Repo.FullName()}
 	if project.Kind != domain.NodeKindRelease {
 		node.Health = domain.HealthNeedsReview
@@ -131,11 +133,38 @@ func inspectProject(ctx context.Context, client *github.Client, project domain.P
 		node.Actual.Health = node.Health
 		return node, nil
 	}
-	for name, registry := range p.Registries {
-		if name != "github" && registry.Required {
-			node.Health = domain.HealthNeedsReview
+	registryNames := make([]string, 0, len(p.Registries))
+	for name := range p.Registries {
+		registryNames = append(registryNames, name)
+	}
+	sort.Strings(registryNames)
+	for _, name := range registryNames {
+		config := p.Registries[name]
+		if name == "github" {
+			node.Actual.Registries = append(node.Actual.Registries, domain.Registry{Name: name, Required: config.Required, Version: desired, Healthy: true})
+			continue
+		}
+		healthy := true
+		message := ""
+		if config.Required {
+			var metadata []byte
+			var err error
+			if metadataFile := registryMetadataFile(name); metadataFile != "" {
+				metadata, _, err = client.ReadFile(ctx, project.Repo.FullName(), metadataFile, "")
+				if err != nil {
+					return node, err
+				}
+			}
+			if err := verifier.Verify(ctx, name, config, project.Repo.FullName(), desired, metadata); err != nil {
+				healthy = false
+				message = err.Error()
+			}
+		}
+		node.Actual.Registries = append(node.Actual.Registries, domain.Registry{Name: name, Required: config.Required, Version: desired, Healthy: healthy})
+		if !healthy {
+			node.Health = domain.HealthRecoverable
 			node.Actual.Health = node.Health
-			node.Failures = []domain.Failure{{Code: "REGISTRY_INSPECTION_UNSUPPORTED", Message: "required registry inspection is not implemented: " + name}}
+			node.Failures = append(node.Failures, domain.Failure{Code: "REGISTRY_CONFLICT", Message: name + ": " + message})
 			return node, nil
 		}
 	}
@@ -213,6 +242,19 @@ func missingAssets(p *policy.Policy, assets []struct {
 	}
 	sort.Strings(missing)
 	return missing, nil
+}
+
+func registryMetadataFile(name string) string {
+	switch name {
+	case "npm":
+		return "package.json"
+	case "pypi":
+		return "pyproject.toml"
+	case "pub":
+		return "pubspec.yaml"
+	default:
+		return ""
+	}
 }
 
 func conditionSatisfied(condition domain.DependencyCondition, actual domain.Health) bool {
