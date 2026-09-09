@@ -1,0 +1,8 @@
+{
+  "kind": "binary",
+  "versioning": {"mode": "release-please", "package": "packages/cli"},
+  "build": {"matrix": [{"runner": "ubuntu-latest", "command": "scripts/build-release"}]},
+  "assets": {"required": ["app-*"], "optional": []},
+  "registries": {"github": {"required": true}},
+  "checksums": true
+}

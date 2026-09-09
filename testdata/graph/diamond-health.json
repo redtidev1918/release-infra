@@ -1,0 +1,6 @@
+{
+  "core": "HEALTHY",
+  "cli": "READY",
+  "web": "READY",
+  "deploy": "BLOCKED"
+}

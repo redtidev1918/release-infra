@@ -1,11 +1,38 @@
 # Migration
 
-1. Run Fleet Audit and save `migration/snapshots/<repo>.json`.
-2. Classify the real product artifact and registry.
-3. Add `.release-policy.yml` and an existing build adapter that writes `dist/release/`.
-4. Set Release Please `skip-github-release: true`.
-5. Replace release workflow duplication with the pinned `@v1` caller.
-6. Run `dry_run`, then merge only after canary checks pass.
-7. Verify the current public Release before pruning older Release objects.
+The migration preserves the Python release semantics that already ran in production. Do not rewrite language, release semantics, and all repositories in one change.
 
-Forks, private repositories, ambiguous monorepos, and projects whose registry identity cannot be proved remain observe-only/needs-review. Their working release automation is not changed.
+## Phases
+
+1. Audit the Python implementation and freeze its tested invariants.
+2. Extract the owner-agnostic domain model.
+3. Ship the Go binary as read-only: `doctor`, `graph`, `inspect`, and `plan`.
+4. Compare Go plans against Python output with fixtures (`scripts/contract-compare`).
+5. Add Go asset inspection and remote read-only GitHub/registry adapters.
+6. Canary Go audit/fleet output while Python remains the mutator.
+7. Implement same-version Go repair and release transaction behind a dry-run gate.
+8. Add serverless reconcile/dispatch and watchdog workflows.
+9. Move user fleet configuration into a thin `release-control` repository.
+10. Canary binary/hybrid, Python, Node, container, and deploy project kinds.
+11. Move Go to stable `v1`; keep the Python wrapper as a temporary compatibility alias.
+12. Remove the obsolete Python runtime only after the Go stable channel has canaried.
+
+## Compatibility
+
+- Existing callers pinned to `redtidev1918/release-infra/.github/workflows/reusable-release.yml@v1` keep working.
+- Release Please continues to manage versions/PRs/changelogs only; it does not create public Releases.
+- Published Git tags remain immutable and historical tags are never deleted by retention.
+- Infrastructure failures are repaired at the same version rather than producing a new patch.
+- `status.json` is a snapshot/dashboard artifact, not a database.
+
+## Read-only adoption
+
+Start with no write permissions:
+
+```bash
+releasegraph graph --file release-graph.yml --output json
+releasegraph inspect --path .release-policy.yml
+releasegraph plan --graph release-graph.yml --state health.json --output json
+```
+
+Add release write permissions only after those plans match expected behavior. Add cross-repository dispatch credentials last.

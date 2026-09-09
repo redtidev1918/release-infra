@@ -18,6 +18,7 @@ def main(argv: list[str] | None = None) -> int:
     desired_parser = sub.add_parser("desired-version")
     desired_parser.add_argument("--path", default=".release-policy.yml")
     desired_parser.add_argument("--version")
+    desired_parser.add_argument("--root", default=".")
     assets_parser = sub.add_parser("asset-gate")
     assets_parser.add_argument("--path", default=".release-policy.yml")
     assets_parser.add_argument("--root", default="dist/release")
@@ -43,7 +44,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "policy":
         print(json.dumps(load_policy(args.path), indent=2))
     elif args.command == "desired-version":
-        print(desired_version(load_policy(args.path), args.version))
+        print(desired_version(load_policy(args.path), args.version, args.root))
     elif args.command == "asset-gate":
         policy = load_policy(args.path)
         assets = collect_assets(policy.get("assets", {}).get("required", []), policy.get("assets", {}).get("optional", []), args.root)

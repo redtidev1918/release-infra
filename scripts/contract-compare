@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+set -eu
+
+go build -o /tmp/releasegraph-contract ./cmd/releasegraph
+
+python_versions=$(mktemp)
+go_versions=$(mktemp)
+trap 'rm -f "$python_versions" "$go_versions"' EXIT
+
+for policy in testdata/policy/binary.json; do
+  root=$(dirname "$policy")
+  python3 -m release_infra.cli desired-version --path "$policy" --root "$root" >> "$python_versions"
+  /tmp/releasegraph-contract plan --path "$policy" --root "$root" --output json | python3 -c 'import json,sys; print(json.load(sys.stdin)["data"]["nodes"][0]["desired"]["version"])' >> "$go_versions"
+done
+
+diff -u "$python_versions" "$go_versions"
+echo "contract comparison ok"
