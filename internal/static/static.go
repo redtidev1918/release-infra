@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	rgerrors "github.com/redtidev1918/release-infra/internal/errors"
+	rgerrors "github.com/redtidev1918/releasegraph/internal/errors"
 )
 
 var dangerousPatterns = []string{

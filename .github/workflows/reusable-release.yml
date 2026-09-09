@@ -70,9 +70,9 @@ jobs:
         with: {fetch-depth: 0}
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: redtidev1918/release-infra
+          repository: redtidev1918/releasegraph
           ref: v1
-          path: .release-infra
+          path: .releasegraph
       - name: Policy and release plan
         id: plan
         env:
@@ -86,8 +86,8 @@ jobs:
           [[ -n "$INPUT_VERSION" ]] && args+=(--version "$INPUT_VERSION")
           [[ "$INPUT_FORCE" == true ]] && args+=(--force)
           [[ "$INPUT_REPAIR" == true ]] && args+=(--repair)
-          PYTHONPATH=.release-infra python3 -m release_infra.cli static-check
-          PYTHONPATH=.release-infra python3 -m release_infra.cli workflow-plan "${args[@]}"
+          PYTHONPATH=.releasegraph python3 -m release_infra.cli static-check
+          PYTHONPATH=.releasegraph python3 -m release_infra.cli workflow-plan "${args[@]}"
       - uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
         if: steps.plan.outputs.run_release == '1' && hashFiles('package.json') != ''
         with:
@@ -236,9 +236,9 @@ jobs:
         with: {fetch-depth: 0}
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: redtidev1918/release-infra
+          repository: redtidev1918/releasegraph
           ref: v1
-          path: .release-infra
+          path: .releasegraph
       - name: Configure Git identity for release tags
         run: |
           git config user.name "github-actions[bot]"
@@ -256,7 +256,7 @@ jobs:
           [[ -n "$INPUT_VERSION" ]] && args+=(--version "$INPUT_VERSION")
           [[ "$INPUT_FORCE" == true ]] && args+=(--force)
           [[ "$INPUT_REPAIR" == true ]] && args+=(--repair)
-          PYTHONPATH=.release-infra python3 -m release_infra.cli workflow-plan "${args[@]}"
+          PYTHONPATH=.releasegraph python3 -m release_infra.cli workflow-plan "${args[@]}"
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         id: download_0
         if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.has_assets == '1'
@@ -320,8 +320,8 @@ jobs:
           set -euo pipefail
           args=(--version '${{ steps.plan.outputs.version }}')
           [[ "$DRY_RUN" == true ]] && args+=(--dry-run)
-          PYTHONPATH=.release-infra python3 -m release_infra.cli asset-gate
-          PYTHONPATH=.release-infra python3 -m release_infra.cli stage "${args[@]}"
+          PYTHONPATH=.releasegraph python3 -m release_infra.cli asset-gate
+          PYTHONPATH=.releasegraph python3 -m release_infra.cli stage "${args[@]}"
       - uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
         if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy' && contains(steps.plan.outputs.required_publish, 'npm publish')
         with:
@@ -409,11 +409,11 @@ jobs:
         run: |
           set -euo pipefail
           if [[ '${{ steps.plan.outputs.release_health }}' == healthy ]]; then
-            PYTHONPATH=.release-infra python3 -m release_infra.cli audit --version '${{ steps.plan.outputs.version }}'
+            PYTHONPATH=.releasegraph python3 -m release_infra.cli audit --version '${{ steps.plan.outputs.version }}'
           else
             args=(--version '${{ steps.plan.outputs.version }}')
             [[ "$DRY_RUN" == true ]] && args+=(--dry-run)
-            PYTHONPATH=.release-infra python3 -m release_infra.cli publish "${args[@]}"
+            PYTHONPATH=.releasegraph python3 -m release_infra.cli publish "${args[@]}"
           fi
       - name: Optional post-release task
         if: ${{ steps.plan.outputs.run_release == '1' && !inputs.dry_run && steps.plan.outputs.post_publish != '' }}

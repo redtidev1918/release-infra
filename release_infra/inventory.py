@@ -143,7 +143,7 @@ def _scan_repo(source: dict) -> dict[str, Any]:
     return {
         "repo": name, "default_branch": branch, "visibility": source.get("visibility", "public"),
         "archived": source["archived"], "fork": source["fork"], "template": source.get("is_template", False),
-        "classification": classification, "health": health, "release_policy": parsed_policy, "release_infra_version": "v1" if any("release-infra/.github/workflows/reusable-release.yml@v1" in (_content(gh, name, path) or "") for path in workflow_paths) else None, "desired_version": desired,
+        "classification": classification, "health": health, "release_policy": parsed_policy, "release_infra_version": "v1" if any("redtidev1918/releasegraph/.github/workflows/reusable-release.yml@v1" in (_content(gh, name, path) or "") for path in workflow_paths) else None, "desired_version": desired,
         "latest_release": latest.get("tag_name") if latest else None, "latest_release_at": latest.get("published_at") if latest else None,
         "latest_tag": tags[0]["name"] if tags else None, "draft_releases": [release["tag_name"] for release in drafts],
         "actual_assets": actual_assets, "release_workflows": [{"name": wf["name"], "path": wf["path"]} for wf in release_workflows],

@@ -9,8 +9,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/redtidev1918/release-infra/internal/domain"
-	"github.com/redtidev1918/release-infra/internal/github"
+	"github.com/redtidev1918/releasegraph/internal/domain"
+	"github.com/redtidev1918/releasegraph/internal/github"
 )
 
 func TestInspectUsesRemoteStateAndIsIdempotent(t *testing.T) {

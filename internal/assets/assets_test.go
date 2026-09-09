@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/redtidev1918/release-infra/internal/policy"
+	"github.com/redtidev1918/releasegraph/internal/policy"
 )
 
 func TestRequiredZipAssetGate(t *testing.T) {

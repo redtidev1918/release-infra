@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	rgerrors "github.com/redtidev1918/release-infra/internal/errors"
-	"github.com/redtidev1918/release-infra/internal/policy"
+	rgerrors "github.com/redtidev1918/releasegraph/internal/errors"
+	"github.com/redtidev1918/releasegraph/internal/policy"
 )
 
 func TestVerifyPublishedVersions(t *testing.T) {

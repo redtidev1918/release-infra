@@ -8,11 +8,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/redtidev1918/release-infra/internal/domain"
-	"github.com/redtidev1918/release-infra/internal/github"
-	"github.com/redtidev1918/release-infra/internal/graph"
-	"github.com/redtidev1918/release-infra/internal/policy"
-	"github.com/redtidev1918/release-infra/internal/registry"
+	"github.com/redtidev1918/releasegraph/internal/domain"
+	"github.com/redtidev1918/releasegraph/internal/github"
+	"github.com/redtidev1918/releasegraph/internal/graph"
+	"github.com/redtidev1918/releasegraph/internal/policy"
+	"github.com/redtidev1918/releasegraph/internal/registry"
 )
 
 type apiRelease struct {

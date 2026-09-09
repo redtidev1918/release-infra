@@ -9,8 +9,8 @@ title: 快速开始
 ## 1. 构建 CLI
 
 ```bash
-git clone https://github.com/redtidev1918/release-infra.git
-cd release-infra
+git clone https://github.com/redtidev1918/releasegraph.git
+cd releasegraph
 go build -o releasegraph ./cmd/releasegraph
 ./releasegraph doctor
 ```
@@ -64,6 +64,6 @@ GITHUB_TOKEN=... ./releasegraph plan \
 
 ## 5. 放入 control repository
 
-复制 [`examples/control`](https://github.com/redtidev1918/release-infra/tree/v1/examples/control) 中的两个 caller workflow。事件触发一次重新读取和计划，watchdog 每 5 小时补偿丢失事件；两者都不会启动常驻进程。
+复制 [`examples/control`](https://github.com/redtidev1918/releasegraph/tree/v1/examples/control) 中的两个 caller workflow。事件触发一次重新读取和计划，watchdog 每 5 小时补偿丢失事件；两者都不会启动常驻进程。
 
 当前示例只生成 live plan，不 dispatch。等写路径通过 contract canary 后，再按[认证与权限](authentication.md)增加最小跨仓库权限。

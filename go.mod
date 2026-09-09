@@ -1,4 +1,4 @@
-module github.com/redtidev1918/release-infra
+module github.com/redtidev1918/releasegraph
 
 go 1.25
 

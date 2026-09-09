@@ -19,7 +19,7 @@ The migration preserves the Python release semantics that already ran in product
 
 ## Compatibility
 
-- Existing callers pinned to `redtidev1918/release-infra/.github/workflows/reusable-release.yml@v1` keep working.
+- Existing callers pinned to the pre-rename `redtidev1918/release-infra/.github/workflows/reusable-release.yml@v1` continue through GitHub redirects; new callers use `redtidev1918/releasegraph`.
 - Release Please continues to manage versions/PRs/changelogs only; it does not create public Releases.
 - Published Git tags remain immutable and historical tags are never deleted by retention.
 - Infrastructure failures are repaired at the same version rather than producing a new patch.

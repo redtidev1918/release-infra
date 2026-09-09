@@ -1,5 +1,5 @@
 {
-  "repo": "redtidev1918/release-infra",
+  "repo": "redtidev1918/releasegraph",
   "default_branch": "main",
   "visibility": "public",
   "archived": false,
@@ -80,7 +80,7 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/release-infra/actions/runs/34326826270",
+    "url": "https://github.com/redtidev1918/releasegraph/actions/runs/34326826270",
     "updated_at": "2026-09-09T08:01:30Z"
   },
   "signals": [

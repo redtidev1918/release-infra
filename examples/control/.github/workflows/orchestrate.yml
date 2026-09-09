@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   plan:
-    uses: redtidev1918/release-infra/.github/workflows/reusable-readonly-plan.yml@v1
+    uses: redtidev1918/releasegraph/.github/workflows/reusable-readonly-plan.yml@v1
     with:
       owner: acme
       graph: release-graph.yml

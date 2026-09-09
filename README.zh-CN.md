@@ -14,7 +14,7 @@ ReleaseGraph 根据期望状态、GitHub 与 registry 实际状态、项目 poli
 
 不需要服务器，不需要数据库，不运行轮询 daemon。
 
-[English](README.md) · [中文文档站](https://redtidev1918.github.io/release-infra/zh-CN/) · [中文快速开始](docs/zh-CN/quick-start.md)
+[English](README.md) · [中文文档站](https://redtidev1918.github.io/releasegraph/zh-CN/) · [中文快速开始](docs/zh-CN/quick-start.md)
 
 ## 当前状态
 
