@@ -8,13 +8,21 @@
   "classification": "managed",
   "health": "HEALTHY",
   "release_policy": {
-    "kind": "python-library",
+    "apiVersion": "releasegraph.dev/v1",
+    "kind": "hybrid",
     "versioning": {
       "mode": "manual",
-      "version": "1.0.0"
+      "version": "1.0.33"
     },
     "assets": {
-      "required": [],
+      "required": [
+        "releasegraph-linux-amd64",
+        "releasegraph-linux-arm64",
+        "releasegraph-darwin-amd64",
+        "releasegraph-darwin-arm64",
+        "releasegraph-windows-amd64.exe",
+        "releasegraph-windows-arm64.exe"
+      ],
       "optional": []
     },
     "registries": {
@@ -27,237 +35,145 @@
       "prerelease": 1,
       "failed_draft": 3
     },
-    "checksums": false,
+    "checksums": true,
+    "metadata": true,
     "sbom": false
   },
   "release_infra_version": null,
   "desired_version": null,
-  "latest_release": "v1.0.27",
-  "latest_release_at": "2026-09-09T05:11:33Z",
-  "latest_tag": "v1.0.27",
+  "latest_release": "v1.0.33",
+  "latest_release_at": "2026-09-09T08:02:53Z",
+  "latest_tag": "v1.0.33",
   "draft_releases": [],
-  "actual_assets": [],
+  "actual_assets": [
+    "RELEASE-METADATA.json",
+    "releasegraph-darwin-amd64",
+    "releasegraph-darwin-arm64",
+    "releasegraph-linux-amd64",
+    "releasegraph-linux-arm64",
+    "releasegraph-windows-amd64.exe",
+    "releasegraph-windows-arm64.exe",
+    "SHA256SUMS"
+  ],
   "release_workflows": [
+    {
+      "name": "Deploy documentation",
+      "path": ".github/workflows/docs.yml"
+    },
+    {
+      "name": "ReleaseGraph Go Canary",
+      "path": ".github/workflows/go-canary.yml"
+    },
     {
       "name": "Promote stable v1",
       "path": ".github/workflows/infra-release.yml"
+    },
+    {
+      "name": "ReleaseGraph Read-Only Plan",
+      "path": ".github/workflows/reusable-readonly-plan.yml"
     },
     {
       "name": "Release Infrastructure v1",
       "path": ".github/workflows/reusable-release.yml"
     }
   ],
-  "latest_release_run": null,
+  "latest_release_run": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/redtidev1918/release-infra/actions/runs/34326826270",
+    "updated_at": "2026-09-09T08:01:30Z"
+  },
   "signals": [
     ".release-policy.yml",
+    "CHANGELOG.md",
+    "go.mod",
     "pyproject.toml"
   ],
   "workflow_paths": [
+    ".github/workflows/docs.yml",
     ".github/workflows/fleet-audit.yml",
+    ".github/workflows/go-canary.yml",
     ".github/workflows/infra-canary.yml",
     ".github/workflows/infra-release.yml",
     ".github/workflows/notify-profile.yml",
+    ".github/workflows/reusable-readonly-plan.yml",
     ".github/workflows/reusable-release.yml"
   ],
   "release_history": [
     {
-      "tag": "v1.0.27",
+      "tag": "v1.0.33",
       "draft": false,
       "prerelease": false,
-      "published_at": "2026-09-09T05:11:33Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.26",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-09T05:06:32Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.25",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-09T04:53:03Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.24",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-09T03:51:32Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.23",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-09T03:44:20Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.22",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-09T03:39:49Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.21",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-09T03:31:47Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.20",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-09T03:26:25Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.19",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-09T03:19:56Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.18",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-09T03:13:15Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.17",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T18:48:47Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.16",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T18:44:16Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.15",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T18:34:41Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.14",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T18:09:51Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.13",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T18:01:49Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.12",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T16:54:43Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.11",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T16:48:24Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.10",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T16:45:20Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.9",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T16:40:22Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.8",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T16:20:51Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.7",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T16:16:48Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.6",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T16:07:18Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.5",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T16:01:41Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.4",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T15:58:31Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.3",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T15:55:02Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.2",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T15:41:44Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.1",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T15:36:46Z",
-      "assets": []
-    },
-    {
-      "tag": "v1.0.0",
-      "draft": false,
-      "prerelease": false,
-      "published_at": "2026-09-08T15:27:14Z",
-      "assets": []
+      "published_at": "2026-09-09T08:02:53Z",
+      "assets": [
+        {
+          "name": "RELEASE-METADATA.json",
+          "size": 1875,
+          "sha256": "sha256:828a1d743df9a3f8bb304525a68df2a310b20ff9914a5a1ae90c8cd81cc9894f"
+        },
+        {
+          "name": "releasegraph-darwin-amd64",
+          "size": 6906016,
+          "sha256": "sha256:99a9eb678b880463dc839ab2fa1d49d178088ed6aaa456ec5e6ecc98eee918ac"
+        },
+        {
+          "name": "releasegraph-darwin-arm64",
+          "size": 6439682,
+          "sha256": "sha256:b06bc71f239f3d2d2d423b597b7a9e693b8d96518dd4a78d699aa8cd1b84cea1"
+        },
+        {
+          "name": "releasegraph-linux-amd64",
+          "size": 6766776,
+          "sha256": "sha256:32cc7f87f669ea308ad81140903320aedcd3d859e2ef31d8f0ff73218c344d7c"
+        },
+        {
+          "name": "releasegraph-linux-arm64",
+          "size": 6357176,
+          "sha256": "sha256:61d231590be05c1635bb8642ed29eb4cce265d9ebdc42eb8d1f707cbfbea6638"
+        },
+        {
+          "name": "releasegraph-windows-amd64.exe",
+          "size": 6949376,
+          "sha256": "sha256:2b9f9cf6b2874c0eb647876a02a27d8e5ce8acf5d023a29f1092501ac9abcf20"
+        },
+        {
+          "name": "releasegraph-windows-arm64.exe",
+          "size": 6346752,
+          "sha256": "sha256:e21cc3ab8854aafb9a45111fc4eac64cb4ee479b89bfb55aca50c76d11fc2ec1"
+        },
+        {
+          "name": "SHA256SUMS",
+          "size": 560,
+          "sha256": "sha256:835a932f5780f8f6e87aa42da65c2a1f3e56d19f0354325522fb0ff54dab0767"
+        }
+      ]
     }
   ],
   "tags": [
+    {
+      "name": "v1.0.33",
+      "commit": "beefa7e371c22df6acd1c8c0e9785094347eaa0f"
+    },
+    {
+      "name": "v1.0.32",
+      "commit": "44250bd24d346edb74e671e2ac64dc3c445aec44"
+    },
+    {
+      "name": "v1.0.31",
+      "commit": "0156df4bbd3e1cb50a18f99cb464bdbb7dead817"
+    },
+    {
+      "name": "v1.0.30",
+      "commit": "5c2ad69aa074ec4d2f719cc709271aad1ab8c6d6"
+    },
+    {
+      "name": "v1.0.29",
+      "commit": "1b3b8bdd4f807a54dc822ffed33d4402db53a7be"
+    },
+    {
+      "name": "v1.0.28",
+      "commit": "b5f07f8952f2c651cefd9f0607bedc74c94bec1f"
+    },
     {
       "name": "v1.0.27",
       "commit": "4295842d51b99ce5262bc00c213105a5e3f03729"
@@ -372,7 +288,7 @@
     },
     {
       "name": "v1",
-      "commit": "4295842d51b99ce5262bc00c213105a5e3f03729"
+      "commit": "beefa7e371c22df6acd1c8c0e9785094347eaa0f"
     }
   ],
   "release_config": {},

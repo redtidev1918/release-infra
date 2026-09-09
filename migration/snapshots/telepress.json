@@ -48,6 +48,8 @@
   "latest_tag": "v0.6.1",
   "draft_releases": [],
   "actual_assets": [
+    "RELEASE-METADATA.json",
+    "SHA256SUMS",
     "telepress-0.6.1-py3-none-any.whl",
     "telepress-0.6.1.tar.gz"
   ],
@@ -64,8 +66,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/telepress/actions/runs/34299429112",
-    "updated_at": "2026-09-09T01:30:14Z"
+    "url": "https://github.com/redtidev1918/telepress/actions/runs/34320006151",
+    "updated_at": "2026-09-09T06:39:29Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -87,6 +89,16 @@
       "prerelease": false,
       "published_at": "2026-09-08T06:02:14Z",
       "assets": [
+        {
+          "name": "RELEASE-METADATA.json",
+          "size": 1282,
+          "sha256": "sha256:85c78f600106d50220c8dfa27d9a5be1d2136ec5667ed3b6c60cf7855cd5dabd"
+        },
+        {
+          "name": "SHA256SUMS",
+          "size": 188,
+          "sha256": "sha256:65fd95044d6bced6e7c43c4db4056d43d83d85f408a50834dcfb34dfd838765d"
+        },
         {
           "name": "telepress-0.6.1-py3-none-any.whl",
           "size": 38487,
