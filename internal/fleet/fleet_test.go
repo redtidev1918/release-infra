@@ -49,3 +49,30 @@ func TestDiscoverOwnerAgnosticFleet(t *testing.T) {
 		t.Fatalf("fork=%+v", out.Repositories[1])
 	}
 }
+
+func TestDiscoverAuthenticatedFleetQueryIsValid(t *testing.T) {
+	var gotPath string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if strings.HasPrefix(r.URL.Path, "/user/repos") {
+			gotPath = r.URL.RequestURI()
+			_, _ = w.Write([]byte(`[
+				{"full_name":"acme/private","visibility":"private","default_branch":"main","fork":false,"archived":false}
+			]`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	out, err := Discover(context.Background(), github.NewForTest(server.URL), "acme", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(gotPath, "/user/repos?affiliation=owner") || strings.Contains(gotPath, "type=") {
+		t.Fatalf("path=%q: affiliation must not be combined with type (GitHub 422)", gotPath)
+	}
+	if len(out.Repositories) != 1 || out.Repositories[0].Visibility != "private" {
+		t.Fatalf("repos=%+v", out.Repositories)
+	}
+}

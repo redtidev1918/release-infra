@@ -31,7 +31,9 @@ type Fleet struct {
 }
 
 func Discover(ctx context.Context, client *github.Client, owner string, publicOnly bool) (*Fleet, error) {
-	path := "user/repos?affiliation=owner&type=all"
+	// GitHub rejects combining affiliation with type (422); affiliation=owner
+	// already spans every repo type and visibility.
+	path := "user/repos?affiliation=owner"
 	if publicOnly {
 		path = fmt.Sprintf("users/%s/repos?type=all", url.PathEscape(owner))
 	}
