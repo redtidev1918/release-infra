@@ -40,6 +40,11 @@ def _release_tags(version: str, policy: dict | None) -> set[str]:
     return tags
 
 
+def _desired_manifest_version(policy: dict | None, manifest_versions: dict) -> str | None:
+    package = (policy or {}).get("versioning", {}).get("package", ".")
+    return manifest_versions.get(package, next(iter(manifest_versions.values()), None))
+
+
 def _classify(repo: dict, files: set[str], releases: list[dict]) -> str:
     if repo["archived"]:
         return "archived"
@@ -105,13 +110,19 @@ def _scan_repo(source: dict) -> dict[str, Any]:
     workflow_paths = sorted(path for path in paths if path.startswith(".github/workflows/") and path.endswith((".yml", ".yaml")))
     contents = {path: _content(gh, name, path) for path in top_files & {"package.json", "pyproject.toml", "pubspec.yaml", ".release-policy.yml", ".release-please-manifest.json", "release-please-config.json"}}
     policy = contents.get(".release-policy.yml")
+    parsed_policy = None
+    if policy:
+        try:
+            parsed_policy = json.loads(policy)
+        except ValueError:
+            pass
     manifest = contents.get(".release-please-manifest.json")
     desired = None
     manifest_versions = {}
     if manifest:
         try:
             manifest_versions = json.loads(manifest)
-            desired = next(iter(manifest_versions.values()))
+            desired = _desired_manifest_version(parsed_policy, manifest_versions)
         except (ValueError, StopIteration):
             pass
     latest = next((release for release in releases if not release.get("draft") and not release.get("prerelease")), None)
@@ -122,17 +133,8 @@ def _scan_repo(source: dict) -> dict[str, Any]:
     release_workflow_ids = {wf["id"] for wf in release_workflows}
     latest_run = next((run for run in runs if run.get("workflow_id") in release_workflow_ids and run.get("head_branch") == branch), None)
     package_status = _package_status(top_files, contents)
-    parsed_policy = None
-    if policy:
-        try:
-            parsed_policy = json.loads(policy)
-        except ValueError:
-            pass
     latest_tag_name = latest.get("tag_name") if latest else None
-    release_matches_desired = not desired or any(
-        latest_tag_name in _release_tags(version, parsed_policy)
-        for version in manifest_versions.values()
-    )
+    release_matches_desired = not desired or latest_tag_name in _release_tags(desired, parsed_policy)
     health = "UNMANAGED"
     if classification in {"no-release", "archived", "fork"}:
         health = "NO_RELEASE"
@@ -158,7 +160,7 @@ def scan(owner: str, *, include_private: bool = True) -> list[dict[str, Any]]:
     gh = GitHub()
     repos = gh.api(f"user/repos?affiliation=owner&per_page=100&sort=full_name" if include_private else f"users/{owner}/repos?per_page=100&sort=full_name", paginate=True)
     sources = [repo for repo in repos if repo["owner"]["login"].lower() == owner.lower()]
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
         inventory = list(executor.map(_scan_repo, sources))
     errors = [item["error"] for item in inventory if item.get("error")]
     if errors:
