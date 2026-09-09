@@ -16,5 +16,10 @@ jobs:
         run: |
           git tag -f v1 "$GITHUB_SHA"
           git push origin refs/tags/v1 --force
-      - run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --latest
-        env: {GH_TOKEN: "${{ github.token }}"}
+      - name: Publish metadata-backed release
+        run: |
+          mkdir -p dist/release
+          python -c 'import datetime as d, hashlib, json, os; from pathlib import Path; tag=os.environ["GITHUB_REF_NAME"]; version=tag.removeprefix("v"); policy=json.loads(Path(".release-policy.yml").read_text()); server=os.environ["GITHUB_SERVER_URL"]; repo=os.environ["GITHUB_REPOSITORY"]; run_id=os.environ["GITHUB_RUN_ID"]; policy_hash=hashlib.sha256(Path(".release-policy.yml").read_bytes()).hexdigest(); now=d.datetime.now(d.UTC).isoformat(); metadata={"repository":repo,"version":version,"tag":tag,"commit_sha":os.environ["GITHUB_SHA"],"build_run_id":run_id,"build_run_url":f"{server}/{repo}/actions/runs/{run_id}","releasegraph_version":version,"release_infra_version":version,"policy_hash":policy_hash,"release_policy_hash":policy_hash,"build_started_at":now,"published_at":now,"retry_count":0,"assets":[],"asset_sha256":{},"registries":policy.get("registries",{}),"container_digest":"","package_versions":{"github":version},"source_commit":os.environ["GITHUB_SHA"],"release_pr":None}; Path("dist/release/RELEASE-METADATA.json").write_text(json.dumps(metadata, indent=2)+"\n")'
+          gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --latest dist/release/RELEASE-METADATA.json
+        env:
+          GH_TOKEN: ${{ github.token }}

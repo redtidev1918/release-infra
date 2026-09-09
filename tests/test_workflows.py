@@ -20,6 +20,11 @@ class WorkflowTest(unittest.TestCase):
         for action in re.findall(r"uses:\s*([^\s#]+)@([0-9a-f]+)", workflow):
             self.assertEqual(len(action[1]), 40, action)
 
+    def test_central_release_attaches_metadata(self):
+        workflow = Path(".github/workflows/infra-release.yml").read_text()
+        self.assertIn("RELEASE-METADATA.json", workflow)
+        self.assertIn("gh release create", workflow)
+
     def test_release_please_only_manages_version(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
         self.assertIn("skip-github-release: true", workflow)
