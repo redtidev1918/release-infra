@@ -32,9 +32,9 @@
   },
   "release_infra_version": null,
   "desired_version": null,
-  "latest_release": "v1.0.25",
-  "latest_release_at": "2026-09-09T04:53:03Z",
-  "latest_tag": "v1.0.25",
+  "latest_release": "v1.0.27",
+  "latest_release_at": "2026-09-09T05:11:33Z",
+  "latest_tag": "v1.0.27",
   "draft_releases": [],
   "actual_assets": [],
   "release_workflows": [
@@ -60,6 +60,20 @@
     ".github/workflows/reusable-release.yml"
   ],
   "release_history": [
+    {
+      "tag": "v1.0.27",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-09T05:11:33Z",
+      "assets": []
+    },
+    {
+      "tag": "v1.0.26",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-09-09T05:06:32Z",
+      "assets": []
+    },
     {
       "tag": "v1.0.25",
       "draft": false,
@@ -245,6 +259,14 @@
   ],
   "tags": [
     {
+      "name": "v1.0.27",
+      "commit": "4295842d51b99ce5262bc00c213105a5e3f03729"
+    },
+    {
+      "name": "v1.0.26",
+      "commit": "683cc787eb855104fb9f46c90bba5e232f4a2aae"
+    },
+    {
       "name": "v1.0.25",
       "commit": "1817aa7f87b26019550e1df7b5f7559d96770740"
     },
@@ -350,7 +372,7 @@
     },
     {
       "name": "v1",
-      "commit": "1817aa7f87b26019550e1df7b5f7559d96770740"
+      "commit": "4295842d51b99ce5262bc00c213105a5e3f03729"
     }
   ],
   "release_config": {},

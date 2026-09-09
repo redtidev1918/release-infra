@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-09T05:06:12.791391+00:00",
+  "generated_at": "2026-09-09T05:13:47.271194+00:00",
   "repositories": [
     {
       "repo": "redtidev1918/BallonsTranslator-lite",
@@ -133,7 +133,7 @@
         "sbom": false
       },
       "release_infra_version": "v1",
-      "desired_version": "1.0.0",
+      "desired_version": "0.4.1",
       "latest_release": "dakit_cli-v0.4.1",
       "latest_release_at": "2026-09-08T06:13:11Z",
       "latest_tag": "python-preview-1.0.0a1",
@@ -2168,8 +2168,8 @@
       "latest_release_run": {
         "status": "completed",
         "conclusion": "success",
-        "url": "https://github.com/redtidev1918/NekoTime/actions/runs/34295208780",
-        "updated_at": "2026-09-09T00:29:24Z"
+        "url": "https://github.com/redtidev1918/NekoTime/actions/runs/34313613875",
+        "updated_at": "2026-09-09T05:07:41Z"
       },
       "signals": [
         ".release-please-manifest.json",
@@ -3138,9 +3138,9 @@
       },
       "release_infra_version": null,
       "desired_version": null,
-      "latest_release": "v1.0.25",
-      "latest_release_at": "2026-09-09T04:53:03Z",
-      "latest_tag": "v1.0.25",
+      "latest_release": "v1.0.27",
+      "latest_release_at": "2026-09-09T05:11:33Z",
+      "latest_tag": "v1.0.27",
       "draft_releases": [],
       "actual_assets": [],
       "release_workflows": [
@@ -3166,6 +3166,20 @@
         ".github/workflows/reusable-release.yml"
       ],
       "release_history": [
+        {
+          "tag": "v1.0.27",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-09T05:11:33Z",
+          "assets": []
+        },
+        {
+          "tag": "v1.0.26",
+          "draft": false,
+          "prerelease": false,
+          "published_at": "2026-09-09T05:06:32Z",
+          "assets": []
+        },
         {
           "tag": "v1.0.25",
           "draft": false,
@@ -3351,6 +3365,14 @@
       ],
       "tags": [
         {
+          "name": "v1.0.27",
+          "commit": "4295842d51b99ce5262bc00c213105a5e3f03729"
+        },
+        {
+          "name": "v1.0.26",
+          "commit": "683cc787eb855104fb9f46c90bba5e232f4a2aae"
+        },
+        {
           "name": "v1.0.25",
           "commit": "1817aa7f87b26019550e1df7b5f7559d96770740"
         },
@@ -3456,7 +3478,7 @@
         },
         {
           "name": "v1",
-          "commit": "1817aa7f87b26019550e1df7b5f7559d96770740"
+          "commit": "4295842d51b99ce5262bc00c213105a5e3f03729"
         }
       ],
       "release_config": {},

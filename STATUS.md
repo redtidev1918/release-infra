@@ -1,11 +1,11 @@
 # Release Fleet Dashboard
 
-Generated: `2026-09-09T05:06:12.791391+00:00`
+Generated: `2026-09-09T05:13:47.271194+00:00`
 
 | Repository | Class | Desired | Latest | Assets | Workflow | Health |
 |---|---|---:|---:|---:|---|---|
 | redtidev1918/BallonsTranslator-lite | fork | — | — | 0 | — | NO_RELEASE |
-| redtidev1918/dakit | managed | 1.0.0 | dakit_cli-v0.4.1 | 6 | success | HEALTHY |
+| redtidev1918/dakit | managed | 0.4.1 | dakit_cli-v0.4.1 | 6 | success | HEALTHY |
 | redtidev1918/daviewer | managed | 0.2.184 | v0.2.184 | 3 | success | HEALTHY |
 | redtidev1918/deviantart-downloader | managed | 4.1.1 | v4.1.1 | 2 | success | HEALTHY |
 | redtidev1918/deviantdrop | managed | 1.6.3 | v1.6.3 | 0 | success | HEALTHY |
@@ -19,7 +19,7 @@ Generated: `2026-09-09T05:06:12.791391+00:00`
 | redtidev1918/pixivflow-webui | managed | 1.0.1 | v1.0.1 | 1 | success | HEALTHY |
 | redtidev1918/ponytail | fork | — | — | 0 | — | NO_RELEASE |
 | redtidev1918/redtidev1918 | no-release | — | — | 0 | — | NO_RELEASE |
-| redtidev1918/release-infra | managed | — | v1.0.25 | 0 | — | HEALTHY |
+| redtidev1918/release-infra | managed | — | v1.0.27 | 0 | — | HEALTHY |
 | redtidev1918/shengxiu_feedbot | fork | — | — | 0 | — | NO_RELEASE |
 | redtidev1918/TelePost | managed | 2.15.0 | v2.15.0 | 5 | success | HEALTHY |
 | redtidev1918/telepress | managed | 0.6.1 | v0.6.1 | 2 | success | HEALTHY |
