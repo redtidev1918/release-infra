@@ -25,6 +25,16 @@ The migration preserves the Python release semantics that already ran in product
 - Infrastructure failures are repaired at the same version rather than producing a new patch.
 - `status.json` is a snapshot/dashboard artifact, not a database.
 
+## Private repositories and reusable workflows
+
+A reusable workflow can only call another repository's reusable workflow when the caller can access the called repository. On a personal account this means a **private** managed repository cannot call the reusable workflow in the public ReleaseGraph repository: the workflow run ends in `startup_failure` with no job created, regardless of the repository Actions allow-list.
+
+Options, in order of preference:
+
+1. Keep the engine private and place all managed private repositories in the same organization/enterprise with an Actions access policy covering the engine.
+2. Make the managed repository public (preferred for tools that already publish public Releases).
+3. Keep it unmanaged: retain a repository-owned `scripts/build-release` and `.release-policy.yml` as the local build contract, and release manually. Do not copy the reusable workflow implementation into the private repository.
+
 ## Read-only adoption
 
 Start with no write permissions:
