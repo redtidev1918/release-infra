@@ -41,6 +41,7 @@ jobs:
     outputs:
       run_release: ${{ steps.plan.outputs.run_release }}
       release_health: ${{ steps.plan.outputs.release_health }}
+      tag_drift: ${{ steps.plan.outputs.tag_drift }}
       version: ${{ steps.plan.outputs.version }}
       tag: ${{ steps.plan.outputs.tag }}
       test_command: ${{ steps.plan.outputs.test_command }}

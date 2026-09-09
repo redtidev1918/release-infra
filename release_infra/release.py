@@ -127,6 +127,13 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     asset_patterns = policy.get("assets", {})
     registries = policy.get("registries", {})
     ghcr = registries.get("ghcr", {})
+    tag_drift = False
+    try:
+        head = _run(["git", "rev-parse", "HEAD"], capture=True)
+        tag_commit = _remote_tag_commit(tag)
+        tag_drift = bool(tag_commit and tag_commit != head)
+    except (ReleaseError, subprocess.CalledProcessError):
+        pass
     retry_count = 0
     cooldown = False
     if os.environ.get("GITHUB_EVENT_NAME") == "schedule":
@@ -139,12 +146,12 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
                 cooldown = dt.datetime.now(dt.UTC) - last < dt.timedelta(hours=6)
         except (ReleaseError, ValueError, KeyError):
             pass
-    should_release = force or repair or (not healthy and not needs_repair and not cooldown)
+    should_release = not tag_drift and (force or repair or (not healthy and not needs_repair and not cooldown))
     return {
         "should_release": str(should_release).lower(), "run_release": "1" if should_release else "0",
-        "release_health": "healthy" if healthy else ("repair" if needs_repair else "missing"),
+        "release_health": "healthy" if healthy else ("tag-drift" if tag_drift else ("repair" if needs_repair else "missing")),
         "version": desired, "tag": tag, "retry_count": str(retry_count), "cooldown": str(cooldown).lower(),
-        "needs_repair": str(needs_repair).lower(),
+        "needs_repair": str(needs_repair).lower(), "tag_drift": str(tag_drift).lower(),
         "test_command": policy.get("build", {}).get("test", ""), "build_command": policy.get("build", {}).get("command", ":"),
         "version_check": policy.get("build", {}).get("version_check", ""), "build_matrix": json.dumps({"include": matrix}, separators=(",", ":")),
         "has_assets": "1" if asset_patterns.get("required") or asset_patterns.get("optional") else "0",
