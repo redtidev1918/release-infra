@@ -31,6 +31,7 @@ class WorkflowTest(unittest.TestCase):
         self.assertNotIn("repository-dispatch", workflow)
         self.assertNotIn("GITHUB_TOKEN:\n        required:", workflow)
         self.assertIn("path: .releasegraph-engine", workflow)
+        self.assertIn("./releasegraph fleet", workflow)
         self.assertIn("contents: read", workflow)
 
     def test_release_please_only_manages_version(self):
