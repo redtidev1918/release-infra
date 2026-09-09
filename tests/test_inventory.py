@@ -3,10 +3,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from release_infra.inventory import write_outputs
+from release_infra.inventory import _release_tags, write_outputs
 
 
 class InventoryTest(unittest.TestCase):
+    def test_release_tags_support_plain_and_component_templates(self):
+        self.assertEqual(_release_tags("1.2.3", None), {"1.2.3", "v1.2.3"})
+        self.assertIn("dakit_cli-v0.4.1", _release_tags("0.4.1", {"tag": {"template": "dakit_cli-v{version}"}}))
+
     def test_dashboard_keeps_every_classification(self):
         rows = [
             {"repo": "owner/managed", "visibility": "public", "classification": "managed", "health": "HEALTHY", "actual_assets": ["app"], "latest_release": "v1"},
