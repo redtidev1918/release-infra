@@ -20,6 +20,7 @@ The Go core is currently safe for read-only adoption:
 
 ```bash
 releasegraph doctor
+releasegraph fleet --owner acme --public-only --output json
 releasegraph graph --file release-graph.yml --format mermaid
 releasegraph inspect --path .release-policy.yml
 releasegraph plan --path .release-policy.yml --root . --output json
