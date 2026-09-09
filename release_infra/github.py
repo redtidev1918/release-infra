@@ -21,7 +21,7 @@ class GitHub:
         for key, value in (fields or {}).items():
             command.extend(["-f", f"{key}={value}"])
         result = None
-        for attempt in range(4):
+        for attempt in range(6):
             result = subprocess.run(command, text=True, capture_output=True)
             if not result.returncode:
                 break

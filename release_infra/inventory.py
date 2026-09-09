@@ -160,7 +160,7 @@ def scan(owner: str, *, include_private: bool = True) -> list[dict[str, Any]]:
     gh = GitHub()
     repos = gh.api(f"user/repos?affiliation=owner&per_page=100&sort=full_name" if include_private else f"users/{owner}/repos?per_page=100&sort=full_name", paginate=True)
     sources = [repo for repo in repos if repo["owner"]["login"].lower() == owner.lower()]
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         inventory = list(executor.map(_scan_repo, sources))
     errors = [item["error"] for item in inventory if item.get("error")]
     if errors:
