@@ -6,13 +6,18 @@ from pathlib import Path
 from unittest import mock
 
 from release_infra.github import GitHubError
-from release_infra.inventory import _release_tags, scan, write_outputs
+from release_infra.inventory import _desired_manifest_version, _release_tags, scan, write_outputs
 
 
 class InventoryTest(unittest.TestCase):
     def test_release_tags_support_plain_and_component_templates(self):
         self.assertEqual(_release_tags("1.2.3", None), {"1.2.3", "v1.2.3"})
         self.assertIn("dakit_cli-v0.4.1", _release_tags("0.4.1", {"tag": {"template": "dakit_cli-v{version}"}}))
+
+    def test_component_policy_selects_cli_manifest_version(self):
+        policy = {"versioning": {"package": "packages/dakit_cli"}}
+        manifest = {"packages/dakit_core": "1.0.0", "packages/dakit_cli": "0.4.1"}
+        self.assertEqual(_desired_manifest_version(policy, manifest), "0.4.1")
 
     def test_scan_fails_instead_of_publishing_network_broken_inventory(self):
         source = [{"full_name": "owner/repo", "owner": {"login": "owner"}, "default_branch": "main", "visibility": "public", "archived": False, "fork": False}]
