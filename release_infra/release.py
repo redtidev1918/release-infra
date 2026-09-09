@@ -147,7 +147,7 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
                 cooldown = dt.datetime.now(dt.UTC) - last < dt.timedelta(hours=6)
         except (ReleaseError, ValueError, KeyError):
             pass
-    should_release = not tag_drift and (force or repair or (not healthy and not needs_repair and not cooldown))
+    should_release = force or (not tag_drift and (repair or (not healthy and not needs_repair and not cooldown)))
     return {
         "should_release": str(should_release).lower(), "run_release": "1" if should_release else "0",
         "release_health": "healthy" if healthy else ("tag-drift" if tag_drift else ("repair" if needs_repair else "missing")),
