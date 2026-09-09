@@ -31,6 +31,14 @@ def _content(gh: GitHub, repo: str, path: str) -> str | None:
     return None
 
 
+def _release_tags(version: str, policy: dict | None) -> set[str]:
+    tags = {version, f"v{version}"}
+    template = (policy or {}).get("tag", {}).get("template")
+    if template:
+        tags.add(template.format(version=version))
+    return tags
+
+
 def _classify(repo: dict, files: set[str], releases: list[dict]) -> str:
     if repo["archived"]:
         return "archived"
@@ -98,9 +106,11 @@ def _scan_repo(source: dict) -> dict[str, Any]:
     policy = contents.get(".release-policy.yml")
     manifest = contents.get(".release-please-manifest.json")
     desired = None
+    manifest_versions = {}
     if manifest:
         try:
-            desired = next(iter(json.loads(manifest).values()))
+            manifest_versions = json.loads(manifest)
+            desired = next(iter(manifest_versions.values()))
         except (ValueError, StopIteration):
             pass
     latest = next((release for release in releases if not release.get("draft") and not release.get("prerelease")), None)
@@ -108,7 +118,8 @@ def _scan_repo(source: dict) -> dict[str, Any]:
     classification = _classify({"archived": source["archived"], "fork": source["fork"]}, top_files, releases)
     actual_assets = [asset["name"] for asset in latest.get("assets", [])] if latest else []
     release_workflows = [wf for wf in workflows if any(word in (wf.get("name", "") + wf.get("path", "")).lower() for word in ("release", "publish", "deploy"))]
-    latest_run = next((run for run in runs if run.get("workflow_id") in {wf["id"] for wf in release_workflows}), None)
+    release_workflow_ids = {wf["id"] for wf in release_workflows}
+    latest_run = next((run for run in runs if run.get("workflow_id") in release_workflow_ids and run.get("head_branch") == branch), None)
     package_status = _package_status(top_files, contents)
     parsed_policy = None
     if policy:
@@ -116,11 +127,16 @@ def _scan_repo(source: dict) -> dict[str, Any]:
             parsed_policy = json.loads(policy)
         except ValueError:
             pass
+    latest_tag_name = latest.get("tag_name") if latest else None
+    release_matches_desired = not desired or any(
+        latest_tag_name in _release_tags(version, parsed_policy)
+        for version in manifest_versions.values()
+    )
     health = "UNMANAGED"
     if classification in {"no-release", "archived", "fork"}:
         health = "NO_RELEASE"
     elif classification == "managed":
-        health = "HEALTHY" if latest and not drafts and (not latest_run or latest_run.get("conclusion") in {"success", "skipped"}) else "DEGRADED"
+        health = "HEALTHY" if latest and latest_tag_name and release_matches_desired and not drafts and (not latest_run or latest_run.get("conclusion") in {"success", "skipped"}) else "DEGRADED"
     return {
         "repo": name, "default_branch": branch, "visibility": source.get("visibility", "public"),
         "archived": source["archived"], "fork": source["fork"], "template": source.get("is_template", False),
