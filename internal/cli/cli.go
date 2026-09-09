@@ -17,6 +17,7 @@ import (
 	"github.com/redtidev1918/release-infra/internal/graph"
 	rgplan "github.com/redtidev1918/release-infra/internal/plan"
 	"github.com/redtidev1918/release-infra/internal/policy"
+	"github.com/redtidev1918/release-infra/internal/static"
 )
 
 const version = "0.1.0-go-readonly"
@@ -53,6 +54,8 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		err = inspect(stdout, args[1:])
 	case "plan":
 		err = planCommand(stdout, args[1:])
+	case "static-check":
+		err = staticCheck(stdout, args[1:])
 	case "version":
 		fmt.Fprintln(stdout, version)
 	default:
@@ -80,7 +83,7 @@ func doctor(w io.Writer, args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"audit", "doctor", "fleet", "graph", "inspect", "plan", "version"}}
+	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"audit", "doctor", "fleet", "graph", "inspect", "plan", "static-check", "version"}}
 	return write(w, format, info, humanDoctor)
 }
 
@@ -249,6 +252,20 @@ func planCommand(w io.Writer, args []string) error {
 	return write(w, format, out, func(w io.Writer, _ any) {
 		fmt.Fprintf(w, "READY\n  local desired=%s tag=%s requiredAssets=%d\n", desired, policy.Tag(p, desired), len(p.Assets.Required))
 	})
+}
+
+func staticCheck(w io.Writer, args []string) error {
+	root := "."
+	fs := flag.NewFlagSet("static-check", flag.ContinueOnError)
+	fs.StringVar(&root, "root", root, "repository root")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if err := static.Check(root); err != nil {
+		return err
+	}
+	_, err := fmt.Fprintln(w, "static check ok")
+	return err
 }
 
 func write(w io.Writer, format string, data any, human func(io.Writer, any)) error {

@@ -20,6 +20,7 @@ jobs:
           go-version-file: go.mod
       - run: go vet ./...
       - run: go test ./...
+      - run: go run ./cmd/releasegraph static-check --root .
       - name: Build cross-platform binary
         shell: bash
         env:
