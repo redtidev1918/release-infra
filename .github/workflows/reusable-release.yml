@@ -5,7 +5,7 @@ on:
     outputs:
       paths_released:
         description: "Release Please component paths released in this run"
-        value: ${{ jobs.release-please.outputs.paths_released }}
+        value: ${{ jobs['release-please'].outputs.paths_released }}
     inputs:
       version: {type: string, default: ""}
       dry_run: {type: boolean, default: false}
