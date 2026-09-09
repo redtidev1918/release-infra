@@ -23,6 +23,7 @@ releasegraph doctor
 releasegraph fleet --owner acme --public-only --output json
 releasegraph graph --file release-graph.yml --format mermaid
 releasegraph inspect --path .release-policy.yml
+releasegraph audit --path .release-policy.yml --root dist/release --output json
 releasegraph plan --path .release-policy.yml --root . --output json
 releasegraph plan --graph release-graph.yml --state health.json --output json
 ```

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -9,7 +10,10 @@ import (
 	"sort"
 	"time"
 
+	"github.com/redtidev1918/release-infra/internal/assets"
 	rgdomain "github.com/redtidev1918/release-infra/internal/domain"
+	"github.com/redtidev1918/release-infra/internal/fleet"
+	"github.com/redtidev1918/release-infra/internal/github"
 	"github.com/redtidev1918/release-infra/internal/graph"
 	rgplan "github.com/redtidev1918/release-infra/internal/plan"
 	"github.com/redtidev1918/release-infra/internal/policy"
@@ -37,10 +41,14 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	}
 	var err error
 	switch args[0] {
+	case "fleet":
+		err = fleetCommand(stdout, args[1:])
 	case "doctor":
 		err = doctor(stdout, args[1:])
 	case "graph":
 		err = graphCommand(stdout, args[1:])
+	case "audit":
+		err = auditCommand(stdout, args[1:])
 	case "inspect":
 		err = inspect(stdout, args[1:])
 	case "plan":
@@ -72,7 +80,7 @@ func doctor(w io.Writer, args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"doctor", "graph", "inspect", "plan", "version"}}
+	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"audit", "doctor", "fleet", "graph", "inspect", "plan", "version"}}
 	return write(w, format, info, humanDoctor)
 }
 
@@ -115,6 +123,52 @@ func graphCommand(w io.Writer, args []string) error {
 			}
 		}
 		fmt.Fprintln(w, "ORDER", view.Order)
+	})
+}
+
+func auditCommand(w io.Writer, args []string) error {
+	var format, policyPath, root string
+	fs := flags(&format)
+	fs.StringVar(&policyPath, "path", ".release-policy.yml", "policy path")
+	fs.StringVar(&root, "root", "dist/release", "asset directory")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	p, err := policy.Load(policyPath)
+	if err != nil {
+		return err
+	}
+	gate, err := assets.Evaluate(p, root)
+	if err != nil {
+		return err
+	}
+	return write(w, format, gate, func(w io.Writer, _ any) {
+		for _, asset := range gate.Required {
+			fmt.Fprintf(w, "required %s %d %s\n", asset.Name, asset.Size, asset.SHA256)
+		}
+	})
+}
+
+func fleetCommand(w io.Writer, args []string) error {
+	var format, owner string
+	var publicOnly bool
+	fs := flags(&format)
+	fs.StringVar(&owner, "owner", "", "repository owner")
+	fs.BoolVar(&publicOnly, "public-only", false, "list public repositories only")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if owner == "" {
+		return fmt.Errorf("--owner is required")
+	}
+	out, err := fleet.Discover(context.Background(), github.New(), owner, publicOnly)
+	if err != nil {
+		return err
+	}
+	return write(w, format, out, func(w io.Writer, _ any) {
+		for _, repo := range out.Repositories {
+			fmt.Fprintf(w, "%-40s %-12s %s\n", repo.Name, repo.Classification, repo.Health)
+		}
 	})
 }
 
