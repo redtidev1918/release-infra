@@ -3,10 +3,12 @@
   - [快速开始](/zh-CN/quick-start.md)
   - [核心概念](/zh-CN/concepts.md)
   - [认证与权限](/zh-CN/authentication.md)
+  - [发布健康](/zh-CN/health.md)
 - English
   - [ReleaseGraph documentation](/)
   - [Architecture](/ARCHITECTURE.md)
   - [Policy](/POLICY.md)
+  - [Release health](/health.md)
   - [Authentication](/AUTHENTICATION.md)
   - [Recovery](/RECOVERY.md)
   - [Migration](/MIGRATION.md)

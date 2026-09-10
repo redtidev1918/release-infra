@@ -13,6 +13,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from . import health
 from .github import GitHub, GitHubError
 
 
@@ -135,15 +136,35 @@ def _scan_repo(source: dict) -> dict[str, Any]:
     package_status = _package_status(top_files, contents)
     latest_tag_name = latest.get("tag_name") if latest else None
     release_matches_desired = not desired or latest_tag_name in _release_tags(desired, parsed_policy)
-    health = "UNMANAGED"
-    if classification in {"no-release", "archived", "fork"}:
-        health = "NO_RELEASE"
-    elif classification == "managed":
-        health = "HEALTHY" if latest and latest_tag_name and release_matches_desired and not drafts and (not latest_run or latest_run.get("conclusion") in {"success", "skipped"}) else "DEGRADED"
+    assessment = health.evaluate(
+        parsed_policy,
+        health.Observation(
+            release=latest_tag_name,
+            draft_release=drafts[0]["tag_name"] if drafts else None,
+            tag_matches_desired=release_matches_desired,
+            assets=[{"name": asset["name"], "size": asset.get("size")} for asset in (latest.get("assets", []) if latest else [])],
+            run_conclusion=(latest_run or {}).get("conclusion"),
+            has_policy=bool(policy),
+            policy_parsable=parsed_policy is not None,
+            archived=classification == "archived",
+            fork=classification == "fork",
+            unmanaged=classification == "observe-only",
+        ),
+    )
     return {
         "repo": name, "default_branch": branch, "visibility": source.get("visibility", "public"),
         "archived": source["archived"], "fork": source["fork"], "template": source.get("is_template", False),
-        "classification": classification, "health": health, "release_policy": parsed_policy, "release_infra_version": "v1" if any("redtidev1918/releasegraph/.github/workflows/reusable-release.yml@v1" in (_content(gh, name, path) or "") for path in workflow_paths) else None, "desired_version": desired,
+        "classification": classification, "health": assessment.value,
+        "health_reasons": [reason.as_dict() for reason in assessment.reasons],
+        "missing_assets": list(assessment.missing_assets), "empty_assets": list(assessment.empty_assets),
+        # Deliberately no `release_health` here. That field names the planner's
+        # workflow decision (`release_infra/release.py`), and the planner computes
+        # it from commit-level tag drift and workflow state that this inventory
+        # never reads. Emitting our own value under the same name would be two
+        # systems claiming one field, which is how contradictory dashboards
+        # happen. `health.Health.release_health()` exists to bridge the contract
+        # to the planner in tests, not to duplicate the planner's output.
+        "release_policy": parsed_policy, "release_infra_version": "v1" if any("redtidev1918/releasegraph/.github/workflows/reusable-release.yml@v1" in (_content(gh, name, path) or "") for path in workflow_paths) else None, "desired_version": desired,
         "latest_release": latest.get("tag_name") if latest else None, "latest_release_at": latest.get("published_at") if latest else None,
         "latest_tag": tags[0]["name"] if tags else None, "draft_releases": [release["tag_name"] for release in drafts],
         "actual_assets": actual_assets, "release_workflows": [{"name": wf["name"], "path": wf["path"]} for wf in release_workflows],
