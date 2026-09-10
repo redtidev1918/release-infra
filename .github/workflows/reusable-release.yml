@@ -399,9 +399,11 @@ jobs:
           build-args: |
             APP_VERSION=${{ steps.plan.outputs.version }}
             GIT_SHA=${{ github.sha }}
+            BUILD_DATE=${{ github.run_started_at }}
           labels: |
             org.opencontainers.image.version=${{ steps.plan.outputs.version }}
             org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.run_started_at }}
           provenance: mode=max
           sbom: true
           cache-from: type=gha
