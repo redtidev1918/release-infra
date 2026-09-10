@@ -1,0 +1,102 @@
+# ReleaseGraph
+
+Serverless, declarative, DAG-driven release orchestration for GitHub Actions.
+
+[简体中文](README.md) · [Documentation](https://redtidev1918.github.io/releasegraph/) · [中文文档](https://redtidev1918.github.io/releasegraph/#/zh-CN/README.md)
+
+```text
+        core
+       /    \
+     cli    web
+       \    /
+      deploy
+```
+
+ReleaseGraph determines what is ready, dispatches it, verifies releases, and recovers incomplete transactions. No server, database, or polling daemon is required.
+
+## Status
+
+The repository is migrating from the production-proven Python implementation to a standalone Go binary. The Python reusable workflow remains the mutating release path.
+
+The Go core is currently safe for read-only adoption:
+
+```bash
+releasegraph doctor
+releasegraph fleet --owner acme --public-only --output json
+releasegraph graph --file release-graph.yml --format mermaid
+releasegraph inspect --path .release-policy.yml
+releasegraph audit --path .release-policy.yml --root dist/release --output json
+releasegraph plan --path .release-policy.yml --root . --output json
+releasegraph plan --graph release-graph.yml --state health.json --output json
+releasegraph plan --graph release-graph.yml --live --output json
+```
+
+Mutating release, repair, dispatch, registry publishing, and retention remain on the Python v1 path until Python/Go contract canaries pass.
+
+## Serverless control repository
+
+A thin control repository contains user topology and ephemeral reconcile workers:
+
+```text
+release-graph.yml
+.github/workflows/orchestrate.yml
+.github/workflows/watchdog.yml
+```
+
+Copy the minimal callers from [`examples/control`](examples/control). A reconcile event fetches current GitHub state, computes a plan, and exits; completion starts a new run rather than holding a long-lived job.
+
+## 30-second read-only trial
+
+```bash
+go build -o releasegraph ./cmd/releasegraph
+./releasegraph doctor
+./releasegraph graph --file examples/control/release-graph.yml --format mermaid
+./releasegraph inspect --path examples/policy/.release-policy.yml
+```
+
+Audit-only commands never call a write API. Grant write permission only when adopting the existing reusable release workflow; grant cross-repository dispatch permission only after validating the graph.
+
+## Declarative graph
+
+```yaml
+apiVersion: releasegraph.dev/v1
+projects:
+  core:
+    repo: {owner: acme, name: core}
+  cli:
+    repo: {owner: acme, name: cli}
+    dependsOn:
+      - {id: core, condition: healthy}
+```
+
+Events request reconciliation. They are not state: every plan is computed from fresh Git refs, GitHub Releases, workflow state, policies, and registry state. A healthy upstream wakes downstream, but it never forces a meaningless downstream version bump.
+
+## Project policy
+
+A managed repository declares its required contract in `.release-policy.yml`:
+
+```yaml
+apiVersion: releasegraph.dev/v1
+kind: binary
+versioning:
+  provider: release-please
+assets:
+  required:
+    - app-*-linux-amd64.tar.gz
+    - app-*-darwin-arm64.tar.gz
+registries:
+  github:
+    required: true
+checksums: true
+metadata: true
+```
+
+Build adapters own compilers and package managers and place candidates in `dist/release/`. ReleaseGraph validates ordering, the asset contract, checksums/metadata, immutable tags, registries, and recovery.
+
+See:
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Authentication](docs/AUTHENTICATION.md)
+- [Policy](docs/POLICY.md)
+- [Migration](docs/MIGRATION.md)
+- [Recovery](docs/RECOVERY.md)
