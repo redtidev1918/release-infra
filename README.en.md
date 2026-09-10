@@ -16,9 +16,23 @@ ReleaseGraph determines what is ready, dispatches it, verifies releases, and rec
 
 ## Status
 
-The repository is migrating from the production-proven Python implementation to a standalone Go binary. The Python reusable workflow remains the mutating release path.
+The repository is migrating from the production-proven Python implementation to a standalone Go binary.
 
-The Go core is currently safe for read-only adoption:
+**What actually runs in production today**, in the reusable workflow every managed
+repository calls:
+
+| capability | implementation | mutating |
+|---|---|---|
+| provider reconciliation (`provider reconcile --apply`) | **Go** | yes — it reconciles release-please metadata and labels |
+| release planning (`workflow-plan`) | Python | no |
+| static checks, asset gate | Python | no |
+| staging, publishing, audit | Python | yes |
+
+So the Go core is **not** read-only in production: it already performs the provider
+reconciliation step, and that is why its contract is pinned by every caller. Everything
+else on the write path is still Python v1.
+
+The Go core is also safe to adopt read-only, which is how the rest of it is used today:
 
 ```bash
 releasegraph doctor

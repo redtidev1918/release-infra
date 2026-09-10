@@ -18,9 +18,20 @@ ReleaseGraph 根据期望状态、GitHub 与 registry 实际状态、项目 poli
 
 ## 当前状态
 
-项目正在从经过生产验证的 Python 实现迁移到独立 Go 二进制；Python reusable workflow 仍是执行写入的发布路径。
+项目正在从经过生产验证的 Python 实现迁移到独立 Go 二进制。
 
-Go 核心目前可安全用于只读场景：
+**当前生产里真正在跑的东西**（所有受管仓库调用的 reusable workflow）：
+
+| 能力 | 实现 | 是否写入 |
+|---|---|---|
+| provider reconciliation（`provider reconcile --apply`） | **Go** | 是——它会收敛 release-please 的元数据与 label |
+| 发布规划（`workflow-plan`） | Python | 否 |
+| static check / asset gate | Python | 否 |
+| staging / publishing / audit | Python | 是 |
+
+所以 Go 核心在生产里**不是**只读的：它已经承担 provider reconciliation 这一步，这也是每个调用方都要 pin 住它的原因。写入路径的其余部分仍是 Python v1。
+
+Go 核心同样可以只读使用，其余能力目前就是这样用的：
 
 ```bash
 releasegraph doctor
