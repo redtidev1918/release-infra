@@ -12,7 +12,7 @@
     "kind": "hybrid",
     "versioning": {
       "mode": "manual",
-      "version": "1.0.33"
+      "version": "1.2.3"
     },
     "assets": {
       "required": [
@@ -41,9 +41,9 @@
   },
   "release_infra_version": null,
   "desired_version": null,
-  "latest_release": "v1.0.33",
-  "latest_release_at": "2026-09-09T08:02:53Z",
-  "latest_tag": "v1.0.33",
+  "latest_release": "v1.2.3",
+  "latest_release_at": "2026-09-09T16:21:17Z",
+  "latest_tag": "v1.2.3",
   "draft_releases": [],
   "actual_assets": [
     "RELEASE-METADATA.json",
@@ -57,7 +57,7 @@
   ],
   "release_workflows": [
     {
-      "name": "Deploy documentation",
+      "name": "Deploy static content to Pages",
       "path": ".github/workflows/docs.yml"
     },
     {
@@ -80,8 +80,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/releasegraph/actions/runs/34326826270",
-    "updated_at": "2026-09-09T08:01:30Z"
+    "url": "https://github.com/redtidev1918/releasegraph/actions/runs/34376029677",
+    "updated_at": "2026-09-09T16:20:21Z"
   },
   "signals": [
     ".release-policy.yml",
@@ -101,55 +101,75 @@
   ],
   "release_history": [
     {
-      "tag": "v1.0.33",
+      "tag": "v1.2.3",
       "draft": false,
       "prerelease": false,
-      "published_at": "2026-09-09T08:02:53Z",
+      "published_at": "2026-09-09T16:21:17Z",
       "assets": [
         {
           "name": "RELEASE-METADATA.json",
-          "size": 1875,
-          "sha256": "sha256:828a1d743df9a3f8bb304525a68df2a310b20ff9914a5a1ae90c8cd81cc9894f"
+          "size": 1868,
+          "sha256": "sha256:821322c04d66b7b892354fe45d5fd88ed65d8c71dfbaf2086eb6e24fb1e8d0cf"
         },
         {
           "name": "releasegraph-darwin-amd64",
-          "size": 6906016,
-          "sha256": "sha256:99a9eb678b880463dc839ab2fa1d49d178088ed6aaa456ec5e6ecc98eee918ac"
+          "size": 6926720,
+          "sha256": "sha256:0ce7254464970175b74f0b07de05efb993dbec2c2f12808fc6acb1ea06331091"
         },
         {
           "name": "releasegraph-darwin-arm64",
-          "size": 6439682,
-          "sha256": "sha256:b06bc71f239f3d2d2d423b597b7a9e693b8d96518dd4a78d699aa8cd1b84cea1"
+          "size": 6472962,
+          "sha256": "sha256:eacd026808d56ce8c8eb58b322f25430f6b5b528936542b4dc33209dd658e145"
         },
         {
           "name": "releasegraph-linux-amd64",
-          "size": 6766776,
-          "sha256": "sha256:32cc7f87f669ea308ad81140903320aedcd3d859e2ef31d8f0ff73218c344d7c"
+          "size": 6783160,
+          "sha256": "sha256:c93cfd54466899ce018934dec6e4ae2b0b88632418b85d6883aa059471641f44"
         },
         {
           "name": "releasegraph-linux-arm64",
           "size": 6357176,
-          "sha256": "sha256:61d231590be05c1635bb8642ed29eb4cce265d9ebdc42eb8d1f707cbfbea6638"
+          "sha256": "sha256:88168b9a2fafa325fd89044e57df299b115f6bb5fa08f6ba26c502a46b9d85e9"
         },
         {
           "name": "releasegraph-windows-amd64.exe",
-          "size": 6949376,
-          "sha256": "sha256:2b9f9cf6b2874c0eb647876a02a27d8e5ce8acf5d023a29f1092501ac9abcf20"
+          "size": 6968320,
+          "sha256": "sha256:48e3e79630bf615eb5a7c7b0c9557caf0cc3cddd3e373ec663f318cf08714745"
         },
         {
           "name": "releasegraph-windows-arm64.exe",
-          "size": 6346752,
-          "sha256": "sha256:e21cc3ab8854aafb9a45111fc4eac64cb4ee479b89bfb55aca50c76d11fc2ec1"
+          "size": 6363648,
+          "sha256": "sha256:abc9d9f135a821d98d2b44e0bf427a89747da9ad3f0ac740fbd7a5d7413f5817"
         },
         {
           "name": "SHA256SUMS",
           "size": 560,
-          "sha256": "sha256:835a932f5780f8f6e87aa42da65c2a1f3e56d19f0354325522fb0ff54dab0767"
+          "sha256": "sha256:65fee83526ba1922b805ec6aa12bef09f0436ccb6542f0e0094e2b8388197b42"
         }
       ]
     }
   ],
   "tags": [
+    {
+      "name": "v1.2.3",
+      "commit": "438c62cb368eb33bee77143a8bcce53a3fd581a2"
+    },
+    {
+      "name": "v1.2.2",
+      "commit": "d26969a70c2fe496a5a04d760ed3556332130c0c"
+    },
+    {
+      "name": "v1.2.1",
+      "commit": "44677c1c4fd536bb16de876e667ace4f54fe6a65"
+    },
+    {
+      "name": "v1.2.0",
+      "commit": "41f711c0700639518d4e43fdb797394b0c23ff40"
+    },
+    {
+      "name": "v1.1.0",
+      "commit": "66df130a3ca867de26f0d0aabbb70765bb85e754"
+    },
     {
       "name": "v1.0.33",
       "commit": "beefa7e371c22df6acd1c8c0e9785094347eaa0f"
@@ -288,7 +308,7 @@
     },
     {
       "name": "v1",
-      "commit": "beefa7e371c22df6acd1c8c0e9785094347eaa0f"
+      "commit": "438c62cb368eb33bee77143a8bcce53a3fd581a2"
     }
   ],
   "release_config": {},

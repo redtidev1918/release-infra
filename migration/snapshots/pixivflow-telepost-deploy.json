@@ -53,10 +53,10 @@
     "sbom": true
   },
   "release_infra_version": "v1",
-  "desired_version": "1.10.1",
-  "latest_release": "v1.10.1",
-  "latest_release_at": "2026-09-08T14:21:26Z",
-  "latest_tag": "v1.10.1",
+  "desired_version": "1.10.2",
+  "latest_release": "v1.10.2",
+  "latest_release_at": "2026-09-09T13:33:25Z",
+  "latest_tag": "v1.10.2",
   "draft_releases": [],
   "actual_assets": [
     "deploy-darwin-amd64.tar.gz",
@@ -81,8 +81,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/pixivflow-telepost-deploy/actions/runs/34317712234",
-    "updated_at": "2026-09-09T06:07:58Z"
+    "url": "https://github.com/redtidev1918/pixivflow-telepost-deploy/actions/runs/34443785722",
+    "updated_at": "2026-09-10T06:06:45Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -100,55 +100,59 @@
   ],
   "release_history": [
     {
-      "tag": "v1.10.1",
+      "tag": "v1.10.2",
       "draft": false,
       "prerelease": false,
-      "published_at": "2026-09-08T14:21:26Z",
+      "published_at": "2026-09-09T13:33:25Z",
       "assets": [
         {
           "name": "deploy-darwin-amd64.tar.gz",
-          "size": 2438765,
-          "sha256": "sha256:dd0317ab942b04cc984a9da354fea440112d8d6c00a6f257a1d76c4818524a1b"
+          "size": 2438762,
+          "sha256": "sha256:cda8b7cd4a8ec17e0778db9d3b6bccffebab172ddde7eb261a8898312a7a04c2"
         },
         {
           "name": "deploy-darwin-arm64.tar.gz",
-          "size": 2280482,
-          "sha256": "sha256:39b4809bdcebd688496da7946214ecaad300a6a2c5cbd32572ddf8d4e191e23c"
+          "size": 2279685,
+          "sha256": "sha256:89b1fcc28bf16b9ef9550bb653f5e866a2e5ff7eb3db0b368d840ea8466bf1fb"
         },
         {
           "name": "deploy-linux-amd64.tar.gz",
-          "size": 2406000,
-          "sha256": "sha256:b77fa49f2d9908599e335d88df84b3f28d5e84a0c8430ebfc4819a7b7c637c51"
+          "size": 2406075,
+          "sha256": "sha256:7524b8f374cf97fc9838fe5c8997fbdc20bed7818a186dc2d060a5afa183dac2"
         },
         {
           "name": "deploy-linux-arm64.tar.gz",
-          "size": 2203759,
-          "sha256": "sha256:aa04331c1c192fb9115c1d49a8eb6c2868e7bee1e1be338fa9d44e15b53e9874"
+          "size": 2203508,
+          "sha256": "sha256:87f0fe3c24285ed1cee6a00c4a62fefe3c38c127f3c19b2ce0d22e5d8f2ff2e3"
         },
         {
           "name": "deploy-windows-amd64.tar.gz",
-          "size": 2464159,
-          "sha256": "sha256:341ba99ff4339d6046fdac03512f593f5c9aabaeefd5f4e727b1b6cb5aca1b3c"
+          "size": 2464081,
+          "sha256": "sha256:708e031f0fb6b55b705f231645596c24ddd99b343387c44f782d32d9eca7aea7"
         },
         {
           "name": "deploy-windows-arm64.tar.gz",
-          "size": 2230891,
-          "sha256": "sha256:9f072046a30ed4d123f5a98613733c1dbcd5c07ff0e84fd0cba28b8cc50cbef8"
+          "size": 2231007,
+          "sha256": "sha256:655afee421222eb940348b43eace6ed5f86947841dd2552e655b42bac3ec2bda"
         },
         {
           "name": "RELEASE-METADATA.json",
-          "size": 2101,
-          "sha256": "sha256:f4104beca9fc1563d8bf7ba3926d18c896cb9a2985bdcf84c458e540a4af32c5"
+          "size": 2347,
+          "sha256": "sha256:adbd4c4a41cbdf40a9bb758248af172cfd50dfffd3822bffe6f5fb4ae315f9b7"
         },
         {
           "name": "SHA256SUMS",
           "size": 558,
-          "sha256": "sha256:89f852778abf11758c2e42b617e4ab46d0dca3360926fbda4e9c33b9e5973c9e"
+          "sha256": "sha256:5bd1c923838ce452cb982465c6608104b93ad7dbe02065cf98397bca11132bfd"
         }
       ]
     }
   ],
   "tags": [
+    {
+      "name": "v1.10.2",
+      "commit": "c69ea6265cb555789a58e2ded9c8af404140dc12"
+    },
     {
       "name": "v1.10.1",
       "commit": "675214c0801972eabb0f81137bfd90772d8bd47b"
@@ -159,6 +163,9 @@
     }
   ],
   "release_config": {
+    ".release-please-manifest.json": {
+      ".": "1.10.2"
+    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -170,9 +177,6 @@
           "include-component-in-tag": false
         }
       }
-    },
-    ".release-please-manifest.json": {
-      ".": "1.10.1"
     }
   },
   "registries": {}

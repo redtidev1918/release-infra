@@ -43,6 +43,9 @@
         "required": true
       }
     },
+    "release": {
+      "post_publish": "python3 .github/scripts/update_download_page.py && git config user.name github-actions[bot] && git config user.email 41898282+github-actions[bot]@users.noreply.github.com && git add docs/download.md && (git diff --cached --quiet || (git commit -m 'docs: update release download page' && git push))"
+    },
     "retention": {
       "stable": 1,
       "prerelease": 1,
@@ -80,8 +83,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/daviewer/actions/runs/34313033046",
-    "updated_at": "2026-09-09T04:58:47Z"
+    "url": "https://github.com/redtidev1918/daviewer/actions/runs/34439422711",
+    "updated_at": "2026-09-10T05:01:43Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -94,8 +97,7 @@
     ".github/workflows/ci.yml",
     ".github/workflows/notify-profile.yml",
     ".github/workflows/release.yml",
-    ".github/workflows/static.yml",
-    ".github/workflows/update-download-page.yml"
+    ".github/workflows/static.yml"
   ],
   "release_history": [
     {
@@ -546,8 +548,12 @@
     }
   ],
   "release_config": {
+    ".release-please-manifest.json": {
+      ".": "0.2.184"
+    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+      "skip-github-release": true,
       "packages": {
         ".": {
           "release-type": "dart",
@@ -557,9 +563,6 @@
           "skip-github-release": true
         }
       }
-    },
-    ".release-please-manifest.json": {
-      ".": "0.2.184"
     }
   },
   "registries": {
