@@ -55,6 +55,9 @@ const (
 	// DriftHistoricalWaived is a human decision: the historical version will
 	// never be repaired and must not block newer versions.
 	DriftHistoricalWaived Drift = "HISTORICAL_WAIVED"
+	// DriftReleaseInProgress means a draft release exists: the transaction is
+	// still running, so neither ACK nor repair is appropriate yet.
+	DriftReleaseInProgress Drift = "RELEASE_IN_PROGRESS"
 )
 
 // Actual is the observed real-world state of one version's release.
@@ -68,6 +71,10 @@ type Actual struct {
 
 	// ReleaseExists reports whether a non-draft GitHub Release exists.
 	ReleaseExists bool
+	// ReleaseDraft reports a draft release for this version. A draft means the
+	// transaction is in flight: reporting it as incomplete would race the
+	// release that is currently being published.
+	ReleaseDraft bool
 	// Latest is whether the release (when required) is marked latest.
 	Latest bool
 
@@ -150,6 +157,13 @@ func Classify(o Observed) Verdict {
 	if a.TagExists && a.ExpectedCommit != "" && a.TagCommit != a.ExpectedCommit {
 		return Verdict{Drift: DriftTagConflict, Health: domain.HealthBroken, HardFail: true,
 			Reason: fmt.Sprintf("tag points at %s, expected %s", a.TagCommit, a.ExpectedCommit)}
+	}
+
+	// 1a. A draft release means the transaction is in flight. Never ACK, never
+	// repair, never start a new version: observe again later.
+	if a.ReleaseDraft {
+		return Verdict{Drift: DriftReleaseInProgress, Health: domain.HealthRunning,
+			Reason: "a draft release exists; the release transaction is in flight"}
 	}
 
 	// 1b. A human waiver is explicit and auditable: it stops the version from

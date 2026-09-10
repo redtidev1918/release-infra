@@ -126,13 +126,21 @@ func Inspect(ctx context.Context, client *github.Bound, verifier *registry.Verif
 	actual.TagExists = tagCommit != ""
 	actual.TagCommit = tagCommit
 
-	// GitHub Release.
+	// GitHub Release. Drafts are invisible to the by-tag endpoint (it answers
+	// 404), so a draft must be looked up in the releases list; otherwise an
+	// in-flight publish looks exactly like a missing release.
 	var rel releaseAPI
 	found, err := client.GetOptional(ctx, fmt.Sprintf("repos/%s/releases/tags/%s", repo, tag), &rel)
 	if err != nil {
 		return nil, err
 	}
+	if !found {
+		if draft, ok := draftRelease(ctx, client, repo, tag); ok {
+			rel, found = draft, true
+		}
+	}
 	actual.ReleaseExists = found && !rel.Draft
+	actual.ReleaseDraft = found && rel.Draft
 
 	if found {
 		meta := readReleaseMetadata(ctx, client, repo, rel.Assets)
@@ -483,4 +491,27 @@ func Repair(ctx context.Context, client *github.Bound, r *Report, workflowFile s
 		return nil, err
 	}
 	return inputs, nil
+}
+
+// draftRelease finds a draft release for a tag through the releases list, the
+// only endpoint that exposes drafts.
+func draftRelease(ctx context.Context, client *github.Bound, repo, tag string) (releaseAPI, bool) {
+	raw, err := client.Releases(ctx, repo)
+	if err != nil {
+		return releaseAPI{}, false
+	}
+	buf, err := json.Marshal(raw)
+	if err != nil {
+		return releaseAPI{}, false
+	}
+	var releases []releaseAPI
+	if json.Unmarshal(buf, &releases) != nil {
+		return releaseAPI{}, false
+	}
+	for _, release := range releases {
+		if release.TagName == tag && release.Draft {
+			return release, true
+		}
+	}
+	return releaseAPI{}, false
 }

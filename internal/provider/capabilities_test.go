@@ -139,3 +139,40 @@ func TestCapabilityDerivationDefaults(t *testing.T) {
 		t.Fatalf("registry-only capabilities = %+v", caps)
 	}
 }
+
+// A draft release means the transaction is in flight. Repair or ACK here would
+// race the release that is currently being published, so both are refused.
+func TestDraftReleaseIsInFlightNotIncomplete(t *testing.T) {
+	observed := obs(StatePending)
+	observed.Actual.ReleaseExists = false
+	observed.Actual.ReleaseDraft = true
+	observed.Actual.Latest = false
+
+	verdict := Classify(observed)
+	if verdict.Drift != DriftReleaseInProgress || verdict.Health != domain.HealthRunning {
+		t.Fatalf("draft verdict = %+v, want RELEASE_IN_PROGRESS/RUNNING", verdict)
+	}
+	if verdict.ACKAllowed || verdict.RepairSameVersion {
+		t.Fatalf("in-flight transaction must not be ACKed or repaired: %+v", verdict)
+	}
+	if code := domain.ExitCodeFor(verdict.Health); code != domain.ExitTransientRetry {
+		t.Fatalf("exit code = %d, want TRANSIENT(%d)", code, domain.ExitTransientRetry)
+	}
+}
+
+// The documented exit code contract must stay stable.
+func TestExitCodeContract(t *testing.T) {
+	cases := map[domain.Health]int{
+		domain.HealthHealthy:     domain.ExitHealthy,
+		domain.HealthACKPending:  domain.ExitSafeReconcile,
+		domain.HealthRunning:     domain.ExitTransientRetry,
+		domain.HealthRecoverable: domain.ExitBlocked,
+		domain.HealthDegraded:    domain.ExitNeedsReview,
+		domain.HealthBroken:      domain.ExitBroken,
+	}
+	for health, want := range cases {
+		if got := domain.ExitCodeFor(health); got != want {
+			t.Errorf("ExitCodeFor(%s) = %d, want %d", health, got, want)
+		}
+	}
+}

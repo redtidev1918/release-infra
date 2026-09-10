@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"sort"
 	"time"
 
 	"github.com/redtidev1918/releasegraph/internal/assets"
 	rgdomain "github.com/redtidev1918/releasegraph/internal/domain"
+	rgerrors "github.com/redtidev1918/releasegraph/internal/errors"
 	"github.com/redtidev1918/releasegraph/internal/github"
 	"github.com/redtidev1918/releasegraph/internal/graph"
 	rgplan "github.com/redtidev1918/releasegraph/internal/plan"
@@ -35,10 +37,16 @@ type ErrorBody struct {
 	Message string `json:"message"`
 }
 
+// exitCode carries a documented outcome code out of a reporting command so
+// automation can distinguish healthy / repair available / retry / needs a human
+// / broken invariant without parsing output.
+var exitCode int
+
 func Run(args []string, stdout, stderr io.Writer) int {
+	exitCode = 0
 	if len(args) == 0 {
 		usage(stderr)
-		return 2
+		return rgdomain.ExitUsage
 	}
 	var err error
 	switch args[0] {
@@ -58,6 +66,12 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		err = providerCommand(stdout, args[1:])
 	case "rollout":
 		err = rolloutCommand(stdout, args[1:])
+	case "status":
+		err = statusCommand(stdout, args[1:])
+	case "explain":
+		err = explainCommand(stdout, args[1:])
+	case "agent-context":
+		err = agentContextCommand(stdout, args[1:])
 	case "static-check":
 		err = staticCheck(stdout, args[1:])
 	case "version":
@@ -69,9 +83,25 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	}
 	if err != nil {
 		fmt.Fprintln(stderr, "ERROR", err)
+		return exitCodeForError(err)
+	}
+	return exitCode
+}
+
+// exitCodeForError maps a failure onto the documented exit code contract.
+func exitCodeForError(err error) int {
+	switch {
+	case rgerrors.IsKind(err, rgerrors.ScopeViolation), rgerrors.IsKind(err, rgerrors.FleetCredentialRequired):
+		return rgdomain.ExitNeedsReview
+	case rgerrors.IsKind(err, rgerrors.Transient):
+		return rgdomain.ExitTransientRetry
+	case rgerrors.IsKind(err, rgerrors.TagConflict), rgerrors.IsKind(err, rgerrors.InvariantViolation):
+		return rgdomain.ExitBroken
+	case rgerrors.IsKind(err, rgerrors.Policy), rgerrors.IsKind(err, rgerrors.VersionConflict):
+		return rgdomain.ExitBlocked
+	default:
 		return 1
 	}
-	return 0
 }
 
 func flags(outputFormat *string) *flag.FlagSet {
@@ -87,7 +117,7 @@ func doctor(w io.Writer, args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"audit", "doctor", "fleet", "graph", "inspect", "plan", "provider", "rollout", "static-check", "version"}}
+	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"agent-context", "audit", "doctor", "explain", "fleet", "graph", "inspect", "plan", "provider", "rollout", "static-check", "status", "version"}}
 	return write(w, format, info, humanDoctor)
 }
 
@@ -304,4 +334,11 @@ func actorName() string {
 		return actor
 	}
 	return "operator"
+}
+
+// runGit runs a read-only git command for local repository discovery.
+func runGit(ctx context.Context, args ...string) (string, error) {
+	cmd := exec.CommandContext(ctx, "git", args...)
+	out, err := cmd.Output()
+	return string(out), err
 }
