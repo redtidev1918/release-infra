@@ -28,9 +28,12 @@ jobs:
     if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     permissions:
+      # Only permissions every caller grants: a called workflow that requests a
+      # permission its callers do not grant makes the whole run fail at startup
+      # ("startup_failure") before any job is created. Label mutations use
+      # secrets.RELEASE_PLEASE_TOKEN, which carries its own scopes.
       contents: write
       pull-requests: write
-      issues: write
     outputs:
       paths_released: ${{ steps.rp.outputs.paths_released }}
     steps:
@@ -253,12 +256,10 @@ jobs:
     if: always() && needs.build.result == 'success' && needs.build-plan.result == 'success'
     runs-on: ubuntu-latest
     permissions:
+      # Caller-compatible subset only (see release_please above).
       contents: write
       packages: write
       id-token: write
-      issues: write
-      # The post-publish provider acknowledgement mutates the merged release
-      # PR's labels (autorelease: pending -> tagged) with github.token.
       pull-requests: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -471,7 +472,11 @@ jobs:
           && !inputs.dry_run
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          # Label mutations need scopes this called workflow must not request
+          # (callers grant only contents/pull-requests/packages/id-token), so use
+          # the release PAT, exactly as the pre-reconcile step above does.
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
         run: |
           set -euo pipefail
           (cd .releasegraph && go build -o "$RUNNER_TEMP/releasegraph" ./cmd/releasegraph)
