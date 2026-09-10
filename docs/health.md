@@ -130,17 +130,65 @@ python3 -m release_infra.cli fleet-audit --owner redtidev1918        # regenerat
 `empty_assets` and the projected `release_health` for every repository.
 `STATUS.md` renders the health column; see the fleet dashboard for the reasons.
 
-## Known divergences
+## Two implementations, one answer
 
-Recorded here rather than papered over. The vocabulary is unified; the
-implementations are not yet equally complete, and each gap has an owner.
+`release_infra/health.py` and `internal/health` are independent implementations
+of this contract, and they are compared against **one** set of expectations:
+`testdata/health/cases.json` (25 assessments) and
+`testdata/health/patterns.json` (484 pattern/name pairs). Those expectations are
+written from this document, not generated from either implementation, and both
+CI lanes assert them — so agreement means agreeing with the contract, not with
+each other.
+
+Measured on the real fleet, `releasegraph fleet audit` and the Python inventory
+produce **identical** health values, reason codes, reason details, and
+missing/empty asset lists for all 16 managed repositories, including the one
+genuinely broken repository:
+`redtidev1918/svn-easy-kit` is `DEGRADED` with `target_assets_missing` for the
+same six patterns on both sides.
+
+## The pattern language
+
+Asset patterns support literals, `*` (any run, including empty) and `?` (exactly
+one character). Anything else is rejected by policy validation, in both
+languages, before it can be used.
+
+That restriction is not tidiness — it is what makes two implementations possible
+at all. Python's `fnmatch` and Go's `path.Match` are **different languages**:
+`[!a]` means "not a" to `fnmatch` and "the literal characters `!` and `a`" to
+`path.Match`, while `[^a]` means the exact opposite pair. CPython 3.14's
+`fnmatch` also compiles to atomic groups and lookaheads, which Go's RE2 cannot
+express, so porting it is impossible. Inside the supported language the two
+engines agree — an exhaustive 236,496-pair comparison over literals, `*` and `?`
+found no difference, and `testdata/health/patterns.json` pins 484 of those pairs
+so both sides keep agreeing.
+
+The restriction costs nothing today: all 48 required patterns across the 16
+managed repositories use only literals and `*`, and none of the 137 released
+asset names contains a reserved character. A repository that genuinely needs a
+character class has to extend the language in `internal/policy/pattern.go` and
+`release_infra/policy.py` at once, with the shared fixture extended in the same
+commit. The boundary is loud instead of silently disagreeing.
+
+## Which run counts
+
+`release_run_failed` is about the **canonical caller**,
+`.github/workflows/release.yml`, and only when that file exists in the default
+branch. Both implementations check the file first, because the runs API resolves
+a workflow by file name even after the file is deleted: querying blindly reports
+`startup_failure` runs of a workflow the repository no longer has. That is
+exactly `svn-easy-kit`, whose last commit dropped the reusable caller while
+GitHub kept the failed runs.
+
+## Remaining divergences
 
 | Divergence | Impact | Where it is tracked |
 |---|---|---|
-| `internal/fleet` assigns only `UNMANAGED`, `NO_RELEASE` and `NEEDS_REVIEW`, and its `enrichReleaseHealth` never computes health, so a managed repository stays `NEEDS_REVIEW` in Go | `releasegraph fleet` under-reports: it cannot say `HEALTHY` or `DEGRADED` | `internal/domain/health.go`; next slice is to give Go's fleet the same asset comparison |
-| `provider.Verdict` carries no `reasons` | Go consumers see a value without a cause; the Python inventory carries reasons already | `internal/provider/provider.go` |
+| `provider.Verdict` carries no `reasons` | a `provider inspect` consumer sees a value without a cause; the fleet views carry reasons already | `internal/provider/provider.go` |
 | `provider.Verdict.Health` uses the same field name for the *drift verdict* axis, including `RECOVERABLE` — an available action, not a state | the exact "health is an action" confusion this contract exists to remove | `internal/provider/provider.go`; the value must not be reported as repository health |
 
-`tests/test_health.py` enforces the parts that can be enforced today: the Python
-inventory's values, Go's repository-health assignments, the schema enum, the
-reason codes in both languages, and the projection the planner uses.
+`tests/test_health.py`, `tests/test_health_fixture.py` and
+`internal/health`'s tests enforce what can be enforced: the schema enum, the
+values and reason codes in both languages, Go's repository-health assignments,
+the asset comparison against the planner, the pattern language, and the
+projection the workflow reads.

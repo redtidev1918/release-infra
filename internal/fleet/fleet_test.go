@@ -42,11 +42,30 @@ func TestDiscoverOwnerAgnosticFleet(t *testing.T) {
 	if len(out.Repositories) != 2 {
 		t.Fatalf("repos=%+v", out.Repositories)
 	}
-	if !out.Repositories[0].Managed || out.Repositories[0].Health != domain.HealthNeedsReview || out.Repositories[0].LatestRelease != "v1.0.0" {
-		t.Fatalf("app=%+v", out.Repositories[0])
+	// A managed repository is assessed against the shared contract, not parked at
+	// NEEDS_REVIEW. This release carries app.zip and no RELEASE-METADATA.json, so
+	// it is DEGRADED and the reason names exactly what is missing.
+	app := out.Repositories[0]
+	if !app.Managed || app.LatestRelease != "v1.0.0" {
+		t.Fatalf("app=%+v", app)
 	}
-	if out.Repositories[1].Classification != "fork" {
-		t.Fatalf("fork=%+v", out.Repositories[1])
+	if app.Health != domain.HealthDegraded {
+		t.Fatalf("app health=%s reasons=%+v", app.Health, app.HealthReasons)
+	}
+	if app.HealthReasons[0].Code != domain.ReasonTargetAssetsMiss {
+		t.Fatalf("app reasons=%+v", app.HealthReasons)
+	}
+	if len(app.MissingAssets) != 1 || app.MissingAssets[0] != "RELEASE-METADATA.json" {
+		t.Fatalf("app missing=%v", app.MissingAssets)
+	}
+
+	// An archived or forked repository is never assessed for release state.
+	fork := out.Repositories[1]
+	if fork.Classification != "fork" || fork.Health != domain.HealthNoRelease {
+		t.Fatalf("fork=%+v", fork)
+	}
+	if fork.HealthReasons[0].Code != domain.ReasonRepositoryFork {
+		t.Fatalf("fork reasons=%+v", fork.HealthReasons)
 	}
 }
 

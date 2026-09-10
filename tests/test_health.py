@@ -162,7 +162,7 @@ class EvaluateTest(unittest.TestCase):
         self.assertEqual(result.codes, (health.CODE_RELEASE_DRAFT,))
 
     def test_version_drift_is_degraded(self):
-        result = self.evaluate(tag_matches_desired=False)
+        result = self.evaluate(tag_drift=True)
         self.assertEqual(result.codes, (health.CODE_VERSION_DRIFT,))
 
     def test_failed_release_run_is_degraded(self):
@@ -218,7 +218,7 @@ class EvaluateTest(unittest.TestCase):
             {"release": None},
             {"release": None, "draft_release": "v1"},
             {"assets": []},
-            {"tag_matches_desired": False},
+            {"tag_drift": True},
             {"run_conclusion": "failure"},
             {"unmanaged": True},
             {"api_error": "boom"},

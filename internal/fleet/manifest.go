@@ -2,6 +2,8 @@ package fleet
 
 import (
 	"fmt"
+	rgdomain "github.com/redtidev1918/releasegraph/internal/domain"
+	"github.com/redtidev1918/releasegraph/internal/health"
 	"os"
 	"sort"
 	"strings"
@@ -136,6 +138,14 @@ type Resolved struct {
 	Visibility     string `json:"visibility,omitempty"`
 	DefaultBranch  string `json:"defaultBranch,omitempty"`
 	Note           string `json:"note,omitempty"`
+	// Release health, from the shared contract in internal/health. It is filled
+	// in only when the repository was discovered with enrichment, so an entry
+	// resolved from the manifest alone carries no health rather than a made-up
+	// one. Reported by `fleet audit`.
+	Health        rgdomain.Health `json:"health,omitempty"`
+	HealthReasons []health.Reason `json:"healthReasons,omitempty"`
+	MissingAssets []string        `json:"missingAssets,omitempty"`
+	EmptyAssets   []string        `json:"emptyAssets,omitempty"`
 }
 
 // Resolve intersects manifest entries with discovered repositories.
@@ -160,6 +170,10 @@ func Resolve(manifest *Manifest, discovered []Repository) (managed []Resolved, u
 			resolved.Archived = observed.Archived
 			resolved.Visibility = observed.Visibility
 			resolved.DefaultBranch = observed.DefaultBranch
+			resolved.Health = observed.Health
+			resolved.HealthReasons = observed.HealthReasons
+			resolved.MissingAssets = observed.MissingAssets
+			resolved.EmptyAssets = observed.EmptyAssets
 			if observed.Archived && resolved.Classification == ClassificationManaged {
 				resolved.Classification = ClassificationArchived
 			}
