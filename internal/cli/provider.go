@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/redtidev1918/releasegraph/internal/fleet"
 	"github.com/redtidev1918/releasegraph/internal/github"
@@ -26,6 +27,7 @@ type providerOptions struct {
 	version  string
 	path     string
 	owner    string
+	repos    []string
 	all      bool
 	apply    bool
 	workflow string
@@ -45,6 +47,7 @@ func providerCommand(w io.Writer, args []string) error {
 	fs.StringVar(&opts.path, "path", "", "local policy file to use instead of the target repository's own policy")
 	fs.StringVar(&opts.owner, "owner", "", "fleet owner for --all")
 	fs.BoolVar(&opts.all, "all", false, "scan every managed repository of --owner")
+	fs.Var((*repoList)(&opts.repos), "repos", "comma-separated owner/name list (repeatable); works with a repo-scoped token")
 	fs.BoolVar(&opts.apply, "apply", false, "apply provider mutations (default is a side-effect-free plan)")
 	fs.StringVar(&opts.workflow, "workflow", "release.yml", "release workflow file to dispatch for repair")
 	if err := fs.Parse(args[1:]); err != nil {
@@ -222,8 +225,10 @@ func scanProvider(ctx context.Context, opts providerOptions) (*provider.ScanResu
 		sort.Strings(targets)
 	case opts.repo != "":
 		targets = append(targets, opts.repo)
+	case len(opts.repos) > 0:
+		targets = append(targets, opts.repos...)
 	default:
-		return nil, fmt.Errorf("--repo owner/name or --all --owner is required")
+		return nil, fmt.Errorf("--repo owner/name, --repos list, or --all --owner is required")
 	}
 
 	for _, repo := range targets {
@@ -326,4 +331,18 @@ func repairLabel(v provider.Verdict) string {
 	default:
 		return "none"
 	}
+}
+
+// repoList collects a repeatable, comma-separated flag value.
+type repoList []string
+
+func (l *repoList) String() string { return strings.Join(*l, ",") }
+
+func (l *repoList) Set(value string) error {
+	for _, item := range strings.Split(value, ",") {
+		if item = strings.TrimSpace(item); item != "" {
+			*l = append(*l, item)
+		}
+	}
+	return nil
 }

@@ -134,3 +134,5 @@ class ProviderReconciliationWorkflowTest(unittest.TestCase):
         # The scheduled run is the one allowed to mutate, and only labels.
         self.assertIn("contents: read", workflow)
         self.assertIn("issues: write", workflow)
+        # A fleet scan spans repositories, so the repo-scoped token is not enough.
+        self.assertIn("PROFILE_REPO_TOKEN", workflow)
