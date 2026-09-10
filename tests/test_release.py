@@ -8,6 +8,17 @@ from release_infra import release
 
 
 class ReleaseTest(unittest.TestCase):
+    def setUp(self):
+        # plan() probes git for tag drift; keep tests hermetic unless a test
+        # overrides these itself (nested patches win).
+        self._git_patches = [
+            mock.patch.object(release, "_run", return_value="head-commit"),
+            mock.patch.object(release, "_remote_tag_commit", return_value=None),
+        ]
+        for patch in self._git_patches:
+            patch.start()
+            self.addCleanup(patch.stop)
+
     def test_manual_recovery_targets_same_version(self):
         policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}}}
         with tempfile.TemporaryDirectory() as directory:
