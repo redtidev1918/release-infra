@@ -27,6 +27,41 @@ def load_policy(path: str | Path = ".release-policy.yml") -> dict[str, Any]:
     return policy
 
 
+# The asset pattern language.
+#
+# ReleaseGraph supports literal characters, `*` (any run, including empty) and
+# `?` (exactly one character). Everything else is rejected.
+#
+# The reason is parity, and it is measured rather than assumed. Python's
+# `fnmatch` and Go's `path.Match` are NOT the same language: `[!a]` means "not a"
+# to fnmatch and "the literal characters ! and a" to path.Match, and `[^a]` means
+# the exact opposite pair. CPython 3.14's fnmatch also compiles to atomic groups
+# and lookaheads, which Go's RE2 cannot express at all, so porting it is
+# impossible. Restricting the language to the region where both engines provably
+# agree is what makes the two implementations comparable:
+# `testdata/health/patterns.json` pins 484 (pattern, name) pairs that Python and
+# Go are both required to match identically.
+#
+# The restriction costs nothing today: all 48 required patterns across the 16
+# managed repositories use only literals and `*`, and none of the 137 released
+# asset names contains a reserved character.
+RESERVED_PATTERN_CHARS = "\\/[]!^"
+
+
+def validate_asset_pattern(pattern: str) -> None:
+    """Raise PolicyError unless the pattern is inside the supported language."""
+    if not pattern:
+        raise PolicyError("asset patterns must be non-empty")
+    for char in pattern:
+        if char in RESERVED_PATTERN_CHARS:
+            raise PolicyError(
+                f"asset pattern {pattern} uses reserved character {char}; "
+                "supported syntax is literals, * and ?"
+            )
+        if ord(char) < 0x20 or ord(char) == 0x7F:
+            raise PolicyError(f"asset pattern {pattern} contains a control character")
+
+
 def validate_policy(policy: Any) -> None:
     if not isinstance(policy, dict):
         raise PolicyError("policy must be an object")
@@ -39,6 +74,8 @@ def validate_policy(policy: Any) -> None:
     for key in ("required", "optional"):
         if not isinstance(assets.get(key, []), list) or not all(isinstance(v, str) and v for v in assets.get(key, [])):
             raise PolicyError(f"assets.{key} must be a list of non-empty strings")
+        for pattern in assets.get(key, []):
+            validate_asset_pattern(pattern)
     registries = policy.get("registries", {})
     unknown = set(registries) - REGISTRIES
     if unknown:

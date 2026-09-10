@@ -165,6 +165,12 @@ func Validate(p *Policy) error {
 			if value == "" {
 				return rgerrors.New(rgerrors.Policy, "assets."+key+" must contain non-empty strings")
 			}
+			// The pattern language is part of the policy grammar, so it is
+			// checked where every other policy rule is. See pattern.go for why
+			// it is restricted rather than the matcher being ported.
+			if err := ValidatePattern(value); err != nil {
+				return err
+			}
 		}
 	}
 	names := make([]string, 0, len(p.Registries))

@@ -18,12 +18,13 @@ package domain
 //     RECOVERABLE, which names an available action ("repair the same version")
 //     rather than a state. Never report a Verdict.Health as repository health.
 //
+// Repository health is computed by internal/health and used by internal/fleet,
+// which reports it from `releasegraph fleet audit`. It agrees exactly with the
+// Python inventory on the real fleet, including reason codes and asset gaps.
+//
 // Known gaps, recorded rather than papered over:
 //
-//   - internal/fleet assigns only UNMANAGED, NO_RELEASE and NEEDS_REVIEW, and
-//     enrichReleaseHealth never computes health at all, so a managed repository
-//     stays NEEDS_REVIEW in Go while Python reports HEALTHY or DEGRADED.
-//   - provider.Verdict carries no reasons, while the Python inventory does.
+//   - provider.Verdict carries no reasons, while the fleet views do.
 //
 // There is deliberately no value for "the release exists but its required
 // assets do not": that is HealthDegraded plus ReasonTargetAssetsMissing.

@@ -130,7 +130,13 @@ def _scan_repo(source: dict) -> dict[str, Any]:
     drafts = [release for release in releases if release.get("draft")]
     classification = _classify({"archived": source["archived"], "fork": source["fork"]}, top_files, releases)
     actual_assets = [asset["name"] for asset in latest.get("assets", [])] if latest else []
-    release_workflows = [wf for wf in workflows if any(word in (wf.get("name", "") + wf.get("path", "")).lower() for word in ("release", "publish", "deploy"))]
+    # The canonical caller, as documented in docs/callers.md: one caller per
+    # managed repository at .github/workflows/release.yml. Matching on words like
+    # "release"/"deploy" in a workflow's name used to stand in for this, which
+    # asked a different question than internal/fleet does -- and the two answers
+    # disagreed about svn-easy-kit. Narrowed to the file that the contract names.
+    caller_path = ".github/workflows/release.yml"
+    release_workflows = [wf for wf in workflows if str(wf.get("path", "")).endswith(caller_path)]
     release_workflow_ids = {wf["id"] for wf in release_workflows}
     latest_run = next((run for run in runs if run.get("workflow_id") in release_workflow_ids and run.get("head_branch") == branch), None)
     package_status = _package_status(top_files, contents)
@@ -141,7 +147,7 @@ def _scan_repo(source: dict) -> dict[str, Any]:
         health.Observation(
             release=latest_tag_name,
             draft_release=drafts[0]["tag_name"] if drafts else None,
-            tag_matches_desired=release_matches_desired,
+            tag_drift=not release_matches_desired,
             assets=[{"name": asset["name"], "size": asset.get("size")} for asset in (latest.get("assets", []) if latest else [])],
             run_conclusion=(latest_run or {}).get("conclusion"),
             has_policy=bool(policy),

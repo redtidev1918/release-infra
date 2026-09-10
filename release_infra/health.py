@@ -28,6 +28,8 @@ import fnmatch
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Mapping, Sequence
 
+from .policy import PolicyError, validate_asset_pattern
+
 # --- health values -----------------------------------------------------------
 # Fleet-facing repository health. A strict subset of Go's internal/domain.Health
 # (the rest of that type is plan/transaction node state, not repository health),
@@ -191,7 +193,10 @@ class Observation:
 
     release: str | None = None
     draft_release: str | None = None
-    tag_matches_desired: bool = True
+    # Named for the drift, not for the match, so its zero value is the
+    # unremarkable case and testdata/health/cases.json can drive both this
+    # implementation and the Go one with the same keys.
+    tag_drift: bool = False
     assets: Sequence[Mapping[str, Any]] = field(default_factory=tuple)
     run_conclusion: str | None = None
     has_policy: bool = True
@@ -239,6 +244,11 @@ def asset_gaps(
     missing: list[str] = []
     empty: list[str] = []
     for pattern in required_assets(policy):
+        # Policies are validated when they are loaded, so this only fires for a
+        # policy assembled in memory. It is checked anyway because a silently
+        # different answer is worse than an error, and internal/health does the
+        # same thing.
+        validate_asset_pattern(pattern)
         matched = [a for a in manifest if fnmatch.fnmatch(str(a["name"]), pattern)]
         if not matched:
             missing.append(pattern)
@@ -285,12 +295,20 @@ def evaluate(
         )
         return Health(NO_RELEASE, tuple(reasons))
 
-    missing, empty = asset_gaps(policy, observation.assets)
+    try:
+        missing, empty = asset_gaps(policy, observation.assets)
+    except PolicyError as exc:
+        # Mirrors internal/health: an unusable pattern is an unusable policy,
+        # not a degraded release.
+        return Health(
+            BROKEN,
+            tuple(reasons) + (Reason(CODE_POLICY_UNPARSABLE, str(exc)),),
+        )
     if missing:
         reasons.append(Reason(CODE_TARGET_ASSETS_MISSING, ", ".join(missing)))
     if empty:
         reasons.append(Reason(CODE_ASSET_EMPTY, ", ".join(empty)))
-    if not observation.tag_matches_desired:
+    if observation.tag_drift:
         reasons.append(Reason(CODE_VERSION_DRIFT, observation.release))
     if observation.draft_release:
         reasons.append(Reason(CODE_RELEASE_DRAFT, observation.draft_release))
