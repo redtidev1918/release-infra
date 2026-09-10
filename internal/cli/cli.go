@@ -72,6 +72,10 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		err = explainCommand(stdout, args[1:])
 	case "agent-context":
 		err = agentContextCommand(stdout, args[1:])
+	case "repair":
+		err = repairCommand(stdout, args[1:])
+	case "apply-plan":
+		err = applyPlanCommand(stdout, args[1:])
 	case "static-check":
 		err = staticCheck(stdout, args[1:])
 	case "version":
@@ -97,6 +101,8 @@ func exitCodeForError(err error) int {
 		return rgdomain.ExitTransientRetry
 	case rgerrors.IsKind(err, rgerrors.TagConflict), rgerrors.IsKind(err, rgerrors.InvariantViolation):
 		return rgdomain.ExitBroken
+	case rgerrors.IsKind(err, rgerrors.PlanStale), rgerrors.IsKind(err, rgerrors.Permission):
+		return rgdomain.ExitNeedsReview
 	case rgerrors.IsKind(err, rgerrors.Policy), rgerrors.IsKind(err, rgerrors.VersionConflict):
 		return rgdomain.ExitBlocked
 	default:
@@ -117,7 +123,7 @@ func doctor(w io.Writer, args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"agent-context", "audit", "doctor", "explain", "fleet", "graph", "inspect", "plan", "provider", "rollout", "static-check", "status", "version"}}
+	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"agent-context", "apply-plan", "audit", "doctor", "explain", "fleet", "graph", "inspect", "plan", "provider", "repair", "rollout", "static-check", "status", "version"}}
 	return write(w, format, info, humanDoctor)
 }
 

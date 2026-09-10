@@ -127,37 +127,53 @@ func emitStatus(w io.Writer, format string, report StatusReport, explain bool) e
 
 // observeStatus performs the shared OBSERVE → CLASSIFY → PLAN pipeline.
 func observeStatus(ctx context.Context, opts statusOptions) (StatusReport, error) {
+	report, execution, err := observeReport(ctx, opts)
+	if err != nil {
+		return StatusReport{}, err
+	}
+	_ = execution
+	return statusFromReport(report, execution), nil
+}
+
+// observeReport returns the raw observation plus the execution context it was
+// made under, so plan/apply can fingerprint and revalidate it.
+func observeReport(ctx context.Context, opts statusOptions) (*provider.Report, domain.ExecutionContext, error) {
 	providerOpts := providerOptions{repo: opts.repo, version: opts.version, path: opts.path, scope: opts.scope, manifest: opts.manifest}
 	execution, err := executionContext(providerOpts)
 	if err != nil {
-		return StatusReport{}, err
+		return nil, execution, err
 	}
 	client, err := boundClient(execution)
 	if err != nil {
-		return StatusReport{}, err
+		return nil, execution, err
 	}
 	repository, p, err := resolveLocalPolicy(ctx, client, opts, execution)
 	if err != nil {
-		return StatusReport{}, err
+		return nil, execution, err
 	}
 	version := opts.version
 	if version == "" {
 		version, err = desiredVersionLocal(ctx, client, repository, p)
 		if err != nil {
-			return StatusReport{}, err
+			return nil, execution, err
 		}
 	}
 
 	report, err := provider.Inspect(ctx, client, registry.New(), p, repository, version)
 	if err != nil {
-		return StatusReport{}, err
+		return nil, execution, err
 	}
+	return report, execution, nil
+}
+
+// statusFromReport renders an observation as the agent-facing status document.
+func statusFromReport(report *provider.Report, execution domain.ExecutionContext) StatusReport {
 	caps := report.Observed.Capabilities
 	status := StatusReport{
 		SchemaVersion: statusSchemaVersion,
 		Command:       "status",
-		Repository:    repository,
-		Version:       version,
+		Repository:    report.Context.Repository,
+		Version:       string(report.Context.Version),
 		Provider:      string(report.Observed.Provider),
 		Scope:         string(execution.Scope),
 		Credential:    string(execution.CredentialClass),
@@ -182,7 +198,7 @@ func observeStatus(ctx context.Context, opts statusOptions) (StatusReport, error
 	status.ExitCode = domain.ExitCodeFor(report.Verdict.Health)
 	status.SafeActions = safeActions(report, execution)
 	status.Forbidden = forbiddenActions(report)
-	return status, nil
+	return status
 }
 
 // resolveLocalPolicy prefers the checkout's own policy so the CLI works inside a
