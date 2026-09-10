@@ -14,6 +14,9 @@ const (
 	HealthUnmanaged   Health = "UNMANAGED"
 	HealthNoRelease   Health = "NO_RELEASE"
 	HealthNeedsReview Health = "NEEDS_REVIEW"
+	// HealthACKPending means the actual release transaction is healthy but the
+	// version provider has not acknowledged it yet.
+	HealthACKPending Health = "ACK_PENDING"
 )
 
 type NodeKind string
