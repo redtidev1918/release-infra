@@ -141,9 +141,9 @@ type Verdict struct {
 	// any newer version may start.
 	RepairSameVersion bool `json:"repairSameVersion"`
 	// HardFail is true when history would have to be rewritten to recover.
-	HardFail bool
+	HardFail bool `json:"hardFail"`
 	// Waived is true when a human accepted this historical version as-is.
-	Waived bool   `json:"hardFail"`
+	Waived bool   `json:"waived"`
 	Reason string `json:"reason,omitempty"`
 }
 
