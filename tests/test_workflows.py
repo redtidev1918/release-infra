@@ -62,6 +62,12 @@ class WorkflowTest(unittest.TestCase):
             finalize,
         )
 
+    def test_finalize_can_reconcile_release_pull_request_labels(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        finalize = workflow.split("  finalize:", 1)[1].split("  release_summary:", 1)[0]
+        permissions = finalize.split("steps:", 1)[0]
+        self.assertIn("pull-requests: write", permissions)
+
     def test_reusable_workflow_exposes_release_please_component_paths(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
         self.assertIn("paths_released:", workflow)
