@@ -209,8 +209,39 @@ def publish(policy_path: str = ".release-policy.yml", version: str | None = None
         command.append("--latest")
     _run(command)
     audit(policy_path, desired)
+    reconcile_release_labels(desired)
     prune(policy_path)
     return tag
+
+
+def reconcile_release_labels(version: str) -> None:
+    """Clear release-please's pending label on the now-published release PR.
+
+    With ``skip-github-release`` the custom publish path creates the tag and
+    GitHub release itself, so release-please never runs its normal post-merge
+    tagging. Unless we flip ``autorelease: pending`` -> ``autorelease: tagged``
+    on the merged release PR, every later release-please run sees an
+    "untagged, merged release PR" and aborts before opening the next version.
+    Best-effort: a label/API hiccup must never fail an otherwise-good publish.
+    """
+    try:
+        repo = _run(["gh", "repo", "view", "--json", "nameWithOwner",
+                     "--jq", ".nameWithOwner"], capture=True)
+        query = (
+            "repo:{repo} is:pr is:merged label:\"autorelease: pending\" "
+            "in:title \"{version}\""
+        ).format(repo=repo, version=version)
+        found = json.loads(_run(
+            ["gh", "pr", "list", "--state", "merged", "--limit", "50",
+             "--search", query, "--json", "number"],
+            capture=True,
+        ))
+        for pr in found:
+            number = str(pr["number"])
+            _run(["gh", "pr", "edit", number, "--remove-label", "autorelease: pending"])
+            _run(["gh", "pr", "edit", number, "--add-label", "autorelease: tagged"])
+    except Exception as exc:  # pragma: no cover - cosmetic reconciliation only
+        print(f"warning: could not reconcile release PR labels for {version}: {exc}")
 
 
 def audit(policy_path: str = ".release-policy.yml", version: str | None = None) -> None:
