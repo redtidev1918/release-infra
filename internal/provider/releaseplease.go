@@ -42,6 +42,10 @@ const (
 	labelPending   = "autorelease: pending"
 	labelTriggered = "autorelease: triggered"
 	labelTagged    = "autorelease: tagged"
+	// labelWaived is the explicit human waiver for an unrecoverable historical
+	// version. It is deliberately a different namespace from release-please's
+	// own labels so the two never overwrite each other.
+	labelWaived = "releasegraph: historical-waived"
 )
 
 // releasePRPattern matches release-please PR titles like
@@ -87,6 +91,7 @@ func Inspect(ctx context.Context, client *github.Client, verifier *registry.Veri
 	report := &Report{Context: Context{Repository: repo, Version: domain.Version(version), Tag: tag, Provider: provider}}
 
 	// Provider side: find the merged release PR and its labels.
+	waived := false
 	if provider == KindReleasePlease {
 		pr, state, err := providerState(ctx, client, repo, version)
 		if err != nil {
@@ -94,6 +99,11 @@ func Inspect(ctx context.Context, client *github.Client, verifier *registry.Veri
 		}
 		report.Observed.ProviderState = state
 		if pr != nil {
+			for _, l := range pr.Labels {
+				if l.Name == labelWaived {
+					waived = true
+				}
+			}
 			report.Context.ReleasePR = pr.Number
 			report.Context.PRMergeSHA = pr.MergeCommitSHA
 			for _, l := range pr.Labels {
@@ -104,7 +114,7 @@ func Inspect(ctx context.Context, client *github.Client, verifier *registry.Veri
 		report.Observed.ProviderState = StateNone
 	}
 
-	actual := Actual{ExpectedCommit: report.Context.PRMergeSHA}
+	actual := Actual{ExpectedCommit: report.Context.PRMergeSHA, Waived: waived}
 
 	// Tag (peel annotated tags to the commit).
 	tagCommit, err := client.TagCommit(ctx, repo, tag)
@@ -346,4 +356,23 @@ func Acknowledge(ctx context.Context, client *github.Client, report *Report, dry
 type ScanResult struct {
 	Reports []Report `json:"reports"`
 	Errors  []string `json:"errors,omitempty"`
+}
+
+// Waive records an explicit, auditable human decision that a historical version
+// must not be repaired retroactively and must not block newer versions. It only
+// adds a label; it never fabricates a release or moves a tag.
+func Waive(ctx context.Context, client *github.Client, repo string, version string) (int, error) {
+	prs, err := client.MergedPullRequests(ctx, repo)
+	if err != nil {
+		return 0, err
+	}
+	for i := range prs {
+		if m := releasePRPattern.FindStringSubmatch(prs[i].Title); m != nil && m[1] == version {
+			if err := client.AddIssueLabels(ctx, repo, prs[i].Number, []string{labelWaived}); err != nil {
+				return prs[i].Number, err
+			}
+			return prs[i].Number, nil
+		}
+	}
+	return 0, fmt.Errorf("no merged release PR found for version %s", version)
 }

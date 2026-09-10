@@ -51,6 +51,9 @@ const (
 	DriftRegistryIncomplete    Drift = "REGISTRY_INCOMPLETE"
 	DriftRegistryConflict      Drift = "REGISTRY_CONFLICT"
 	DriftStateUnknown          Drift = "PROVIDER_STATE_UNKNOWN"
+	// DriftHistoricalWaived is a human decision: the historical version will
+	// never be repaired and must not block newer versions.
+	DriftHistoricalWaived Drift = "HISTORICAL_WAIVED"
 )
 
 // Actual is the observed real-world state of one version's release.
@@ -77,6 +80,10 @@ type Actual struct {
 
 	// NoRegistryRequired means registry checks do not apply to this project.
 	NoRegistryRequired bool
+
+	// Waived is set when the merged release PR carries an explicit, auditable
+	// human waiver label for a historical version.
+	Waived bool
 }
 
 // Healthy reports whether the whole actual release transaction is complete.
@@ -111,8 +118,10 @@ type Verdict struct {
 	// any newer version may start.
 	RepairSameVersion bool `json:"repairSameVersion"`
 	// HardFail is true when history would have to be rewritten to recover.
-	HardFail bool   `json:"hardFail"`
-	Reason   string `json:"reason,omitempty"`
+	HardFail bool
+	// Waived is true when a human accepted this historical version as-is.
+	Waived bool   `json:"hardFail"`
+	Reason string `json:"reason,omitempty"`
 }
 
 // Classify implements the drift state machine. Actual state always wins:
@@ -125,6 +134,13 @@ func Classify(o Observed) Verdict {
 	if a.TagExists && a.ExpectedCommit != "" && a.TagCommit != a.ExpectedCommit {
 		return Verdict{Drift: DriftTagConflict, Health: domain.HealthBroken, HardFail: true,
 			Reason: fmt.Sprintf("tag points at %s, expected %s", a.TagCommit, a.ExpectedCommit)}
+	}
+
+	// 1b. A human waiver is explicit and auditable: it stops the version from
+	// blocking newer ones, but it is never reported as HEALTHY.
+	if a.Waived {
+		return Verdict{Drift: DriftHistoricalWaived, Health: domain.HealthWaived, Waived: true,
+			Reason: "waived by an explicit releasegraph: historical-waived label"}
 	}
 
 	// 2. Providers without acknowledgement state are in sync iff actual is healthy.
@@ -220,7 +236,7 @@ func PlanACK(current []string, pendingLabels, releaseLabels []string) []LabelMut
 // never start while any recent prior version is not healthy and acknowledged.
 func CanProgressToNextVersion(prev []Verdict) (bool, string) {
 	for _, v := range prev {
-		if v.Health == domain.HealthHealthy {
+		if v.Health == domain.HealthHealthy || v.Waived {
 			continue
 		}
 		if v.HardFail {

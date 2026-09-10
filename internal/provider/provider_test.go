@@ -254,3 +254,28 @@ func TestCanProgressToNextVersion(t *testing.T) {
 		t.Error("any non-healthy prior version must block, not just the last")
 	}
 }
+
+// A waived historical version is never healthy, but it must not block newer
+// versions: the alternative is fabricating a release that never existed.
+func TestWaiverAllowsProgressionWithoutFabricatingRelease(t *testing.T) {
+	waived := obs(StateTagged)
+	waived.Actual.ReleaseExists = false
+	waived.Actual.Waived = true
+
+	verdict := Classify(waived)
+	if verdict.Drift != DriftHistoricalWaived || !verdict.Waived {
+		t.Fatalf("drift = %s waived = %v, want HISTORICAL_WAIVED", verdict.Drift, verdict.Waived)
+	}
+	if verdict.Health == domain.HealthHealthy {
+		t.Fatal("a waived version must never be reported HEALTHY")
+	}
+	if verdict.ACKAllowed {
+		t.Fatal("a waived incomplete version must never be ACKed")
+	}
+	if verdict.RepairSameVersion {
+		t.Fatal("a waived version must not be queued for repair")
+	}
+	if ok, why := CanProgressToNextVersion([]Verdict{verdict}); !ok {
+		t.Fatalf("waived version blocked progression: %s", why)
+	}
+}

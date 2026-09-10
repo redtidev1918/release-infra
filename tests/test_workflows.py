@@ -98,3 +98,39 @@ class WorkflowTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ProviderReconciliationWorkflowTest(unittest.TestCase):
+    """Ordering invariants of the version provider reconciliation layer."""
+
+    def test_provider_reconcile_runs_before_release_please(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        reconcile = workflow.index("Provider pre-reconcile")
+        action = workflow.index("googleapis/release-please-action")
+        self.assertLess(reconcile, action, "provider pre-reconcile must precede release-please")
+        self.assertIn("provider reconcile --repo", workflow)
+        self.assertIn("--apply", workflow)
+
+    def test_provider_ack_runs_only_after_release_is_published_and_audited(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        ack = workflow.index("Provider acknowledgement")
+        audit = workflow.index("release_infra.cli audit")
+        publish = workflow.index("Publish, set Latest, audit, then prune Release objects")
+        self.assertLess(publish, ack, "ACK must follow the publish/audit transaction")
+        self.assertLess(audit, ack, "ACK must follow the release audit")
+        ack_block = workflow[ack:]
+        self.assertIn("provider reconcile", ack_block)
+        self.assertIn("--apply", ack_block)
+        # A non-dry run on a real branch only: never ACK from a pull request.
+        self.assertIn("github.event_name != 'pull_request'", ack_block)
+
+    def test_provider_watchdog_never_rewrites_release_history(self):
+        workflow = Path(".github/workflows/provider-watchdog.yml").read_text()
+        self.assertIn("provider inspect", workflow)
+        self.assertIn("provider reconcile", workflow)
+        self.assertIn("--apply", workflow)
+        for forbidden in ("gh release delete", "gh release edit", "git push --force", "cleanup-tag", "git tag -f"):
+            self.assertNotIn(forbidden, workflow)
+        # The scheduled run is the one allowed to mutate, and only labels.
+        self.assertIn("contents: read", workflow)
+        self.assertIn("issues: write", workflow)

@@ -17,6 +17,9 @@ const (
 	// HealthACKPending means the actual release transaction is healthy but the
 	// version provider has not acknowledged it yet.
 	HealthACKPending Health = "ACK_PENDING"
+	// HealthWaived marks a historical version a human explicitly waived after
+	// deciding its release must not be fabricated retroactively.
+	HealthWaived Health = "WAIVED"
 )
 
 type NodeKind string

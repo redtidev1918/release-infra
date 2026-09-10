@@ -54,9 +54,26 @@ func providerCommand(w io.Writer, args []string) error {
 		return providerInspect(w, opts)
 	case "reconcile", "acknowledge":
 		return providerReconcile(w, opts)
+	case "waive":
+		return providerWaive(w, opts)
 	default:
 		return fmt.Errorf("unknown provider subcommand %q", sub)
 	}
+}
+
+// providerWaive records an explicit human decision that a historical version
+// will not be repaired and must not block newer versions. It is the only
+// provider command that requires an explicit version.
+func providerWaive(w io.Writer, opts providerOptions) error {
+	if opts.repo == "" || opts.version == "" {
+		return fmt.Errorf("provider waive requires --repo and --version")
+	}
+	number, err := provider.Waive(context.Background(), github.New(), opts.repo, opts.version)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(w, "waived %s %s (release PR #%d) — say why in the PR conversation\n", opts.repo, opts.version, number)
+	return nil
 }
 
 func providerInspect(w io.Writer, opts providerOptions) error {
@@ -231,6 +248,9 @@ func humanProviderReport(w io.Writer, r provider.Report) {
 	fmt.Fprintf(w, "  Diagnosis:   %s\n", r.Verdict.Drift)
 	fmt.Fprintf(w, "  Health:      %s\n", r.Verdict.Health)
 	fmt.Fprintf(w, "  Repair:      %s\n", repairLabel(r.Verdict))
+	if r.Verdict.Waived {
+		fmt.Fprintf(w, "  Waived:      yes (historical version accepted as-is)\n")
+	}
 	for _, m := range r.PlannedACK {
 		fmt.Fprintf(w, "  ACK:         %s %s\n", m.Action, m.Label)
 	}
