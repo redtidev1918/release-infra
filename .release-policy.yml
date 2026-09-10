@@ -1,7 +1,10 @@
 {
   "apiVersion": "releasegraph.dev/v1",
   "kind": "hybrid",
-  "versioning": {"mode": "manual", "version": "1.4.1"},
+  "versioning": {
+    "mode": "manual",
+    "version": "1.4.1"
+  },
   "assets": {
     "required": [
       "releasegraph-linux-amd64",
@@ -11,10 +14,20 @@
       "releasegraph-windows-amd64.exe",
       "releasegraph-windows-arm64.exe"
     ],
-    "optional": []
+    "optional": [
+      "RELEASEGRAPH-METADATA.json"
+    ]
   },
-  "registries": {"github": {"required": true}},
-  "retention": {"stable": 1, "prerelease": 1, "failed_draft": 3},
+  "registries": {
+    "github": {
+      "required": true
+    }
+  },
+  "retention": {
+    "stable": 1,
+    "prerelease": 1,
+    "failed_draft": 3
+  },
   "checksums": true,
   "metadata": true,
   "sbom": false

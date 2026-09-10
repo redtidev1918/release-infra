@@ -8,11 +8,19 @@
   "workflow_run_id": null,
   "workflow_run_url": "https://github.com/None/actions/runs/None",
   "releasegraph_version": "1.0.0",
+  "policy_schema": 1,
+  "capabilities": {
+    "github_release": true,
+    "binaries": false,
+    "checksums": false,
+    "registries": [],
+    "required_assets": []
+  },
   "release_infra_version": "1.0.0",
   "policy_hash": "533ed46300082efc9034d58579d19f5c5b0b72c2876c238b5ad8d41a012a4526",
   "release_policy_hash": "533ed46300082efc9034d58579d19f5c5b0b72c2876c238b5ad8d41a012a4526",
-  "build_started_at": "2026-09-10T11:45:37.127210+00:00",
-  "published_at": "2026-09-10T11:45:37.127224+00:00",
+  "build_started_at": "2026-09-10T12:33:54.479722+00:00",
+  "published_at": "2026-09-10T12:33:54.479738+00:00",
   "assets": [],
   "asset_sha256": {},
   "registries": {

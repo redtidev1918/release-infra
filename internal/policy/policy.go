@@ -66,6 +66,23 @@ type Retention struct {
 type Release struct {
 	Prerelease  bool   `json:"prerelease,omitempty" yaml:"prerelease,omitempty"`
 	PostPublish string `json:"post_publish,omitempty" yaml:"post_publish,omitempty"`
+	// GitHub declares whether a GitHub Release is part of this repository's
+	// contract. nil means "not declared" and falls back to the historical
+	// default (true), so existing policies keep their meaning.
+	GitHub *bool `json:"github,omitempty" yaml:"github,omitempty"`
+}
+
+// Artifacts describes distributable build outputs. Repositories without
+// distributable artifacts simply do not enable them.
+type Artifacts struct {
+	Binaries Binaries `json:"binaries,omitempty" yaml:"binaries,omitempty"`
+}
+
+// Binaries covers native/CLI artifacts. It is optional: a Python library, an npm
+// package, a container service or a source-only repository has none.
+type Binaries struct {
+	Enabled *bool    `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Targets []string `json:"targets,omitempty" yaml:"targets,omitempty"`
 }
 
 type Policy struct {
@@ -78,6 +95,7 @@ type Policy struct {
 	Registries map[string]Registry `json:"registries,omitempty" yaml:"registries,omitempty"`
 	Retention  Retention           `json:"retention,omitempty" yaml:"retention,omitempty"`
 	Release    Release             `json:"release,omitempty" yaml:"release,omitempty"`
+	Artifacts  Artifacts           `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
 	Checksums  bool                `json:"checksums" yaml:"checksums"`
 	Metadata   bool                `json:"metadata,omitempty" yaml:"metadata,omitempty"`
 	SBOM       bool                `json:"sbom,omitempty" yaml:"sbom,omitempty"`
@@ -239,4 +257,73 @@ func containsNewline(value string) bool {
 		}
 	}
 	return false
+}
+
+// Capabilities is the release contract of one repository, derived from its
+// policy. ReleaseGraph is capability-driven: nothing here may be assumed for
+// every repository.
+type Capabilities struct {
+	// GitHubRelease reports whether a public GitHub Release is part of the contract.
+	GitHubRelease bool `json:"githubRelease"`
+	// Binaries reports whether native artifacts are built and uploaded.
+	Binaries bool `json:"binaries"`
+	// Checksums reports whether SHA256SUMS must cover the required assets.
+	Checksums bool `json:"checksums"`
+	// Assets are the required asset patterns (may be empty: source-only repos).
+	Assets []string `json:"assets,omitempty"`
+	// Registries are the registry names that must be published.
+	Registries []string `json:"registries,omitempty"`
+}
+
+// CapabilitiesOf derives the effective contract.
+//
+// Defaults preserve existing policies: a policy that builds a matrix or
+// declares required assets has binaries; one that declares neither does not.
+// Absence of a capability is a contract choice, never a release failure.
+func (p *Policy) CapabilitiesOf() Capabilities {
+	caps := Capabilities{GitHubRelease: true, Assets: append([]string{}, p.Assets.Required...)}
+
+	if p.Release.GitHub != nil {
+		caps.GitHubRelease = *p.Release.GitHub
+	}
+	switch {
+	case p.Artifacts.Binaries.Enabled != nil:
+		caps.Binaries = *p.Artifacts.Binaries.Enabled
+	default:
+		caps.Binaries = len(p.Build.Matrix) > 0 || len(p.Assets.Required) > 0
+	}
+	caps.Checksums = p.Checksums && len(caps.Assets) > 0
+
+	names := make([]string, 0, len(p.Registries))
+	for name, config := range p.Registries {
+		if name == "github" || !config.Required {
+			continue
+		}
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	caps.Registries = names
+	return caps
+}
+
+// Names renders the capability set as stable identifiers used by ReleaseGraph
+// compatibility metadata ("binary", "github-release", "checksums", registry
+// names). Rollout compares these with a ReleaseGraph release's
+// affected_capabilities to decide whether a repository is affected at all.
+func (c Capabilities) Names() []string {
+	names := []string{}
+	if c.GitHubRelease {
+		names = append(names, "github-release")
+	}
+	if c.Binaries {
+		names = append(names, "binary")
+	}
+	if c.Checksums {
+		names = append(names, "checksums")
+	}
+	for _, registry := range c.Registries {
+		names = append(names, registry)
+	}
+	sort.Strings(names)
+	return names
 }

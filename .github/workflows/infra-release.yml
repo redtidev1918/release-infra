@@ -2,6 +2,23 @@ name: Promote stable v1
 on:
   push:
     tags: ["v1.*.*"]
+  workflow_dispatch:
+    inputs:
+      affected_capabilities:
+        description: "Comma-separated capabilities this release changes (binary, npm, pypi, github-release, checksums)"
+        required: false
+        default: ""
+        type: string
+      breaking:
+        description: "Mark this release as breaking"
+        required: false
+        default: false
+        type: boolean
+      version:
+        description: "Version to promote when dispatched manually (e.g. 1.5.0)"
+        required: false
+        default: ""
+        type: string
 permissions: {contents: write}
 concurrency:
   group: release-${{ github.repository }}-${{ github.ref }}
@@ -33,6 +50,38 @@ jobs:
             test "$goos" != windows || extension=.exe
             CGO_ENABLED=0 GOOS="$goos" GOARCH="$goarch" go build -trimpath -ldflags "-s -w -X github.com/redtidev1918/releasegraph/internal/cli.version=$version" -o "dist/release/releasegraph-$goos-$goarch$extension" ./cmd/releasegraph
           done
+      - name: Write ReleaseGraph compatibility metadata
+        # The affected scope travels with the immutable tag: a tag push has no
+        # inputs, and the annotation is the reviewable, immutable declaration.
+        env:
+          AFFECTED_CAPABILITIES: ${{ inputs.affected_capabilities || '' }}
+          BREAKING: ${{ inputs.breaking || 'false' }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          python - "$RELEASEGRAPH_VERSION" <<'PY'
+          import os, re, subprocess, sys
+          from release_infra import compatibility
+
+          declared = os.environ.get("AFFECTED_CAPABILITIES", "")
+          breaking = os.environ.get("BREAKING", "false").lower() == "true"
+          if not declared:
+              tag = os.environ.get("RELEASE_TAG", "") or sys.argv[1]
+              message = subprocess.run(
+                  ["git", "tag", "-l", "--format=%(contents)", tag],
+                  capture_output=True, text=True, check=False,
+              ).stdout
+              for line in message.splitlines():
+                  key, _, value = line.partition(":")
+                  key = key.strip().lower()
+                  if key == "affected-capabilities":
+                      declared = value
+                  elif key == "breaking":
+                      breaking = value.strip().lower() in {"true", "yes", "1"}
+          affected = [c for c in re.split(r"[,\s]+", declared) if c]
+          path = compatibility.write(sys.argv[1], affected_capabilities=affected, breaking=breaking)
+          print(f"wrote {path} with affected_capabilities={affected} breaking={breaking}")
+          PY
       - name: Plan idempotent release
         id: plan
         run: |

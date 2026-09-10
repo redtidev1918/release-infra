@@ -1,0 +1,64 @@
+# Agent guide — ReleaseGraph
+
+ReleaseGraph is the release **transaction authority** for the whole fleet. Two
+rules decide almost everything below: *where does this run?* and *what may it
+touch?*
+
+## Where do I run what?
+
+| I want to… | Go to | Run |
+|---|---|---|
+| develop / release a business repo | that repository | nothing — `push`. The repo calls ReleaseGraph itself. |
+| inspect release infrastructure | this repository | `releasegraph provider inspect --all --manifest fleet.yaml` |
+| repair one repository's release | this repository | `releasegraph provider repair --repo owner/name --version X` (plan first, then `--apply`) |
+| roll out a new ReleaseGraph version | this repository | `releasegraph rollout plan --version vX.Y.Z` |
+
+You never need to run ReleaseGraph inside a business repository: a business
+repository only carries `.release-policy.yml`, `.github/workflows/release.yml`
+and its own build/test configuration.
+
+## Non-negotiable rules
+
+1. **Never mutate release state by hand if ReleaseGraph has a primitive.**
+   No `gh release create`, `git tag -f`, `git push --force`, ad-hoc label edits or
+   hand-written API mutations to "fix" a release. If a primitive is missing, add
+   the primitive to ReleaseGraph, test it, dry-run it, then use it.
+2. **Never work in a shared checkout.** Every modifying session uses its own
+   worktree: `scripts/agent-worktree create <task-id>`.
+3. **Inspect before mutate.** `provider inspect` → `provider reconcile`/`repair`
+   plan → then `--apply`.
+4. **Dry-run before fleet mutation.** Fleet commands plan by default; `--apply`
+   is an explicit act.
+5. **Never move an existing release tag.** A tag pointing at the wrong commit is
+   `TAG_CONFLICT` → stop and ask a human.
+6. **Never fabricate historical GitHub Releases** to satisfy a version provider.
+   Use an explicit waiver (`releasegraph provider waive`) when a human decides a
+   historical version is accepted as-is.
+7. **Never infer managed repositories from owner discovery.** `fleet.yaml` is the
+   authority; `fleet discover` only lists candidates.
+8. **Repository scope touches only its bound repository.** Cross-repository work
+   requires fleet scope and `RELEASEGRAPH_FLEET_TOKEN`.
+9. **Do not put release logic in business repositories.** It belongs here.
+10. **Provider state is derived, never authoritative.** Real GitHub/registry state
+    decides health; release-please labels are acknowledgement only.
+
+## Scope and credentials
+
+```
+repository scope  bound to GITHUB_REPOSITORY, uses GITHUB_TOKEN
+fleet scope       control plane only, uses RELEASEGRAPH_FLEET_TOKEN
+```
+
+A fleet operation without `RELEASEGRAPH_FLEET_TOKEN` fails immediately with
+`FLEET_CREDENTIAL_REQUIRED`; it never falls back to a repository token. See
+`docs/USAGE-MODEL.md` for the full model and `releasegraph doctor` for a
+readiness report.
+
+## Before you push
+
+```bash
+go vet ./... && go test ./...
+python3 -m unittest discover -s tests -q
+```
+
+Commits are reviewable vertical slices, one concern each.

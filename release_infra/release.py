@@ -200,6 +200,33 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     }
 
 
+def capabilities(policy: dict) -> dict:
+    """The release contract in force for this version.
+
+    ReleaseGraph is capability-driven: only what this repository's policy
+    requires is part of its health. A registry-only repository has no binaries
+    and must never be judged as if it did.
+    """
+    required_assets = list(policy.get("assets", {}).get("required", []))
+    matrix = policy.get("build", {}).get("matrix") or []
+    registries = sorted(
+        name for name, config in policy.get("registries", {}).items()
+        if name != "github" and config.get("required", True)
+    )
+    release_github = policy.get("release", {}).get("github", True)
+    binaries = bool(matrix) or bool(required_assets)
+    declared = policy.get("artifacts", {}).get("binaries", {})
+    if "enabled" in declared:
+        binaries = bool(declared["enabled"])
+    return {
+        "github_release": bool(release_github),
+        "binaries": binaries,
+        "checksums": bool(policy.get("checksums", True)) and bool(required_assets),
+        "registries": registries,
+        "required_assets": required_assets,
+    }
+
+
 def _metadata(policy: dict, version: str, tag: str, assets: list[Path]) -> dict:
     started = os.environ.get("RELEASE_BUILD_STARTED_AT") or dt.datetime.now(dt.UTC).isoformat()
     sha = os.environ.get("GITHUB_SHA") or _run(["git", "rev-parse", "HEAD"], capture=True)
@@ -209,6 +236,8 @@ def _metadata(policy: dict, version: str, tag: str, assets: list[Path]) -> dict:
         "build_run_id": os.environ.get("GITHUB_RUN_ID"), "build_run_url": workflow_url,
         "workflow_run_id": os.environ.get("GITHUB_RUN_ID"), "workflow_run_url": workflow_url,
         "releasegraph_version": os.environ.get("RELEASEGRAPH_VERSION", __version__),
+        "policy_schema": 1,
+        "capabilities": capabilities(policy),
         "release_infra_version": __version__, "policy_hash": policy["_hash"], "release_policy_hash": policy["_hash"], "build_started_at": started,
         "published_at": dt.datetime.now(dt.UTC).isoformat(), "assets": [path.name for path in assets],
         "asset_sha256": {path.name: sha256(path) for path in assets}, "registries": policy.get("registries", {}),

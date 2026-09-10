@@ -30,7 +30,7 @@ type Fleet struct {
 	Repositories []Repository `json:"repositories"`
 }
 
-func Discover(ctx context.Context, client *github.Client, owner string, publicOnly bool) (*Fleet, error) {
+func Discover(ctx context.Context, client *github.Bound, owner string, publicOnly bool) (*Fleet, error) {
 	// GitHub rejects combining affiliation with type (422); affiliation=owner
 	// already spans every repo type and visibility.
 	path := "user/repos?affiliation=owner"
@@ -87,7 +87,7 @@ func Discover(ctx context.Context, client *github.Client, owner string, publicOn
 	return out, nil
 }
 
-func enrichReleaseHealth(ctx context.Context, client *github.Client, repo *Repository) error {
+func enrichReleaseHealth(ctx context.Context, client *github.Bound, repo *Repository) error {
 	releases, err := client.Releases(ctx, repo.Name)
 	if err != nil {
 		return err

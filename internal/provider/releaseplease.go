@@ -84,11 +84,13 @@ func ResolveProvider(p *policy.Policy) Kind {
 
 // Inspect gathers actual release state and provider acknowledgement for one
 // version of a repository and classifies the drift. No mutations.
-func Inspect(ctx context.Context, client *github.Client, verifier *registry.Verifier, p *policy.Policy, repo, version string) (*Report, error) {
+func Inspect(ctx context.Context, client *github.Bound, verifier *registry.Verifier, p *policy.Policy, repo, version string) (*Report, error) {
 	tag := policy.ReleaseTag(p, version)
 	provider := ResolveProvider(p)
 
 	report := &Report{Context: Context{Repository: repo, Version: domain.Version(version), Tag: tag, Provider: provider}}
+	capabilities := p.CapabilitiesOf()
+	report.Observed.Capabilities = capabilities
 
 	// Provider side: find the merged release PR and its labels.
 	waived := false
@@ -124,13 +126,21 @@ func Inspect(ctx context.Context, client *github.Client, verifier *registry.Veri
 	actual.TagExists = tagCommit != ""
 	actual.TagCommit = tagCommit
 
-	// GitHub Release.
+	// GitHub Release. Drafts are invisible to the by-tag endpoint (it answers
+	// 404), so a draft must be looked up in the releases list; otherwise an
+	// in-flight publish looks exactly like a missing release.
 	var rel releaseAPI
 	found, err := client.GetOptional(ctx, fmt.Sprintf("repos/%s/releases/tags/%s", repo, tag), &rel)
 	if err != nil {
 		return nil, err
 	}
+	if !found {
+		if draft, ok := draftRelease(ctx, client, repo, tag); ok {
+			rel, found = draft, true
+		}
+	}
 	actual.ReleaseExists = found && !rel.Draft
+	actual.ReleaseDraft = found && rel.Draft
 
 	if found {
 		meta := readReleaseMetadata(ctx, client, repo, rel.Assets)
@@ -141,8 +151,22 @@ func Inspect(ctx context.Context, client *github.Client, verifier *registry.Veri
 		if actual.ExpectedCommit == "" {
 			actual.ExpectedCommit = meta.CommitSHA
 		}
+		// A historical release keeps the contract it was published under.
+		if meta.Capabilities != nil {
+			caps := policy.Capabilities{
+				GitHubRelease: meta.Capabilities.GitHubRelease,
+				Binaries:      meta.Capabilities.Binaries,
+				Checksums:     meta.Capabilities.Checksums,
+				Registries:    meta.Capabilities.Registries,
+				Assets:        meta.Capabilities.Assets,
+			}
+			if len(caps.Assets) == 0 && len(meta.Assets) > 0 {
+				caps.Assets = append([]string{}, meta.Assets...)
+			}
+			report.Observed.Capabilities = caps
+		}
 		var policyHashMatches bool
-		actual.AssetsComplete, actual.ChecksumsVerified, policyHashMatches = assetState(p, rel.Assets, meta, client, ctx, repo)
+		actual.AssetsComplete, actual.ChecksumsVerified, policyHashMatches = assetState(p, report.Observed.Capabilities, rel.Assets, meta, client, ctx, repo)
 		report.Context.PolicyHashMatches = policyHashMatches
 
 		// Latest is only meaningful for stable releases.
@@ -169,7 +193,7 @@ func Inspect(ctx context.Context, client *github.Client, verifier *registry.Veri
 }
 
 // providerState finds the merged release PR for version and maps its labels.
-func providerState(ctx context.Context, client *github.Client, repo, version string) (*github.PullRequest, State, error) {
+func providerState(ctx context.Context, client *github.Bound, repo, version string) (*github.PullRequest, State, error) {
 	prs, err := client.MergedPullRequests(ctx, repo)
 	if err != nil {
 		return nil, StateUnknown, err
@@ -211,12 +235,24 @@ type releaseMetadata struct {
 	AssetSHA   map[string]string `json:"asset_sha256"`
 	PolicyHash string            `json:"policy_hash"`
 	CommitSHA  string            `json:"commit_sha"`
+	// Capabilities is the contract that was in force when this version was
+	// published. A historical release is judged against it, never against a
+	// policy that changed afterwards.
+	Capabilities *metadataCapabilities `json:"capabilities,omitempty"`
+}
+
+type metadataCapabilities struct {
+	GitHubRelease bool     `json:"github_release"`
+	Binaries      bool     `json:"binaries"`
+	Checksums     bool     `json:"checksums"`
+	Registries    []string `json:"registries,omitempty"`
+	Assets        []string `json:"required_assets,omitempty"`
 }
 
 // readReleaseMetadata downloads and parses the release's own contract. A missing
 // or unparsable metadata asset yields a zero value, which callers treat as
 // "fall back to the current policy".
-func readReleaseMetadata(ctx context.Context, client *github.Client, repo string, assets []releaseAsset) releaseMetadata {
+func readReleaseMetadata(ctx context.Context, client *github.Bound, repo string, assets []releaseAsset) releaseMetadata {
 	for _, a := range assets {
 		if a.Name != "RELEASE-METADATA.json" {
 			continue
@@ -239,28 +275,34 @@ func readReleaseMetadata(ctx context.Context, client *github.Client, repo string
 // must not be judged against a policy that changed afterwards: newly required
 // assets would otherwise mark every historical release incomplete and block all
 // future versions.
-func assetState(p *policy.Policy, assets []releaseAsset, meta releaseMetadata, client *github.Client, ctx context.Context, repo string) (complete, sumsVerified, policyHashMatches bool) {
+func assetState(p *policy.Policy, caps policy.Capabilities, assets []releaseAsset, meta releaseMetadata, client *github.Bound, ctx context.Context, repo string) (complete, sumsVerified, policyHashMatches bool) {
 	byName := map[string]releaseAsset{}
 	for _, a := range assets {
 		byName[a.Name] = a
 	}
-	// contract is the effective asset contract for this release.
-	contract := append([]string{}, p.Assets.Required...)
+	// The contract is the capability-derived asset set. A repository with no
+	// required assets (source-only, registry-only) only records its metadata.
+	contract := append([]string{}, caps.Assets...)
 	required := append([]string{}, contract...)
-	required = append(required, "RELEASE-METADATA.json")
-	checksumsEnabled := p.Checksums && len(p.Assets.Required) > 0
+	if caps.GitHubRelease {
+		required = append(required, "RELEASE-METADATA.json")
+	}
+	checksumsEnabled := caps.Checksums
 	if checksumsEnabled {
 		required = append(required, "SHA256SUMS")
 	}
 	policyHashMatches = true
 
-	if len(meta.Assets) > 0 {
+	if len(meta.Assets) > 0 && meta.Capabilities == nil {
+		// Metadata predating explicit capabilities: its asset list was the contract.
 		if meta.PolicyHash != "" && p.Hash != "" {
 			policyHashMatches = meta.PolicyHash == p.Hash
 		}
 		contract = append([]string{}, meta.Assets...)
 		required = append([]string{}, contract...)
-		required = append(required, "RELEASE-METADATA.json")
+		if caps.GitHubRelease {
+			required = append(required, "RELEASE-METADATA.json")
+		}
 		if _, hasSums := byName["SHA256SUMS"]; hasSums {
 			required = append(required, "SHA256SUMS")
 		}
@@ -318,7 +360,7 @@ func assetState(p *policy.Policy, assets []releaseAsset, meta releaseMetadata, c
 	return complete, complete && covers, policyHashMatches
 }
 
-func registryState(ctx context.Context, client *github.Client, verifier *registry.Verifier, p *policy.Policy, repo, version string) (noneRequired, healthy bool) {
+func registryState(ctx context.Context, client *github.Bound, verifier *registry.Verifier, p *policy.Policy, repo, version string) (noneRequired, healthy bool) {
 	healthy = true
 	any := false
 	names := make([]string, 0, len(p.Registries))
@@ -342,7 +384,7 @@ func registryState(ctx context.Context, client *github.Client, verifier *registr
 // Acknowledge reconciles provider labels after a healthy release. It is
 // idempotent: no tag/release mutation, label-only. dryRun returns the plan
 // without applying it.
-func Acknowledge(ctx context.Context, client *github.Client, report *Report, dryRun bool) ([]LabelMutation, error) {
+func Acknowledge(ctx context.Context, client *github.Bound, report *Report, dryRun bool) ([]LabelMutation, error) {
 	if !report.Verdict.ACKAllowed {
 		return nil, fmt.Errorf("ACK refused: %s (%s)", report.Verdict.Health, report.Verdict.Drift)
 	}
@@ -377,16 +419,18 @@ func Acknowledge(ctx context.Context, client *github.Client, report *Report, dry
 	return mutations, nil
 }
 
-// ScanResult is the fleet-wide outcome of a provider scan.
+// ScanResult is the fleet-wide outcome of a provider scan. It is pure data:
+// the scope-bound client that produced it stays in the calling layer.
 type ScanResult struct {
-	Reports []Report `json:"reports"`
-	Errors  []string `json:"errors,omitempty"`
+	Reports   []Report                `json:"reports"`
+	Errors    []string                `json:"errors,omitempty"`
+	Execution domain.ExecutionContext `json:"execution"`
 }
 
 // Waive records an explicit, auditable human decision that a historical version
 // must not be repaired retroactively and must not block newer versions. It only
 // adds a label; it never fabricates a release or moves a tag.
-func Waive(ctx context.Context, client *github.Client, repo string, version string) (int, error) {
+func Waive(ctx context.Context, client *github.Bound, repo string, version string) (int, error) {
 	prs, err := client.MergedPullRequests(ctx, repo)
 	if err != nil {
 		return 0, err
@@ -428,7 +472,7 @@ func RepairPlan(r *Report) (allowed bool, reason string, inputs map[string]strin
 
 // Repair re-enters the repository's release pipeline for the same version.
 // dryRun only reports the dispatch it would perform.
-func Repair(ctx context.Context, client *github.Client, r *Report, workflowFile string, dryRun bool) (map[string]string, error) {
+func Repair(ctx context.Context, client *github.Bound, r *Report, workflowFile string, dryRun bool) (map[string]string, error) {
 	allowed, reason, inputs := RepairPlan(r)
 	if !allowed {
 		return nil, fmt.Errorf("repair refused: %s", reason)
@@ -447,4 +491,27 @@ func Repair(ctx context.Context, client *github.Client, r *Report, workflowFile 
 		return nil, err
 	}
 	return inputs, nil
+}
+
+// draftRelease finds a draft release for a tag through the releases list, the
+// only endpoint that exposes drafts.
+func draftRelease(ctx context.Context, client *github.Bound, repo, tag string) (releaseAPI, bool) {
+	raw, err := client.Releases(ctx, repo)
+	if err != nil {
+		return releaseAPI{}, false
+	}
+	buf, err := json.Marshal(raw)
+	if err != nil {
+		return releaseAPI{}, false
+	}
+	var releases []releaseAPI
+	if json.Unmarshal(buf, &releases) != nil {
+		return releaseAPI{}, false
+	}
+	for _, release := range releases {
+		if release.TagName == tag && release.Draft {
+			return release, true
+		}
+	}
+	return releaseAPI{}, false
 }

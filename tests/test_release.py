@@ -305,3 +305,55 @@ class LatestGuardTest(unittest.TestCase):
         publish = [" ".join(call.args[0]) for call in run.call_args_list if call.args[0][:3] == ["gh", "release", "edit"]]
         self.assertEqual(len(publish), 1, publish)
         self.assertIn("--latest", publish[0])
+
+
+class ReleaseContractTest(unittest.TestCase):
+    """RELEASE-METADATA.json records the contract in force at publish time, so a
+    later policy change cannot retroactively make history unhealthy."""
+
+    def test_capabilities_are_derived_per_repository(self):
+        binary = {
+            "kind": "binary",
+            "build": {"matrix": [{"runner": "ubuntu-latest", "command": "make"}]},
+            "assets": {"required": ["app-linux"]},
+            "registries": {"github": {"required": True}},
+            "checksums": True,
+        }
+        self.assertEqual(
+            release.capabilities(binary),
+            {"github_release": True, "binaries": True, "checksums": True,
+             "registries": [], "required_assets": ["app-linux"]},
+        )
+
+        npm_only = {
+            "kind": "node-library",
+            "artifacts": {"binaries": {"enabled": False}},
+            "assets": {"required": []},
+            "registries": {"npm": {"required": True}},
+            "checksums": True,
+        }
+        caps = release.capabilities(npm_only)
+        self.assertFalse(caps["binaries"])
+        self.assertFalse(caps["checksums"])
+        self.assertEqual(caps["registries"], ["npm"])
+        self.assertEqual(caps["required_assets"], [])
+
+        source_only = {"kind": "none", "assets": {"required": []}, "registries": {}}
+        caps = release.capabilities(source_only)
+        self.assertFalse(caps["binaries"])
+        self.assertFalse(caps["checksums"])
+        self.assertEqual(caps["registries"], [])
+
+    def test_metadata_records_capabilities(self):
+        policy = {
+            "kind": "python-library",
+            "versioning": {"mode": "manual", "version": "1.0.0"},
+            "assets": {"required": []},
+            "registries": {"pypi": {"required": True}},
+            "checksums": True,
+            "_hash": "policy-hash",
+        }
+        metadata = release._metadata(policy, "1.0.0", "v1.0.0", [])
+        self.assertFalse(metadata["capabilities"]["binaries"])
+        self.assertEqual(metadata["capabilities"]["registries"], ["pypi"])
+        self.assertEqual(metadata["policy_schema"], 1)

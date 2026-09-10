@@ -129,7 +129,7 @@ func runInspect(t *testing.T, f *fakeGitHub) (*Report, *httptest.Server) {
 	t.Helper()
 	server := httptest.NewServer(f.handler())
 	t.Cleanup(server.Close)
-	client := github.NewForTest(server.URL)
+	client := github.NewForTest(server.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet})
 	verifier := registry.New()
 	report, err := Inspect(context.Background(), client, verifier, testPolicy(), acme, "2.16.0")
 	if err != nil {
@@ -154,7 +154,7 @@ func TestInspectDetectsACKMissing(t *testing.T) {
 	if report.Context.ReleasePR != 30 || report.Context.PRMergeSHA != "b6c2" {
 		t.Fatalf("context = %+v", report.Context)
 	}
-	if !report.Observed.Actual.Healthy() {
+	if !report.Observed.Actual.Healthy(report.Observed.Capabilities) {
 		t.Fatalf("actual should be healthy: %+v", report.Observed.Actual)
 	}
 }
@@ -200,7 +200,7 @@ func TestInspectTagConflictHardFails(t *testing.T) {
 	server := httptest.NewServer(f.handler())
 	defer server.Close()
 	// Override the tag ref to point to a different commit.
-	client := github.NewForTest(server.URL)
+	client := github.NewForTest(server.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet})
 	// Use a dedicated mux to answer the wrong commit without touching shared state.
 	_ = client
 	report, _ := runInspect(t, f)
@@ -219,7 +219,7 @@ func TestInspectTagConflictHardFails(t *testing.T) {
 	})
 	server2 := httptest.NewServer(bad)
 	defer server2.Close()
-	badReport, err := Inspect(context.Background(), github.NewForTest(server2.URL), registry.New(), testPolicy(), acme, "2.16.0")
+	badReport, err := Inspect(context.Background(), github.NewForTest(server2.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet}), registry.New(), testPolicy(), acme, "2.16.0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -236,7 +236,7 @@ func TestAcknowledgeAppliesIdempotentLabelPlan(t *testing.T) {
 	}
 	report, server := runInspect(t, f)
 	defer server.Close()
-	client := github.NewForTest(server.URL)
+	client := github.NewForTest(server.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet})
 
 	// Dry run: no mutations.
 	planned, err := Acknowledge(context.Background(), client, report, true)
@@ -262,7 +262,7 @@ func TestAcknowledgeRefusesIncomplete(t *testing.T) {
 	f := &fakeGitHub{prLabels: []string{labelPending}, release: false}
 	report, server := runInspect(t, f)
 	defer server.Close()
-	if _, err := Acknowledge(context.Background(), github.NewForTest(server.URL), report, false); err == nil {
+	if _, err := Acknowledge(context.Background(), github.NewForTest(server.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet}), report, false); err == nil {
 		t.Fatal("ACK must be refused for an incomplete release")
 	}
 }
@@ -278,7 +278,7 @@ func TestAcknowledgeRetriesOnNextRunAfterTransientFailure(t *testing.T) {
 	}
 	report, server := runInspect(t, f)
 	defer server.Close()
-	client := github.NewForTest(server.URL)
+	client := github.NewForTest(server.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet})
 
 	if _, err := Acknowledge(context.Background(), client, report, false); err == nil {
 		t.Fatal("a failing label API must surface as an error, not a silent success")
@@ -347,7 +347,7 @@ func TestRepairDispatchesSameVersionThroughRepoPipeline(t *testing.T) {
 	f := &fakeGitHub{prLabels: []string{labelPending}, release: false}
 	server := httptest.NewServer(f.handler())
 	defer server.Close()
-	client := github.NewForTest(server.URL)
+	client := github.NewForTest(server.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet})
 	report, err := Inspect(context.Background(), client, registry.New(), testPolicy(), acme, "2.16.0")
 	if err != nil {
 		t.Fatal(err)
@@ -388,7 +388,7 @@ func TestManualProviderUsesMetadataCommitAsExpectedTagTarget(t *testing.T) {
 	manual.Versioning.Mode = "manual"
 	server := httptest.NewServer(f.handler())
 	defer server.Close()
-	report, err := Inspect(context.Background(), github.NewForTest(server.URL), registry.New(), manual, acme, "2.16.0")
+	report, err := Inspect(context.Background(), github.NewForTest(server.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet}), registry.New(), manual, acme, "2.16.0")
 	if err != nil {
 		t.Fatal(err)
 	}

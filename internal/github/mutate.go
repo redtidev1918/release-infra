@@ -215,3 +215,15 @@ func (c *Client) DispatchWorkflow(ctx context.Context, repo, workflowFile, ref s
 	}
 	return nil
 }
+
+// mustJSON encodes a payload for a mutating request.
+func mustJSON(payload any) []byte {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return []byte("{}")
+	}
+	return body
+}
+
+// decodeJSON decodes a response body, ignoring malformed content.
+func decodeJSON(body []byte, target any) error { return json.Unmarshal(body, target) }
