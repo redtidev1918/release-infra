@@ -122,6 +122,12 @@ func rolloutCommand(w io.Writer, args []string) error {
 // it is absent the release is treated as affecting every repository: skipping a
 // repository is only ever based on declared facts.
 func fetchCompatibility(ctx context.Context, client *github.Bound, repo, version string) (rollout.Compatibility, string) {
+	// The tag annotation is the durable source: it is immutable and survives
+	// release pruning, while a release asset can be removed by retention.
+	if compat, ok := compatibilityFromTag(ctx, client, repo, version); ok {
+		compat.Version = version
+		return compat, ""
+	}
 	var release struct {
 		Assets []struct {
 			Name string `json:"name"`
@@ -331,4 +337,59 @@ func limitPlan(plan rollout.Plan, only []string) rollout.Plan {
 		}
 	}
 	return limited
+}
+
+// compatibilityFromTag reads the declared scope from the annotated tag message.
+// A tag push has no workflow inputs, so the annotation is where the scope
+// travels with the version — and unlike a release asset it is never pruned.
+func compatibilityFromTag(ctx context.Context, client *github.Bound, repo, version string) (rollout.Compatibility, bool) {
+	var ref struct {
+		Object struct {
+			Type string `json:"type"`
+			SHA  string `json:"sha"`
+		} `json:"object"`
+	}
+	found, err := client.GetOptional(ctx, fmt.Sprintf("repos/%s/git/ref/tags/%s", repo, version), &ref)
+	if err != nil || !found || ref.Object.Type != "tag" {
+		return rollout.Compatibility{}, false
+	}
+	var tag struct {
+		Message string `json:"message"`
+	}
+	if err := client.Get(ctx, fmt.Sprintf("repos/%s/git/tags/%s", repo, ref.Object.SHA), &tag); err != nil {
+		return rollout.Compatibility{}, false
+	}
+	compat := rollout.Compatibility{Version: version}
+	declared := false
+	for _, line := range strings.Split(tag.Message, "\n") {
+		key, value, ok := strings.Cut(line, ":")
+		if !ok {
+			continue
+		}
+		switch strings.ToLower(strings.TrimSpace(key)) {
+		case "affected-capabilities", "affected_capabilities":
+			compat.AffectedCapabilities = fields(value)
+			declared = true
+		case "breaking":
+			compat.Breaking = strings.EqualFold(strings.TrimSpace(value), "true")
+			declared = true
+		}
+	}
+	if !declared {
+		return rollout.Compatibility{}, false
+	}
+	return compat, true
+}
+
+// fields splits a comma/space separated capability list.
+func fields(value string) []string {
+	out := []string{}
+	for _, item := range strings.FieldsFunc(value, func(r rune) bool {
+		return r == ',' || r == ' ' || r == '\t' || r == ';'
+	}) {
+		if item = strings.TrimSpace(item); item != "" {
+			out = append(out, item)
+		}
+	}
+	return out
 }
