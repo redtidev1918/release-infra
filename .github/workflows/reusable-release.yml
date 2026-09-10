@@ -273,6 +273,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      # build_date for images: computed here because the github context has no
+      # run_started_at in a reusable workflow (actionlint rejects it).
+      - name: Stamp release identity
+        id: identity
+        run: echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
       - name: Reload release plan
         id: plan
         env:
@@ -399,9 +404,11 @@ jobs:
           build-args: |
             APP_VERSION=${{ steps.plan.outputs.version }}
             GIT_SHA=${{ github.sha }}
+            BUILD_DATE=${{ steps.identity.outputs.build_date }}
           labels: |
             org.opencontainers.image.version=${{ steps.plan.outputs.version }}
             org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ steps.identity.outputs.build_date }}
           provenance: mode=max
           sbom: true
           cache-from: type=gha

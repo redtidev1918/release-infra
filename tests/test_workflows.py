@@ -109,6 +109,18 @@ if __name__ == "__main__":
 class ProviderReconciliationWorkflowTest(unittest.TestCase):
     """Ordering invariants of the version provider reconciliation layer."""
 
+    def test_ghcr_build_receives_full_release_identity(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        ghcr = workflow.split("Publish GHCR image", 1)[1].split("Required registry verification", 1)[0]
+        for arg in ("APP_VERSION=${{ steps.plan.outputs.version }}",
+                    "GIT_SHA=${{ github.sha }}",
+                    "BUILD_DATE=${{ steps.identity.outputs.build_date }}"):
+            self.assertIn(arg, ghcr, f"GHCR build-arg missing: {arg}")
+        self.assertIn("org.opencontainers.image.created=", ghcr)
+        identity = workflow.index("Stamp release identity")
+        self.assertLess(identity, workflow.index("Publish GHCR image"),
+                        "the stamped build date must exist before the image build")
+
     def test_provider_reconcile_runs_before_release_please(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
         reconcile = workflow.index("Provider pre-reconcile")

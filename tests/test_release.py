@@ -181,24 +181,28 @@ class ReleaseTest(unittest.TestCase):
         self.assertIn(["gh", "release", "delete", "v1", "--yes"], commands)
         self.assertNotIn("--cleanup-tag", " ".join(sum(commands, [])))
 
-    def test_reconcile_release_labels_flips_pending_to_tagged(self):
-        with mock.patch.object(
-            release, "_run",
-            side_effect=["owner/repo", json.dumps([{"number": 30}]), "", ""],
-        ) as run:
-            release.reconcile_release_labels("2.16.0")
-        commands = [call.args[0] for call in run.call_args_list]
-        self.assertEqual(commands[0], ["gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"])
-        search = commands[1]
-        self.assertEqual(search[:4], ["gh", "pr", "list", "--state"])
-        self.assertIn('label:"autorelease: pending"', " ".join(search))
-        self.assertIn("2.16.0", " ".join(search))
-        self.assertEqual(commands[2], ["gh", "pr", "edit", "30", "--remove-label", "autorelease: pending"])
-        self.assertEqual(commands[3], ["gh", "pr", "edit", "30", "--add-label", "autorelease: tagged"])
-
-    def test_reconcile_release_labels_swallows_api_failure(self):
-        with mock.patch.object(release, "_run", side_effect=release.ReleaseError("boom")):
-            release.reconcile_release_labels("2.16.0")  # must not raise
+    def test_publish_leaves_label_acknowledgement_to_the_provider(self):
+        """publish() must not be a second writer of provider-derived label state."""
+        self.assertFalse(hasattr(release, "reconcile_release_labels"))
+        policy = {
+            "kind": "binary",
+            "versioning": {"mode": "manual", "version": "1.2.3"},
+            "assets": {"required": [], "optional": []},
+            "registries": {"github": {"required": True}},
+            "retention": {"stable": 1, "prerelease": 0, "failed_draft": 0},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            with mock.patch.object(release, "collect_assets", return_value=[]), \
+                    mock.patch.object(release, "_upload_idempotent"), \
+                    mock.patch.object(release, "_run", return_value="") as run, \
+                    mock.patch.object(release, "audit"), \
+                    mock.patch.object(release, "prune"):
+                release.publish(str(path))
+        commands = [" ".join(call.args[0]) for call in run.call_args_list]
+        self.assertFalse(any("pr edit" in command for command in commands))
+        self.assertFalse(any("label" in command for command in commands))
 
     def test_stage_dry_run_never_creates_tag_or_release(self):
         policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}}}
