@@ -22,20 +22,37 @@ type WorkflowRun struct {
 	CreatedAt  string `json:"created_at"`
 }
 
-// LatestWorkflowRun returns the most recent run of one workflow file.
-func (b *Bound) LatestWorkflowRun(ctx context.Context, repo, workflowFile string) (WorkflowRun, bool, error) {
+// RecentWorkflowRuns returns the most recent runs of one workflow file.
+func (b *Bound) RecentWorkflowRuns(ctx context.Context, repo, workflowFile string, limit int) ([]WorkflowRun, error) {
 	if err := b.guardTarget(repo); err != nil {
-		return WorkflowRun{}, false, err
+		return nil, err
+	}
+	if limit <= 0 {
+		limit = 5
 	}
 	var runs struct {
 		WorkflowRuns []WorkflowRun `json:"workflow_runs"`
 	}
-	path := fmt.Sprintf("repos/%s/actions/workflows/%s/runs?per_page=1", repo, workflowFile)
-	found, err := b.client.GetOptional(ctx, path, &runs)
-	if err != nil || !found || len(runs.WorkflowRuns) == 0 {
+	path := fmt.Sprintf("repos/%s/actions/workflows/%s/runs?per_page=%d", repo, workflowFile, limit)
+	if _, err := b.client.GetOptional(ctx, path, &runs); err != nil {
+		return nil, err
+	}
+	return runs.WorkflowRuns, nil
+}
+
+// LatestCompletedWorkflowRun returns the most recent run that has finished,
+// skipping queued and in-progress runs.
+func (b *Bound) LatestCompletedWorkflowRun(ctx context.Context, repo, workflowFile string) (WorkflowRun, bool, error) {
+	runs, err := b.RecentWorkflowRuns(ctx, repo, workflowFile, 10)
+	if err != nil {
 		return WorkflowRun{}, false, err
 	}
-	return runs.WorkflowRuns[0], true, nil
+	for _, run := range runs {
+		if run.Status == "completed" && run.Conclusion != "" {
+			return run, true, nil
+		}
+	}
+	return WorkflowRun{}, false, nil
 }
 
 // FileUpdate describes a reviewable single-file change on a new branch.

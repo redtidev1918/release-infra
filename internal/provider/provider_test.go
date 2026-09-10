@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/redtidev1918/releasegraph/internal/domain"
+	"github.com/redtidev1918/releasegraph/internal/policy"
 )
 
 // healthyActual is the acme/app 2.16.0 regression fixture: merged release PR,
@@ -22,8 +23,13 @@ func healthyActual() Actual {
 	}
 }
 
+// caps fixture: a repository whose contract is "GitHub release + two asset files".
+func caps() policy.Capabilities {
+	return policy.Capabilities{GitHubRelease: true, Binaries: true, Checksums: true, Assets: []string{"app-linux", "app-macos"}}
+}
+
 func obs(state State) Observed {
-	return Observed{Provider: KindReleasePlease, Version: "2.16.0", Actual: healthyActual(), ProviderState: state}
+	return Observed{Provider: KindReleasePlease, Version: "2.16.0", Actual: healthyActual(), ProviderState: state, Capabilities: caps()}
 }
 
 func TestClassify(t *testing.T) {
@@ -68,7 +74,8 @@ func TestClassify(t *testing.T) {
 			name: "5 registry published but GitHub release missing => same-version repair",
 			observed: func() Observed {
 				o := obs(StatePending)
-				o.Actual.NoRegistryRequired = false
+				o.Capabilities.Registries = []string{"npm"}
+				o.Capabilities.Registries = []string{"npm"}
 				o.Actual.RegistriesHealthy = true
 				o.Actual.ReleaseExists = false
 				return o
@@ -111,7 +118,7 @@ func TestClassify(t *testing.T) {
 			name: "10 required registry incomplete => recoverable",
 			observed: func() Observed {
 				o := obs(StatePending)
-				o.Actual.NoRegistryRequired = false
+				o.Capabilities.Registries = []string{"npm"}
 				o.Actual.RegistriesHealthy = false
 				return o
 			}(),
@@ -188,7 +195,7 @@ func TestClassifyNeverACKsIncomplete(t *testing.T) {
 	}
 	for _, a := range incomplete {
 		for _, state := range []State{StatePending, StateTagged} {
-			v := Classify(Observed{Provider: KindReleasePlease, Actual: a, ProviderState: state})
+			v := Classify(Observed{Provider: KindReleasePlease, Actual: a, ProviderState: state, Capabilities: caps()})
 			if v.ACKAllowed {
 				t.Errorf("ACK allowed for incomplete release (state=%s drift=%s)", state, v.Drift)
 			}

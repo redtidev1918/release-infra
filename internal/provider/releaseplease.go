@@ -89,6 +89,8 @@ func Inspect(ctx context.Context, client *github.Bound, verifier *registry.Verif
 	provider := ResolveProvider(p)
 
 	report := &Report{Context: Context{Repository: repo, Version: domain.Version(version), Tag: tag, Provider: provider}}
+	capabilities := p.CapabilitiesOf()
+	report.Observed.Capabilities = capabilities
 
 	// Provider side: find the merged release PR and its labels.
 	waived := false
@@ -141,8 +143,22 @@ func Inspect(ctx context.Context, client *github.Bound, verifier *registry.Verif
 		if actual.ExpectedCommit == "" {
 			actual.ExpectedCommit = meta.CommitSHA
 		}
+		// A historical release keeps the contract it was published under.
+		if meta.Capabilities != nil {
+			caps := policy.Capabilities{
+				GitHubRelease: meta.Capabilities.GitHubRelease,
+				Binaries:      meta.Capabilities.Binaries,
+				Checksums:     meta.Capabilities.Checksums,
+				Registries:    meta.Capabilities.Registries,
+				Assets:        meta.Capabilities.Assets,
+			}
+			if len(caps.Assets) == 0 && len(meta.Assets) > 0 {
+				caps.Assets = append([]string{}, meta.Assets...)
+			}
+			report.Observed.Capabilities = caps
+		}
 		var policyHashMatches bool
-		actual.AssetsComplete, actual.ChecksumsVerified, policyHashMatches = assetState(p, rel.Assets, meta, client, ctx, repo)
+		actual.AssetsComplete, actual.ChecksumsVerified, policyHashMatches = assetState(p, report.Observed.Capabilities, rel.Assets, meta, client, ctx, repo)
 		report.Context.PolicyHashMatches = policyHashMatches
 
 		// Latest is only meaningful for stable releases.
@@ -211,6 +227,18 @@ type releaseMetadata struct {
 	AssetSHA   map[string]string `json:"asset_sha256"`
 	PolicyHash string            `json:"policy_hash"`
 	CommitSHA  string            `json:"commit_sha"`
+	// Capabilities is the contract that was in force when this version was
+	// published. A historical release is judged against it, never against a
+	// policy that changed afterwards.
+	Capabilities *metadataCapabilities `json:"capabilities,omitempty"`
+}
+
+type metadataCapabilities struct {
+	GitHubRelease bool     `json:"github_release"`
+	Binaries      bool     `json:"binaries"`
+	Checksums     bool     `json:"checksums"`
+	Registries    []string `json:"registries,omitempty"`
+	Assets        []string `json:"required_assets,omitempty"`
 }
 
 // readReleaseMetadata downloads and parses the release's own contract. A missing
@@ -239,28 +267,34 @@ func readReleaseMetadata(ctx context.Context, client *github.Bound, repo string,
 // must not be judged against a policy that changed afterwards: newly required
 // assets would otherwise mark every historical release incomplete and block all
 // future versions.
-func assetState(p *policy.Policy, assets []releaseAsset, meta releaseMetadata, client *github.Bound, ctx context.Context, repo string) (complete, sumsVerified, policyHashMatches bool) {
+func assetState(p *policy.Policy, caps policy.Capabilities, assets []releaseAsset, meta releaseMetadata, client *github.Bound, ctx context.Context, repo string) (complete, sumsVerified, policyHashMatches bool) {
 	byName := map[string]releaseAsset{}
 	for _, a := range assets {
 		byName[a.Name] = a
 	}
-	// contract is the effective asset contract for this release.
-	contract := append([]string{}, p.Assets.Required...)
+	// The contract is the capability-derived asset set. A repository with no
+	// required assets (source-only, registry-only) only records its metadata.
+	contract := append([]string{}, caps.Assets...)
 	required := append([]string{}, contract...)
-	required = append(required, "RELEASE-METADATA.json")
-	checksumsEnabled := p.Checksums && len(p.Assets.Required) > 0
+	if caps.GitHubRelease {
+		required = append(required, "RELEASE-METADATA.json")
+	}
+	checksumsEnabled := caps.Checksums
 	if checksumsEnabled {
 		required = append(required, "SHA256SUMS")
 	}
 	policyHashMatches = true
 
-	if len(meta.Assets) > 0 {
+	if len(meta.Assets) > 0 && meta.Capabilities == nil {
+		// Metadata predating explicit capabilities: its asset list was the contract.
 		if meta.PolicyHash != "" && p.Hash != "" {
 			policyHashMatches = meta.PolicyHash == p.Hash
 		}
 		contract = append([]string{}, meta.Assets...)
 		required = append([]string{}, contract...)
-		required = append(required, "RELEASE-METADATA.json")
+		if caps.GitHubRelease {
+			required = append(required, "RELEASE-METADATA.json")
+		}
 		if _, hasSums := byName["SHA256SUMS"]; hasSums {
 			required = append(required, "SHA256SUMS")
 		}

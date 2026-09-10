@@ -154,7 +154,7 @@ func TestInspectDetectsACKMissing(t *testing.T) {
 	if report.Context.ReleasePR != 30 || report.Context.PRMergeSHA != "b6c2" {
 		t.Fatalf("context = %+v", report.Context)
 	}
-	if !report.Observed.Actual.Healthy() {
+	if !report.Observed.Actual.Healthy(report.Observed.Capabilities) {
 		t.Fatalf("actual should be healthy: %+v", report.Observed.Actual)
 	}
 }

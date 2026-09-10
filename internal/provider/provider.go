@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/redtidev1918/releasegraph/internal/domain"
+	"github.com/redtidev1918/releasegraph/internal/policy"
 )
 
 // Kind identifies a version provider.
@@ -86,26 +87,41 @@ type Actual struct {
 	Waived bool
 }
 
-// Healthy reports whether the whole actual release transaction is complete.
-func (a Actual) Healthy() bool {
+// Healthy reports whether the actual release satisfies the repository's own
+// contract. It is capability-driven: a project without binaries, without a
+// GitHub Release or without registries is healthy without them. Absence of an
+// unrequired artifact is never a release failure.
+func (a Actual) Healthy(caps policy.Capabilities) bool {
 	if !a.TagExists || a.TagCommit != a.ExpectedCommit || a.ExpectedCommit == "" {
 		return false
 	}
-	if !a.ReleaseExists || !a.Latest || !a.AssetsComplete || !a.ChecksumsVerified {
+	if caps.GitHubRelease {
+		if !a.ReleaseExists || !a.Latest {
+			return false
+		}
+	}
+	if len(caps.Assets) > 0 && !a.AssetsComplete {
 		return false
 	}
-	if !a.NoRegistryRequired && !a.RegistriesHealthy {
+	if caps.Checksums && !a.ChecksumsVerified {
+		return false
+	}
+	if len(caps.Registries) > 0 && !a.RegistriesHealthy {
 		return false
 	}
 	return true
 }
 
-// Observed bundles actual state with the provider's current acknowledgement.
+// Observed bundles actual state with the provider's current acknowledgement and
+// the release contract that state is judged against.
 type Observed struct {
 	Provider      Kind
 	Version       domain.Version
 	Actual        Actual
 	ProviderState State
+	// Capabilities is the contract: the current policy, or the contract recorded
+	// in the release metadata when judging a historical release.
+	Capabilities policy.Capabilities
 }
 
 // Verdict is the result of classifying one observed version.
@@ -144,25 +160,26 @@ func Classify(o Observed) Verdict {
 	}
 
 	// 2. Providers without acknowledgement state are in sync iff actual is healthy.
+	caps := o.Capabilities
 	if o.Provider == KindManual || o.Provider == KindTag || o.ProviderState == StateNone {
-		if a.Healthy() {
+		if a.Healthy(caps) {
 			return Verdict{Drift: DriftInSync, Health: domain.HealthHealthy, ACKAllowed: false}
 		}
-		return incomplete(a)
+		return incomplete(a, caps)
 	}
 
 	if o.ProviderState == StateUnknown {
 		// Do not guess. If the actual release is already healthy this is a
 		// recoverable ACK miss; otherwise repair the transaction first.
-		if a.Healthy() {
+		if a.Healthy(caps) {
 			return Verdict{Drift: DriftStateUnknown, Health: domain.HealthACKPending, ACKAllowed: false,
 				RepairSameVersion: true, Reason: "provider state unreadable; re-inspect then ACK"}
 		}
-		return incomplete(a)
+		return incomplete(a, caps)
 	}
 
 	acknowledged := o.ProviderState == StateTagged
-	healthy := a.Healthy()
+	healthy := a.Healthy(caps)
 
 	switch {
 	case healthy && acknowledged:
@@ -175,25 +192,31 @@ func Classify(o Observed) Verdict {
 		// Provider claims tagged while the real transaction is incomplete.
 		return Verdict{Drift: DriftFalseACK, Health: domain.HealthDegraded, RepairSameVersion: true}
 	default:
-		return incomplete(a)
+		return incomplete(a, caps)
 	}
 }
 
-// incomplete maps an unfinished actual transaction to its specific drift.
-func incomplete(a Actual) Verdict {
+// incomplete maps an unfinished actual transaction to its specific drift. Each
+// check is gated by the repository's own contract.
+func incomplete(a Actual, caps policy.Capabilities) Verdict {
+	recoverable := func(drift Drift) Verdict {
+		return Verdict{Drift: drift, Health: domain.HealthRecoverable, RepairSameVersion: true}
+	}
 	switch {
 	case !a.TagExists:
-		return Verdict{Drift: DriftTagMissing, Health: domain.HealthRecoverable, RepairSameVersion: true}
-	case !a.ReleaseExists:
-		return Verdict{Drift: DriftReleaseMissing, Health: domain.HealthRecoverable, RepairSameVersion: true}
-	case !a.AssetsComplete || !a.ChecksumsVerified:
-		return Verdict{Drift: DriftTransactionIncomplete, Health: domain.HealthRecoverable, RepairSameVersion: true}
-	case !a.NoRegistryRequired && !a.RegistriesHealthy:
-		return Verdict{Drift: DriftRegistryIncomplete, Health: domain.HealthRecoverable, RepairSameVersion: true}
-	case !a.Latest:
-		return Verdict{Drift: DriftTransactionIncomplete, Health: domain.HealthRecoverable, RepairSameVersion: true}
+		return recoverable(DriftTagMissing)
+	case caps.GitHubRelease && !a.ReleaseExists:
+		return recoverable(DriftReleaseMissing)
+	case len(caps.Assets) > 0 && !a.AssetsComplete:
+		return recoverable(DriftTransactionIncomplete)
+	case caps.Checksums && !a.ChecksumsVerified:
+		return recoverable(DriftTransactionIncomplete)
+	case len(caps.Registries) > 0 && !a.RegistriesHealthy:
+		return recoverable(DriftRegistryIncomplete)
+	case caps.GitHubRelease && !a.Latest:
+		return recoverable(DriftTransactionIncomplete)
 	default:
-		return Verdict{Drift: DriftTransactionIncomplete, Health: domain.HealthRecoverable, RepairSameVersion: true}
+		return recoverable(DriftTransactionIncomplete)
 	}
 }
 

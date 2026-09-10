@@ -28,7 +28,9 @@ func rolloutCommand(w io.Writer, args []string) error {
 	sub := args[0]
 	var format, manifestPath, version, releaseRepo string
 	var apply bool
+	var only []string
 	fs := flags(&format)
+	fs.Var((*repoList)(&only), "repos", "limit the rollout to these repositories (batch migration)")
 	fs.StringVar(&manifestPath, "manifest", "fleet.yaml", "fleet manifest")
 	fs.StringVar(&version, "version", "", "target ReleaseGraph version, e.g. v1.4.1")
 	fs.StringVar(&releaseRepo, "release-repo", "redtidev1918/releasegraph", "repository whose releases define versions")
@@ -71,10 +73,23 @@ func rolloutCommand(w io.Writer, args []string) error {
 	}
 
 	managed, _ := resolveManaged(ctx, client, manifest)
+	// Resolve the target version to its commit once: pins are commits, and both
+	// the plan and the canary gate compare against that commit.
+	targetCommit, commitErr := resolveRefCommit(ctx, client, releaseRepo, version)
+	if commitErr != nil {
+		targetCommit = ""
+	}
 	entries := rollout.InspectPins(ctx, client, manifest, managed, version)
+	for i := range entries {
+		entries[i].TargetCommit = targetCommit
+	}
 	canary, _ := manifest.Canary()
-	evidence := canaryEvidence(ctx, client, canary, version)
+	evidence := canaryEvidence(ctx, client, canary, version, targetCommit)
 	plan := rollout.BuildPlan(manifest, entries, version, canary, evidence)
+
+	if len(only) > 0 {
+		plan = limitPlan(plan, only)
+	}
 
 	if sub == "plan" || sub == "status" {
 		if format == "json" {
@@ -93,7 +108,10 @@ func rolloutCommand(w io.Writer, args []string) error {
 		fmt.Fprintln(w, "\ndry-run only; pass --apply to open upgrade pull requests")
 		return nil
 	}
-	return rolloutApply(ctx, w, format, client, plan, version)
+	if targetCommit == "" {
+		return fmt.Errorf("cannot resolve %s to a commit in %s", version, releaseRepo)
+	}
+	return rolloutApply(ctx, w, format, client, plan, version, targetCommit)
 }
 
 func humanRolloutPlan(w io.Writer, plan rollout.Plan) {
@@ -127,7 +145,37 @@ func humanRolloutPlan(w io.Writer, plan rollout.Plan) {
 	fmt.Fprintf(w, "\nready: %d  blocked: %d\n", len(plan.Ready), len(plan.Blocked))
 }
 
-func rolloutApply(ctx context.Context, w io.Writer, format string, client *github.Bound, plan rollout.Plan, version string) error {
+// resolveRefCommit resolves the version tag to the commit it points at, so the
+// pin written into business workflows is always resolvable.
+func resolveRefCommit(ctx context.Context, client *github.Bound, repo, version string) (string, error) {
+	var ref struct {
+		Object struct {
+			Type string `json:"type"`
+			SHA  string `json:"sha"`
+		} `json:"object"`
+	}
+	if _, err := client.GetOptional(ctx, fmt.Sprintf("repos/%s/git/ref/tags/%s", repo, version), &ref); err != nil {
+		return "", err
+	}
+	if ref.Object.SHA == "" {
+		return "", fmt.Errorf("cannot resolve %s in %s", version, repo)
+	}
+	if ref.Object.Type == "tag" {
+		// Annotated tag: peel it to the commit.
+		var annotated struct {
+			Object struct {
+				SHA string `json:"sha"`
+			} `json:"object"`
+		}
+		if err := client.Get(ctx, fmt.Sprintf("repos/%s/git/tags/%s", repo, ref.Object.SHA), &annotated); err != nil {
+			return "", err
+		}
+		return annotated.Object.SHA, nil
+	}
+	return ref.Object.SHA, nil
+}
+
+func rolloutApply(ctx context.Context, w io.Writer, format string, client *github.Bound, plan rollout.Plan, version, commit string) error {
 	results := []map[string]string{}
 	for _, entry := range plan.Entries {
 		if entry.Status != rollout.StatusReady {
@@ -139,10 +187,10 @@ func rolloutApply(ctx context.Context, w io.Writer, format string, client *githu
 			Branch:  "chore/releasegraph-" + version,
 			Message: "chore(release-infra): bump ReleaseGraph to " + version,
 			Title:   "chore(release-infra): bump ReleaseGraph to " + version,
-			Body: "Pins the release infrastructure to the immutable version `" + version + "`.\n\n" +
+			Body: "Pins the release infrastructure to `" + version + "` (commit `" + commit + "`).\n\n" +
 				"Opened by `releasegraph rollout` after the canary repository completed a release lifecycle on this version.\n" +
 				"Reverting this pull request returns the repository to its previous pin.",
-			Transform: func(current string) (string, error) { return rollout.Repin(current, version) },
+			Transform: func(current string) (string, error) { return rollout.RepinToCommit(current, version, commit) },
 		})
 		item := map[string]string{"repository": entry.Repository, "target": version}
 		if err != nil {
@@ -182,7 +230,7 @@ func resolveManaged(ctx context.Context, client *github.Bound, manifest *fleet.M
 	return fleet.Resolve(manifest, discovered.Repositories)
 }
 
-func canaryEvidence(ctx context.Context, client *github.Bound, canary, version string) rollout.CanaryEvidence {
+func canaryEvidence(ctx context.Context, client *github.Bound, canary, version, targetCommit string) rollout.CanaryEvidence {
 	if canary == "" {
 		return rollout.CanaryEvidence{Reason: "no canary declared in fleet.yaml"}
 	}
@@ -191,12 +239,12 @@ func canaryEvidence(ctx context.Context, client *github.Bound, canary, version s
 		return rollout.CanaryEvidence{Reason: "cannot read " + canary + " " + rollout.WorkflowPath}
 	}
 	pin := rollout.ParsePin(raw)
-	if pin.Ref != version {
+	if !pin.PinnedTo(version, targetCommit) {
 		return rollout.CanaryEvidence{Reason: canary + " is pinned to " + pin.Ref + ", not " + version}
 	}
-	run, ok, err := client.LatestWorkflowRun(ctx, canary, "release.yml")
+	run, ok, err := client.LatestCompletedWorkflowRun(ctx, canary, "release.yml")
 	if err != nil || !ok {
-		return rollout.CanaryEvidence{Pinned: true, Reason: "no release workflow run found for " + canary}
+		return rollout.CanaryEvidence{Pinned: true, Reason: "no completed release workflow run found for " + canary}
 	}
 	if run.Conclusion != "success" {
 		return rollout.CanaryEvidence{Pinned: true, Reason: "canary run " + run.HTMLURL + " concluded " + run.Conclusion}
@@ -217,4 +265,27 @@ func latestStableVersion(ctx context.Context, client *github.Bound, repo string)
 		return "", fmt.Errorf("no latest release found for %s", repo)
 	}
 	return release.TagName, nil
+}
+
+// limitPlan narrows a rollout to an explicit batch while keeping the canary gate
+// intact: a batch can never bypass a failing canary.
+func limitPlan(plan rollout.Plan, only []string) rollout.Plan {
+	wanted := map[string]bool{}
+	for _, name := range only {
+		wanted[name] = true
+	}
+	limited := rollout.Plan{Target: plan.Target, Canary: plan.Canary, CanaryPassed: plan.CanaryPassed, CanaryReason: plan.CanaryReason, Entries: []rollout.Entry{}, Ready: []string{}, Blocked: []string{}}
+	for _, entry := range plan.Entries {
+		if !wanted[entry.Repository] {
+			continue
+		}
+		limited.Entries = append(limited.Entries, entry)
+		switch entry.Status {
+		case rollout.StatusReady:
+			limited.Ready = append(limited.Ready, entry.Repository)
+		case rollout.StatusBlocked:
+			limited.Blocked = append(limited.Blocked, entry.Repository)
+		}
+	}
+	return limited
 }

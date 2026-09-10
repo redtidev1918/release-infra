@@ -111,8 +111,6 @@ jobs:
     uses: actions/checkout@v7
   b:
     uses: redtidev1918/releasegraph/.github/workflows/reusable-release.yml@v1
-  c:
-    uses: redtidev1918/releasegraph/.github/workflows/reusable-release.yml@v1 # keep comment
 `
 	next, err := Repin(source, "v1.4.1")
 	if err != nil {
@@ -124,10 +122,26 @@ jobs:
 	if !strings.Contains(next, "actions/checkout@v7") {
 		t.Fatalf("unrelated action was rewritten:\n%s", next)
 	}
-	if !strings.Contains(next, "# keep comment") {
-		t.Fatalf("comment lost:\n%s", next)
+	if !strings.Contains(next, "reusable-release.yml@v1.4.1") {
+		t.Fatalf("version comment missing:\n%s", next)
 	}
 	if _, err := Repin("name: nothing\n", "v1.4.1"); err == nil {
 		t.Fatal("a workflow without a ReleaseGraph call must be an error")
+	}
+}
+
+// A commit pin always resolves for reusable workflows, so rollout writes the
+// commit and keeps the version as a trailing comment for humans.
+func TestRepinToCommitRecordsTheVersionAsAComment(t *testing.T) {
+	next, err := RepinToCommit(workflowYAML, "v1.4.1", "949a267b48306e34b597e968269c492a31090bf2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(next, "reusable-release.yml@949a267b48306e34b597e968269c492a31090bf2 # ReleaseGraph v1.4.1") {
+		t.Fatalf("commit pin not written:\n%s", next)
+	}
+	pin := ParsePin([]byte(next))
+	if pin.Ref != "949a267b48306e34b597e968269c492a31090bf2" || pin.Mutable {
+		t.Fatalf("parsed pin = %+v", pin)
 	}
 }

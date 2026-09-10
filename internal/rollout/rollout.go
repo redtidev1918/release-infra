@@ -35,6 +35,10 @@ type Pin struct {
 	Mutable bool `json:"mutable"`
 	// Exact reports whether Ref looks like an immutable version tag.
 	Exact bool `json:"exact"`
+	// Version is the human-readable version recorded next to the pin, either
+	// from an exact tag ref or from the trailing "# ReleaseGraph vX.Y.Z" comment
+	// that commit pins carry.
+	Version string `json:"version,omitempty"`
 }
 
 var usesPattern = regexp.MustCompile(`uses:\s*([^\s#]+)`)
@@ -54,12 +58,22 @@ func ParsePin(workflow []byte) Pin {
 		if idx := strings.LastIndex(uses, "@"); idx >= 0 {
 			ref = uses[idx+1:]
 		}
-		return Pin{Ref: ref, Uses: uses, Mutable: MutableChannel.MatchString(ref), Exact: semverTag.MatchString(ref)}
+		version := ""
+		if comment := pinComment.FindStringSubmatch(line); comment != nil {
+			version = comment[1]
+		}
+		if version == "" && semverTag.MatchString(ref) {
+			version = ref
+		}
+		return Pin{Ref: ref, Uses: uses, Mutable: MutableChannel.MatchString(ref), Exact: semverTag.MatchString(ref), Version: version}
 	}
 	return Pin{}
 }
 
 var semverTag = regexp.MustCompile(`^v\d+\.\d+\.\d+$`)
+
+// pinComment reads the version recorded beside a commit pin.
+var pinComment = regexp.MustCompile(`#\s*ReleaseGraph\s+(v\d+\.\d+\.\d+)`)
 
 // Status of one repository in a rollout plan.
 const (
@@ -78,8 +92,11 @@ type Entry struct {
 	Canary         bool   `json:"canary,omitempty"`
 	Current        Pin    `json:"current"`
 	Target         string `json:"target"`
-	Status         string `json:"status"`
-	Reason         string `json:"reason,omitempty"`
+	// TargetCommit is the commit the target version resolves to; a commit pin
+	// equal to it counts as "already on target".
+	TargetCommit string `json:"targetCommit,omitempty"`
+	Status       string `json:"status"`
+	Reason       string `json:"reason,omitempty"`
 }
 
 // Plan is the full rollout decision for one target version.
@@ -128,7 +145,7 @@ func BuildPlan(manifest *fleet.Manifest, entries []Entry, target, canary string,
 		case entry.Current.Ref == "":
 			entry.Status = StatusNoPin
 			entry.Reason = "no ReleaseGraph reusable workflow call found"
-		case entry.Current.Ref == entry.Target:
+		case entry.Current.PinnedTo(entry.Target, entry.TargetCommit):
 			entry.Status = StatusCurrent
 			entry.Reason = "already on " + entry.Target
 		case entry.Canary:
@@ -174,14 +191,49 @@ func InspectPins(ctx context.Context, client *github.Bound, manifest *fleet.Mani
 // VersionOfRef normalises a tag or channel ref to a version string for display.
 func VersionOfRef(ref string) string { return strings.TrimPrefix(ref, "v") }
 
-var usesRefPattern = regexp.MustCompile(`(releasegraph/[^\s@#]*reusable-release\.yml@)([^\s#]+)`)
+var usesRefPattern = regexp.MustCompile(`(releasegraph/[^\s@#]*reusable-release\.yml@)([^\s#]+)(\s*#[^\n]*)?`)
 
 // Repin rewrites the ReleaseGraph ref inside a workflow file. Anything that is
 // not the ReleaseGraph reusable workflow call is left untouched, so comments and
 // unrelated actions survive.
+//
+// The pin is the commit behind the version tag, with the version kept in a
+// trailing comment: a commit ref always resolves for reusable workflows, while
+// an annotated tag reference can fail the whole run at startup.
 func Repin(workflow, version string) (string, error) {
 	if !usesRefPattern.MatchString(workflow) {
 		return "", fmt.Errorf("no ReleaseGraph reusable workflow reference found")
 	}
-	return usesRefPattern.ReplaceAllString(workflow, "${1}"+version), nil
+	return RepinToCommit(workflow, version, "")
+}
+
+// RepinToCommit pins the ReleaseGraph call to an exact commit, recording the
+// human-readable version in a comment.
+func RepinToCommit(workflow, version, commit string) (string, error) {
+	if !usesRefPattern.MatchString(workflow) {
+		return "", fmt.Errorf("no ReleaseGraph reusable workflow reference found")
+	}
+	ref := version
+	comment := ""
+	if commit != "" {
+		ref = commit
+		comment = " # ReleaseGraph " + version
+	}
+	return usesRefPattern.ReplaceAllString(workflow, "${1}"+ref+comment), nil
+}
+
+// PinnedTo reports whether a pin targets a version, accepting either the version
+// tag itself, the version recorded beside a commit pin, or the commit that the
+// version resolves to.
+func (p Pin) PinnedTo(version, commit string) bool {
+	switch {
+	case p.Ref == "":
+		return false
+	case p.Ref == version || p.Version == version:
+		return true
+	case commit != "" && p.Ref == commit:
+		return true
+	default:
+		return false
+	}
 }
