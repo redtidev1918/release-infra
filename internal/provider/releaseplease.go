@@ -133,8 +133,16 @@ func Inspect(ctx context.Context, client *github.Client, verifier *registry.Veri
 	actual.ReleaseExists = found && !rel.Draft
 
 	if found {
+		meta := readReleaseMetadata(ctx, client, repo, rel.Assets)
+		// Without a release PR (manual / tag providers) the release's own
+		// metadata records the commit it was built from; that is the expected
+		// tag target. Judging such a provider against an empty commit would
+		// report every healthy manual release as incomplete forever.
+		if actual.ExpectedCommit == "" {
+			actual.ExpectedCommit = meta.CommitSHA
+		}
 		var policyHashMatches bool
-		actual.AssetsComplete, actual.ChecksumsVerified, policyHashMatches = assetState(p, rel.Assets, client, ctx, repo)
+		actual.AssetsComplete, actual.ChecksumsVerified, policyHashMatches = assetState(p, rel.Assets, meta, client, ctx, repo)
 		report.Context.PolicyHashMatches = policyHashMatches
 
 		// Latest is only meaningful for stable releases.
@@ -202,6 +210,28 @@ type releaseMetadata struct {
 	Assets     []string          `json:"assets"`
 	AssetSHA   map[string]string `json:"asset_sha256"`
 	PolicyHash string            `json:"policy_hash"`
+	CommitSHA  string            `json:"commit_sha"`
+}
+
+// readReleaseMetadata downloads and parses the release's own contract. A missing
+// or unparsable metadata asset yields a zero value, which callers treat as
+// "fall back to the current policy".
+func readReleaseMetadata(ctx context.Context, client *github.Client, repo string, assets []releaseAsset) releaseMetadata {
+	for _, a := range assets {
+		if a.Name != "RELEASE-METADATA.json" {
+			continue
+		}
+		text, found, err := client.ReleaseAssetText(ctx, repo, a.ID)
+		if err != nil || !found {
+			return releaseMetadata{}
+		}
+		var meta releaseMetadata
+		if json.Unmarshal([]byte(text), &meta) != nil {
+			return releaseMetadata{}
+		}
+		return meta
+	}
+	return releaseMetadata{}
 }
 
 // assetState evaluates the contract recorded inside the release itself before
@@ -209,7 +239,7 @@ type releaseMetadata struct {
 // must not be judged against a policy that changed afterwards: newly required
 // assets would otherwise mark every historical release incomplete and block all
 // future versions.
-func assetState(p *policy.Policy, assets []releaseAsset, client *github.Client, ctx context.Context, repo string) (complete, sumsVerified, policyHashMatches bool) {
+func assetState(p *policy.Policy, assets []releaseAsset, meta releaseMetadata, client *github.Client, ctx context.Context, repo string) (complete, sumsVerified, policyHashMatches bool) {
 	byName := map[string]releaseAsset{}
 	for _, a := range assets {
 		byName[a.Name] = a
@@ -224,20 +254,15 @@ func assetState(p *policy.Policy, assets []releaseAsset, client *github.Client, 
 	}
 	policyHashMatches = true
 
-	if metaAsset, ok := byName["RELEASE-METADATA.json"]; ok {
-		if text, found, err := client.ReleaseAssetText(ctx, repo, metaAsset.ID); err == nil && found {
-			var meta releaseMetadata
-			if json.Unmarshal([]byte(text), &meta) == nil && len(meta.Assets) > 0 {
-				if meta.PolicyHash != "" && p.Hash != "" {
-					policyHashMatches = meta.PolicyHash == p.Hash
-				}
-				contract = append([]string{}, meta.Assets...)
-				required = append([]string{}, contract...)
-				required = append(required, "RELEASE-METADATA.json")
-				if _, hasSums := byName["SHA256SUMS"]; hasSums {
-					required = append(required, "SHA256SUMS")
-				}
-			}
+	if len(meta.Assets) > 0 {
+		if meta.PolicyHash != "" && p.Hash != "" {
+			policyHashMatches = meta.PolicyHash == p.Hash
+		}
+		contract = append([]string{}, meta.Assets...)
+		required = append([]string{}, contract...)
+		required = append(required, "RELEASE-METADATA.json")
+		if _, hasSums := byName["SHA256SUMS"]; hasSums {
+			required = append(required, "SHA256SUMS")
 		}
 	}
 	complete = true

@@ -28,13 +28,14 @@ func testPolicy() *policy.Policy {
 
 // fakeGitHub serves the endpoints provider.Inspect calls.
 type fakeGitHub struct {
-	prLabels   []string
-	release    bool
-	sums       string
-	asset404   bool
-	failLabel  bool
-	mutations  []string
-	dispatches []string
+	prLabels       []string
+	release        bool
+	sums           string
+	asset404       bool
+	failLabel      bool
+	metadataCommit string
+	mutations      []string
+	dispatches     []string
 }
 
 func (f *fakeGitHub) handler() http.Handler {
@@ -69,6 +70,14 @@ func (f *fakeGitHub) handler() http.Handler {
 			return
 		}
 		w.WriteHeader(http.StatusNotFound)
+	})
+
+	mux.HandleFunc("/repos/"+acme+"/releases/assets/3", func(w http.ResponseWriter, r *http.Request) {
+		if f.metadataCommit == "" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		fmt.Fprintf(w, `{"assets":["app-linux","app-macos"],"policy_hash":"","commit_sha":%q}`, f.metadataCommit)
 	})
 
 	mux.HandleFunc("/repos/"+acme+"/releases/assets/4", func(w http.ResponseWriter, r *http.Request) {
@@ -363,5 +372,27 @@ func TestRepairDispatchesSameVersionThroughRepoPipeline(t *testing.T) {
 	}
 	if len(f.dispatches) != 1 || !strings.Contains(f.dispatches[0], "actions/workflows/release.yml/dispatches") {
 		t.Fatalf("dispatches = %v", f.dispatches)
+	}
+}
+
+// Manual / tag providers have no release PR, so the expected tag target comes
+// from the release's own metadata. Without it every healthy manual release was
+// reported RECOVERABLE forever.
+func TestManualProviderUsesMetadataCommitAsExpectedTagTarget(t *testing.T) {
+	f := &fakeGitHub{
+		release:        true,
+		metadataCommit: "b6c2",
+		sums:           "aaaa  app-linux\nbbbb  app-macos\n",
+	}
+	manual := testPolicy()
+	manual.Versioning.Mode = "manual"
+	server := httptest.NewServer(f.handler())
+	defer server.Close()
+	report, err := Inspect(context.Background(), github.NewForTest(server.URL), registry.New(), manual, acme, "2.16.0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Verdict.Drift != DriftInSync || report.Verdict.Health != domain.HealthHealthy {
+		t.Fatalf("manual provider verdict = %+v (expected HEALTHY/IN_SYNC)", report.Verdict)
 	}
 }
