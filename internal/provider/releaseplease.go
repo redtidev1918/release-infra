@@ -490,7 +490,8 @@ func assetState(p *policy.Policy, caps policy.Capabilities, assets []releaseAsse
 	// the release's own recorded list when available, else the current policy.
 	covers := true
 	for _, pattern := range contract {
-		if pattern == "SHA256SUMS" || pattern == "RELEASE-METADATA.json" {
+		base := strings.ToUpper(path.Base(pattern))
+		if base == "SHA256SUMS" || strings.HasPrefix(base, "SHA256SUMS.") || pattern == "RELEASE-METADATA.json" {
 			continue
 		}
 		matched := false
@@ -521,7 +522,17 @@ func registryState(ctx context.Context, client *github.Bound, verifier *registry
 			continue
 		}
 		any = true
-		if err := verifier.Verify(ctx, name, cfg, repo, version, nil); err != nil {
+		manifestPath := cfg.File
+		if manifestPath == "" {
+			manifestPath = map[string]string{"npm": "package.json", "pypi": "pyproject.toml", "pub": "pubspec.yaml"}[name]
+		}
+		var manifest []byte
+		if manifestPath != "" {
+			if raw, found, err := client.ReadFile(ctx, repo, manifestPath, ""); err == nil && found {
+				manifest = raw
+			}
+		}
+		if err := verifier.Verify(ctx, name, cfg, repo, version, manifest); err != nil {
 			healthy = false
 		}
 	}
