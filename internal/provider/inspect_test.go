@@ -32,6 +32,7 @@ type fakeGitHub struct {
 	release   bool
 	sums      string
 	asset404  bool
+	failLabel bool
 	mutations []string
 }
 
@@ -82,6 +83,10 @@ func (f *fakeGitHub) handler() http.Handler {
 			f.mutations = append(f.mutations, r.Method+" "+r.URL.Path)
 		}
 		if r.Method == http.MethodPost && strings.Contains(r.URL.Path, "/labels") {
+			if f.failLabel {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			w.WriteHeader(http.StatusOK)
 			return
 		}
@@ -240,5 +245,44 @@ func TestAcknowledgeRefusesIncomplete(t *testing.T) {
 	defer server.Close()
 	if _, err := Acknowledge(context.Background(), github.NewForTest(server.URL), report, false); err == nil {
 		t.Fatal("ACK must be refused for an incomplete release")
+	}
+}
+
+// Acceptance: a transient provider API failure must never be treated as a
+// reason to create a new version; the same version is ACKed on the next run.
+func TestAcknowledgeRetriesOnNextRunAfterTransientFailure(t *testing.T) {
+	f := &fakeGitHub{
+		prLabels:  []string{labelPending},
+		release:   true,
+		sums:      "aaaa  app-linux\nbbbb  app-macos\n",
+		failLabel: true,
+	}
+	report, server := runInspect(t, f)
+	defer server.Close()
+	client := github.NewForTest(server.URL)
+
+	if _, err := Acknowledge(context.Background(), client, report, false); err == nil {
+		t.Fatal("a failing label API must surface as an error, not a silent success")
+	}
+	if len(f.mutations) == 0 {
+		// The client retries internally; ensure the attempt was actually made.
+		t.Fatal("no mutation attempted")
+	}
+
+	// The provider state is unchanged (still pending); the next run repairs it.
+	f.failLabel = false
+	f.mutations = nil
+	again, err := Inspect(context.Background(), client, registry.New(), testPolicy(), acme, "2.16.0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if again.Verdict.Drift != DriftACKMissing {
+		t.Fatalf("drift after failure = %s, want ACK_MISSING (no new version)", again.Verdict.Drift)
+	}
+	if _, err := Acknowledge(context.Background(), client, again, false); err != nil {
+		t.Fatalf("retry ACK: %v", err)
+	}
+	if len(f.mutations) == 0 {
+		t.Fatal("retry did not apply the ACK")
 	}
 }
