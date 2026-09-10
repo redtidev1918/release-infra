@@ -87,20 +87,31 @@ func (b *Bound) OpenChangePR(ctx context.Context, update FileUpdate) (string, er
 	if err := b.client.Get(ctx, fmt.Sprintf("repos/%s/git/ref/heads/%s", update.Repo, defaultBranch), &branch); err != nil {
 		return "", err
 	}
+	// The branch may already exist: a previous attempt can have been interrupted
+	// between creating it and opening the pull request. Retrying must converge,
+	// not refuse.
 	createBranch := map[string]string{"ref": "refs/heads/" + update.Branch, "sha": branch.Object.SHA}
 	if _, status, err := b.client.request(ctx, http.MethodPost, fmt.Sprintf("repos/%s/git/refs", update.Repo), mustJSON(createBranch)); err != nil {
 		return "", err
-	} else if status == http.StatusUnprocessableEntity {
-		// The branch already exists: an earlier rollout attempt is still open.
-		return "", rgerrors.New(rgerrors.VersionConflict, fmt.Sprintf("branch %s already exists in %s (a rollout PR is probably still open)", update.Branch, update.Repo))
+	} else if status != http.StatusCreated && status != http.StatusUnprocessableEntity && (status < 200 || status >= 300) {
+		return "", rgerrors.New(rgerrors.Transient, fmt.Sprintf("create branch %s in %s: status %d", update.Branch, update.Repo, status))
 	}
 
-	// Read, transform, commit.
+	// An existing pull request for this branch is success, not a conflict.
+	if existing, found := b.openPullRequest(ctx, update.Repo, update.Branch); found {
+		return existing, nil
+	}
+
+	// Read from the branch when it exists, otherwise from the default branch.
+	ref := defaultBranch
+	if branchExists(ctx, b, update.Repo, update.Branch) {
+		ref = update.Branch
+	}
 	var file struct {
 		Content string `json:"content"`
 		SHA     string `json:"sha"`
 	}
-	if err := b.client.Get(ctx, fmt.Sprintf("repos/%s/contents/%s?ref=%s", update.Repo, update.Path, url.QueryEscape(defaultBranch)), &file); err != nil {
+	if err := b.client.Get(ctx, fmt.Sprintf("repos/%s/contents/%s?ref=%s", update.Repo, update.Path, url.QueryEscape(ref)), &file); err != nil {
 		return "", err
 	}
 	decoded, err := base64.StdEncoding.DecodeString(strings.ReplaceAll(file.Content, "\n", ""))
@@ -112,7 +123,11 @@ func (b *Bound) OpenChangePR(ctx context.Context, update FileUpdate) (string, er
 		return "", err
 	}
 	if next == string(decoded) {
-		return "", rgerrors.New(rgerrors.VersionConflict, update.Repo+" already carries the requested change")
+		// The branch already carries the change (interrupted retry): go straight
+		// to ensuring the pull request exists.
+		if existing, found := b.openPullRequest(ctx, update.Repo, update.Branch); found {
+			return existing, nil
+		}
 	}
 	payload := map[string]string{
 		"message": update.Message,
@@ -132,6 +147,9 @@ func (b *Bound) OpenChangePR(ctx context.Context, update FileUpdate) (string, er
 		return "", err
 	}
 	if status == http.StatusUnprocessableEntity {
+		if existing, found := b.openPullRequest(ctx, update.Repo, update.Branch); found {
+			return existing, nil
+		}
 		return "", rgerrors.New(rgerrors.VersionConflict, fmt.Sprintf("a pull request for %s may already exist: %s", update.Branch, strings.TrimSpace(string(body))))
 	}
 	if status < 200 || status >= 300 {
@@ -142,4 +160,36 @@ func (b *Bound) OpenChangePR(ctx context.Context, update FileUpdate) (string, er
 	}
 	_ = decodeJSON(body, &created)
 	return created.HTMLURL, nil
+}
+
+// openPullRequest returns the URL of an open pull request for a branch.
+func (b *Bound) openPullRequest(ctx context.Context, repo, branch string) (string, bool) {
+	owner, _, _ := strings.Cut(repo, "/")
+	var prs []struct {
+		HTMLURL string `json:"html_url"`
+		Head    struct {
+			Ref string `json:"ref"`
+		} `json:"head"`
+	}
+	path := fmt.Sprintf("repos/%s/pulls?state=open&head=%s:%s", repo, url.QueryEscape(owner), url.QueryEscape(branch))
+	if err := b.client.Get(ctx, path, &prs); err != nil {
+		return "", false
+	}
+	for _, pr := range prs {
+		if pr.Head.Ref == branch {
+			return pr.HTMLURL, true
+		}
+	}
+	return "", false
+}
+
+// branchExists reports whether a branch exists in a repository.
+func branchExists(ctx context.Context, b *Bound, repo, branch string) bool {
+	var ref struct {
+		Object struct {
+			SHA string `json:"sha"`
+		} `json:"object"`
+	}
+	found, err := b.client.GetOptional(ctx, fmt.Sprintf("repos/%s/git/ref/heads/%s", repo, branch), &ref)
+	return err == nil && found
 }
