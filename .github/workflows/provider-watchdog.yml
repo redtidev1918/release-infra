@@ -28,20 +28,26 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      issues: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
         with:
           go-version-file: go.mod
+      - name: Create fleet installation token
+        id: fleet-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.RELEASEGRAPH_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASEGRAPH_PRIVATE_KEY }}
+          owner: ${{ vars.RELEASEGRAPH_OWNER }}
+          permission-contents: read
+          permission-issues: write
+          permission-pull-requests: read
       - name: Build releasegraph
         run: go build -o "$RUNNER_TEMP/releasegraph" ./cmd/releasegraph
       - name: Inspect provider state across the fleet
         env:
-          # A fleet scan reads every repository, which the repo-scoped
-          # GITHUB_TOKEN cannot do; fall back to it anyway so the run degrades
-          # to an explicit permission error instead of silence.
-          GITHUB_TOKEN: ${{ secrets.PROFILE_REPO_TOKEN || secrets.GITHUB_TOKEN }}
+          RELEASEGRAPH_FLEET_TOKEN: ${{ steps.fleet-token.outputs.token }}
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/releasegraph" provider inspect \
@@ -61,10 +67,7 @@ jobs:
       - name: Report provider drift to the job summary
         if: always()
         env:
-          # A fleet scan reads every repository, which the repo-scoped
-          # GITHUB_TOKEN cannot do; fall back to it anyway so the run degrades
-          # to an explicit permission error instead of silence.
-          GITHUB_TOKEN: ${{ secrets.PROFILE_REPO_TOKEN || secrets.GITHUB_TOKEN }}
+          RELEASEGRAPH_FLEET_TOKEN: ${{ steps.fleet-token.outputs.token }}
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/releasegraph" provider inspect \
@@ -87,7 +90,7 @@ jobs:
       - name: Acknowledge healthy releases (label-only, idempotent)
         if: ${{ github.event_name == 'schedule' || inputs.apply }}
         env:
-          GITHUB_TOKEN: ${{ secrets.PROFILE_REPO_TOKEN || secrets.GITHUB_TOKEN }}
+          RELEASEGRAPH_FLEET_TOKEN: ${{ steps.fleet-token.outputs.token }}
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/releasegraph" provider reconcile \
