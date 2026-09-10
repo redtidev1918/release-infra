@@ -128,13 +128,14 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
     asset_patterns = policy.get("assets", {})
     registries = policy.get("registries", {})
     ghcr = registries.get("ghcr", {})
-    tag_drift = False
+    # A local git failure must surface; only a failed remote probe is tolerable
+    # (offline CI) and means no drift signal, not a silent "everything is fine".
+    head = _run(["git", "rev-parse", "HEAD"], capture=True)
     try:
-        head = _run(["git", "rev-parse", "HEAD"], capture=True)
         tag_commit = _remote_tag_commit(tag)
-        tag_drift = bool(tag_commit and tag_commit != head)
     except (ReleaseError, subprocess.CalledProcessError):
-        pass
+        tag_commit = None
+    tag_drift = bool(tag_commit and tag_commit != head)
     retry_count = 0
     cooldown = False
     if os.environ.get("GITHUB_EVENT_NAME") == "schedule":
@@ -232,8 +233,27 @@ def audit(policy_path: str = ".release-policy.yml", version: str | None = None) 
     ]
     if missing:
         raise ReleaseError(f"release assets missing or empty: {', '.join(sorted(missing))}")
+    if policy.get("checksums", True) and policy.get("assets", {}).get("required"):
+        sums = _remote_text(tag, "SHA256SUMS")
+        listed = {
+            parts[1].lstrip("*").strip()
+            for line in sums.splitlines()
+            if (parts := line.split(None, 1)) and len(parts) == 2
+        }
+        uncovered = [
+            pattern for pattern in policy["assets"]["required"]
+            if not any(fnmatch.fnmatch(name, pattern) for name in listed)
+        ]
+        if uncovered:
+            raise ReleaseError(f"SHA256SUMS does not cover: {', '.join(sorted(uncovered))}")
     if not release["isPrerelease"] and not release["isLatest"]:
         raise ReleaseError(f"{tag} is not latest")
+
+
+def _remote_text(tag: str, asset: str) -> str:
+    with tempfile.TemporaryDirectory() as directory:
+        _run(["gh", "release", "download", tag, "--pattern", asset, "--dir", directory])
+        return (Path(directory) / asset).read_text()
 
 
 def prune(policy_path: str = ".release-policy.yml") -> None:
@@ -241,10 +261,22 @@ def prune(policy_path: str = ".release-policy.yml") -> None:
     retention = policy.get("retention", {})
     keep_stable = int(retention.get("stable", 1))
     keep_prerelease = int(retention.get("prerelease", 1))
-    releases = json.loads(_run(["gh", "release", "list", "--limit", "100", "--json", "tagName,isDraft,isPrerelease,publishedAt"], capture=True))
-    stable = [release for release in releases if not release["isDraft"] and not release["isPrerelease"]]
-    prereleases = [release for release in releases if not release["isDraft"] and release["isPrerelease"]]
-    for release in stable[keep_stable:] + prereleases[keep_prerelease:]:
+    keep_drafts = int(retention.get("failed_draft", 2))
+    releases = json.loads(_run(["gh", "release", "list", "--limit", "100", "--json", "tagName,isDraft,isPrerelease,isLatest,publishedAt,createdAt"], capture=True))
+    # gh release list is latest-first for public releases; drafts have no
+    # publishedAt and are appended, so sort each class explicitly.
+    public = sorted(
+        (r for r in releases if not r["isDraft"]),
+        key=lambda r: r.get("publishedAt") or "", reverse=True,
+    )
+    stable = [r for r in public if not r["isPrerelease"]]
+    prereleases = [r for r in public if r["isPrerelease"]]
+    drafts = sorted(
+        (r for r in releases if r["isDraft"]),
+        key=lambda r: r.get("createdAt") or "", reverse=True,
+    )
+    expired = stable[keep_stable:] + prereleases[keep_prerelease:] + drafts[keep_drafts:]
+    for release in expired:
         _run(["gh", "release", "delete", release["tagName"], "--yes"])
 
 

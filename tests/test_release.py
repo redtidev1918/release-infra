@@ -8,6 +8,17 @@ from release_infra import release
 
 
 class ReleaseTest(unittest.TestCase):
+    def setUp(self):
+        # plan() probes git for tag drift; keep tests hermetic unless a test
+        # overrides these itself (nested patches win).
+        self._git_patches = [
+            mock.patch.object(release, "_run", return_value="head-commit"),
+            mock.patch.object(release, "_remote_tag_commit", return_value=None),
+        ]
+        for patch in self._git_patches:
+            patch.start()
+            self.addCleanup(patch.stop)
+
     def test_manual_recovery_targets_same_version(self):
         policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}}}
         with tempfile.TemporaryDirectory() as directory:
@@ -187,6 +198,48 @@ class ReleaseTest(unittest.TestCase):
                     os.chdir(previous)
         remote.assert_not_called()
         upload.assert_not_called()
+
+
+    def test_plan_local_git_failure_is_not_swallowed(self):
+        policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": []}, "registries": {"github": {"required": True}}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            with mock.patch.object(release, "_release", return_value=None), \
+                    mock.patch.object(release, "_run", side_effect=release.ReleaseError("no git")):
+                with self.assertRaises(release.ReleaseError):
+                    release.plan(str(path))
+
+    def test_retention_prunes_old_drafts_beyond_failed_draft_limit(self):
+        policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "2.0.0"}, "assets": {"required": []}, "registries": {"github": {"required": True}}, "retention": {"stable": 1, "prerelease": 1, "failed_draft": 1}}
+        rows = [
+            {"tagName": "v-draft-old", "isDraft": True, "isPrerelease": False, "createdAt": "2026-01-01T00:00:00Z"},
+            {"tagName": "v1", "isDraft": False, "isPrerelease": False, "publishedAt": "2026-03-01T00:00:00Z"},
+            {"tagName": "v-draft-new", "isDraft": True, "isPrerelease": False, "createdAt": "2026-05-01T00:00:00Z"},
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            with mock.patch.object(release, "_run", side_effect=[json.dumps(rows), ""]) as run:
+                release.prune(str(path))
+        deleted = [call.args[0] for call in run.call_args_list if call.args[0][:3] == ["gh", "release", "delete"]]
+        self.assertEqual(deleted, [["gh", "release", "delete", "v-draft-old", "--yes"]])
+
+    def test_audit_requires_checksums_to_cover_required_assets(self):
+        policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app-linux", "app-macos"]}, "registries": {"github": {"required": True}}, "checksums": True}
+        public = {"isDraft": False, "isPrerelease": False, "isLatest": True, "assets": [{"name": name, "size": 1} for name in ("app-linux", "app-macos", "SHA256SUMS", "RELEASE-METADATA.json")]}
+        env = {"GITHUB_SHA": "head-commit"}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            with mock.patch.dict("os.environ", env), \
+                    mock.patch.object(release, "_release", return_value=public), \
+                    mock.patch.object(release, "_remote_tag_commit", return_value="head-commit"):
+                with mock.patch.object(release, "_remote_text", return_value="deadbeef  app-linux\n"):
+                    with self.assertRaisesRegex(release.ReleaseError, "app-macos"):
+                        release.audit(str(path))
+                with mock.patch.object(release, "_remote_text", return_value="a  app-linux\nb  app-macos\n"):
+                    release.audit(str(path))
 
 
 if __name__ == "__main__":
