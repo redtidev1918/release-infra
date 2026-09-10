@@ -152,5 +152,16 @@ class ProviderReconciliationWorkflowTest(unittest.TestCase):
         # The scheduled run is the one allowed to mutate, and only labels.
         self.assertIn("contents: read", workflow)
         self.assertIn("issues: write", workflow)
-        # A fleet scan spans repositories, so the repo-scoped token is not enough.
-        self.assertIn("PROFILE_REPO_TOKEN", workflow)
+        self.assertIn("actions/create-github-app-token@", workflow)
+        self.assertIn("RELEASEGRAPH_FLEET_TOKEN: ${{ steps.fleet-token.outputs.token }}", workflow)
+        self.assertNotIn("PROFILE_REPO_TOKEN", workflow)
+
+    def test_fleet_rollout_uses_ephemeral_app_token_and_plans_first(self):
+        workflow = Path(".github/workflows/fleet-rollout.yml").read_text()
+        self.assertIn("actions/create-github-app-token@", workflow)
+        self.assertIn("RELEASEGRAPH_FLEET_TOKEN: ${{ steps.fleet-token.outputs.token }}", workflow)
+        self.assertIn("permission-contents: write", workflow)
+        self.assertIn("permission-pull-requests: write", workflow)
+        self.assertIn("permission-workflows: write", workflow)
+        self.assertLess(workflow.index("rollout plan"), workflow.index("rollout apply"))
+        self.assertIn("if: ${{ inputs.apply }}", workflow)

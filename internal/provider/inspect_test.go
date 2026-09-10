@@ -30,6 +30,7 @@ func testPolicy() *policy.Policy {
 // fakeGitHub serves the endpoints provider.Inspect calls.
 type fakeGitHub struct {
 	prLabels          []string
+	prUnmerged        bool
 	release           bool
 	sums              string
 	asset404          bool
@@ -39,6 +40,7 @@ type fakeGitHub struct {
 	manifestAtMerge   string
 	manifestAtParent  string
 	noManifestCommits bool
+	packageManifest   string
 	mutations         []string
 	dispatches        []string
 }
@@ -55,7 +57,11 @@ func (f *fakeGitHub) handler() http.Handler {
 		if title == "" {
 			title = "chore(main): release 2.16.0"
 		}
-		fmt.Fprintf(w, `[{"number":30,"title":%q,"state":"closed","merged_at":"2026-09-10T08:00:00Z","merge_commit_sha":"b6c2","labels":[%s]}]`, title, strings.TrimSuffix(labels, ","))
+		mergedAt := `"2026-09-10T08:00:00Z"`
+		if f.prUnmerged {
+			mergedAt = "null"
+		}
+		fmt.Fprintf(w, `[{"number":30,"title":%q,"state":"closed","merged_at":%s,"merge_commit_sha":"b6c2","labels":[%s]}]`, title, mergedAt, strings.TrimSuffix(labels, ","))
 	})
 
 	mux.HandleFunc("/repos/"+acme+"/contents/.release-please-manifest.json", func(w http.ResponseWriter, r *http.Request) {
@@ -69,6 +75,19 @@ func (f *fakeGitHub) handler() http.Handler {
 		}
 		fmt.Fprintf(w, `{"encoding":"base64","content":%q}`,
 			base64.StdEncoding.EncodeToString([]byte(body)))
+	})
+
+	mux.HandleFunc("/repos/"+acme+"/contents/pyproject.toml", func(w http.ResponseWriter, r *http.Request) {
+		if f.packageManifest == "" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		fmt.Fprintf(w, `{"encoding":"base64","content":%q}`,
+			base64.StdEncoding.EncodeToString([]byte(f.packageManifest)))
+	})
+
+	mux.HandleFunc("/pypi/devart-dl/2.16.0/json", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
 	})
 
 	mux.HandleFunc("/repos/"+acme+"/issues", func(w http.ResponseWriter, r *http.Request) {
@@ -511,6 +530,60 @@ func TestNoPendingLabelMeansNothingToAcknowledge(t *testing.T) {
 	}
 	if report.Verdict.Health != domain.HealthHealthy {
 		t.Fatalf("verdict = %+v, want HEALTHY", report.Verdict)
+	}
+}
+
+// A closed, unmerged release-please PR may retain autorelease: pending, but it
+// is not a release transaction and must never be acknowledged.
+func TestClosedUnmergedPendingPRIsIgnored(t *testing.T) {
+	f := &fakeGitHub{
+		prLabels:          []string{labelPending},
+		prUnmerged:        true,
+		release:           true,
+		sums:              "aaaa  app-linux\nbbbb  app-macos\n",
+		metadataCommit:    "b6c2",
+		noManifestCommits: true,
+	}
+	report, _ := runInspect(t, f)
+
+	if report.Context.ReleasePR != 0 || report.Verdict.ACKAllowed {
+		t.Fatalf("unmerged PR was selected for ACK: context=%+v verdict=%+v", report.Context, report.Verdict)
+	}
+	if report.Verdict.Drift != DriftInSync || report.Verdict.Health != domain.HealthHealthy {
+		t.Fatalf("verdict = %+v, want healthy with no provider mutation", report.Verdict)
+	}
+}
+
+func TestHistoricalChecksumFileDoesNotNeedToChecksumItself(t *testing.T) {
+	f := &fakeGitHub{sums: "aaaa  app-linux\nbbbb  app-macos\n"}
+	server := httptest.NewServer(f.handler())
+	defer server.Close()
+	client := github.NewForTest(server.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet})
+	assets := []releaseAsset{
+		{ID: 1, Name: "app-linux", Size: 10},
+		{ID: 2, Name: "app-macos", Size: 10},
+		{ID: 3, Name: "RELEASE-METADATA.json", Size: 10},
+		{ID: 4, Name: "SHA256SUMS", Size: 10},
+		{ID: 5, Name: "SHA256SUMS.txt", Size: 10},
+	}
+	meta := releaseMetadata{Assets: []string{"app-linux", "app-macos", "SHA256SUMS.txt"}}
+	complete, verified, _ := assetState(testPolicy(), testPolicy().CapabilitiesOf(), assets, meta, client, context.Background(), acme)
+	if !complete || !verified {
+		t.Fatalf("historical checksum contract = complete:%t verified:%t, want true/true", complete, verified)
+	}
+}
+
+func TestRegistryStateReadsThePackageManifest(t *testing.T) {
+	f := &fakeGitHub{packageManifest: "[project]\nname = \"devart-dl\"\n"}
+	server := httptest.NewServer(f.handler())
+	defer server.Close()
+	client := github.NewForTest(server.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet})
+	p := testPolicy()
+	p.Registries = map[string]policy.Registry{"pypi": {Required: true}}
+
+	none, healthy := registryState(context.Background(), client, registry.NewForTest(server.URL), p, acme, "2.16.0")
+	if none || !healthy {
+		t.Fatalf("registry state = none:%t healthy:%t, want false/true", none, healthy)
 	}
 }
 

@@ -256,9 +256,7 @@ func providerState(ctx context.Context, client *github.Bound, p *policy.Policy, 
 	// and it is the exact thing the ACK clears. Identify it directly rather than
 	// requiring the historical release PR to still be reachable: repository
 	// history can be rewritten after a release.
-	if pending, found, err := pendingLabelPR(ctx, client, repo); err != nil {
-		return nil, StateUnknown, "", err
-	} else if found {
+	if pending, found := pendingLabelPR(prs); found {
 		return pending, StatePending, EvidenceLabel, nil
 	}
 	if manifestEvidence != "" {
@@ -269,35 +267,18 @@ func providerState(ctx context.Context, client *github.Bound, p *policy.Policy, 
 	return nil, StateTagged, EvidenceNoPending, nil
 }
 
-// pendingLabelPR finds a pull request that still carries an autorelease pending
-// or triggered label.
-func pendingLabelPR(ctx context.Context, client *github.Bound, repo string) (*github.PullRequest, bool, error) {
-	for _, label := range []string{labelPending, labelTriggered} {
-		var items []struct {
-			Number      int    `json:"number"`
-			Title       string `json:"title"`
-			PullRequest *struct {
-				MergedAt *string `json:"merged_at"`
-			} `json:"pull_request"`
-			Labels []struct {
-				Name string `json:"name"`
-			} `json:"labels"`
-		}
-		if err := client.Get(ctx, fmt.Sprintf("repos/%s/issues?state=all&labels=%s&per_page=10", repo, url.QueryEscape(label)), &items); err != nil {
-			return nil, false, err
-		}
-		for _, item := range items {
-			if item.PullRequest == nil {
-				continue
+// pendingLabelPR finds a merged pull request that still carries an autorelease
+// pending or triggered label. The input comes from MergedPullRequests; querying
+// the issues-by-label endpoint would also return closed, unmerged release PRs.
+func pendingLabelPR(prs []github.PullRequest) (*github.PullRequest, bool) {
+	for i := range prs {
+		for _, label := range prs[i].Labels {
+			if label.Name == labelPending || label.Name == labelTriggered {
+				return &prs[i], true
 			}
-			pr := &github.PullRequest{Number: item.Number, Title: item.Title}
-			for _, l := range item.Labels {
-				pr.Labels = append(pr.Labels, github.IssueLabel{Name: l.Name})
-			}
-			return pr, true, nil
 		}
 	}
-	return nil, false, nil
+	return nil, false
 }
 
 // manifestVersionAt reads the release manifest version at a commit. It returns ""
@@ -509,7 +490,8 @@ func assetState(p *policy.Policy, caps policy.Capabilities, assets []releaseAsse
 	// the release's own recorded list when available, else the current policy.
 	covers := true
 	for _, pattern := range contract {
-		if pattern == "SHA256SUMS" || pattern == "RELEASE-METADATA.json" {
+		base := strings.ToUpper(path.Base(pattern))
+		if base == "SHA256SUMS" || strings.HasPrefix(base, "SHA256SUMS.") || pattern == "RELEASE-METADATA.json" {
 			continue
 		}
 		matched := false
@@ -540,7 +522,17 @@ func registryState(ctx context.Context, client *github.Bound, verifier *registry
 			continue
 		}
 		any = true
-		if err := verifier.Verify(ctx, name, cfg, repo, version, nil); err != nil {
+		manifestPath := cfg.File
+		if manifestPath == "" {
+			manifestPath = map[string]string{"npm": "package.json", "pypi": "pyproject.toml", "pub": "pubspec.yaml"}[name]
+		}
+		var manifest []byte
+		if manifestPath != "" {
+			if raw, found, err := client.ReadFile(ctx, repo, manifestPath, ""); err == nil && found {
+				manifest = raw
+			}
+		}
+		if err := verifier.Verify(ctx, name, cfg, repo, version, manifest); err != nil {
 			healthy = false
 		}
 	}
