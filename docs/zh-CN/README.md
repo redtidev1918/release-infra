@@ -11,6 +11,9 @@ ReleaseGraph 是一个面向 GitHub Actions 的无服务器、多仓库发布编
 - [快速开始](quick-start.md)：先以只读方式生成 live plan。
 - [核心概念](concepts.md)：Desired/Actual、事件、DAG 与恢复语义。
 - [认证与权限](authentication.md)：审计、单仓库发布、跨仓库编排三级权限。
+- [如何调用发布工作流](callers.md)：调用方接口、输出与冻结的 `release_health` 契约。
+- [发布健康](health.md)：一套词表、原因码，以及"健康不是动作"。
+- [计划契约](plan.md)：`plan --graph` 的线上格式与它的边界。
 - [英文架构文档](../ARCHITECTURE.md)
 - [英文 Policy 参考](../POLICY.md)
 - [英文恢复说明](../RECOVERY.md)

@@ -6,6 +6,25 @@ on:
       paths_released:
         description: "Release Please component paths released in this run"
         value: ${{ jobs.release_please.outputs.paths_released }}
+      # The plan's verdict, published so a caller can act on it without parsing
+      # logs. Every value is already an output of the `build-plan` job; this
+      # block only forwards them. `release_health` is the one field a caller
+      # should branch on; the rest say what the run targeted.
+      release_health:
+        description: "Plan verdict: healthy | tag-drift | repair | missing"
+        value: ${{ jobs.build-plan.outputs.release_health }}
+      version:
+        description: "Version this run planned for"
+        value: ${{ jobs.build-plan.outputs.version }}
+      tag:
+        description: "Release tag this run planned for"
+        value: ${{ jobs.build-plan.outputs.tag }}
+      tag_drift:
+        description: "'true' when the existing tag is not the current head"
+        value: ${{ jobs.build-plan.outputs.tag_drift }}
+      run_release:
+        description: "'1' when this run may release; '0' when it is a no-op"
+        value: ${{ jobs.build-plan.outputs.run_release }}
     inputs:
       version: {type: string, default: ""}
       dry_run: {type: boolean, default: false}
