@@ -3,7 +3,7 @@
   "kind": "hybrid",
   "versioning": {
     "mode": "manual",
-    "version": "1.4.1"
+    "version": "1.4.2"
   },
   "assets": {
     "required": [
