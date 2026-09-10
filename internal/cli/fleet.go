@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/redtidev1918/releasegraph/internal/credential"
+	"github.com/redtidev1918/releasegraph/internal/domain"
 	"github.com/redtidev1918/releasegraph/internal/fleet"
 	"github.com/redtidev1918/releasegraph/internal/github"
 )
@@ -61,7 +62,11 @@ func fleetAudit(w io.Writer, format, manifestPath, owner string, publicOnly bool
 		if err := credential.RequireFleet("fleet audit --owner (metadata enrichment)"); err != nil {
 			// Enrichment is optional: report the manifest authority regardless.
 			fmt.Fprintf(os.Stderr, "note: %v; reporting manifest authority without GitHub enrichment\n", err)
-		} else if discovered, err := fleet.Discover(context.Background(), github.New(), owner, publicOnly); err == nil {
+		} else if discovered, err := fleet.Discover(context.Background(), github.New().Bind(domain.ExecutionContext{
+			Scope:           domain.ScopeFleet,
+			Actor:           actorName(),
+			CredentialClass: domain.CredentialFleet,
+		}), owner, publicOnly); err == nil {
 			managed, unmanaged = fleet.Resolve(manifest, discovered.Repositories)
 			enriched = true
 		} else {
@@ -110,7 +115,11 @@ func fleetDiscover(w io.Writer, format, owner string, publicOnly bool) error {
 	if err := credential.RequireFleet("fleet discover"); err != nil {
 		return err
 	}
-	discovered, err := fleet.Discover(context.Background(), github.New(), owner, publicOnly)
+	discovered, err := fleet.Discover(context.Background(), github.New().Bind(domain.ExecutionContext{
+		Scope:           domain.ScopeFleet,
+		Actor:           actorName(),
+		CredentialClass: domain.CredentialFleet,
+	}), owner, publicOnly)
 	if err != nil {
 		return err
 	}

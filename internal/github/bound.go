@@ -105,6 +105,14 @@ func (b *Bound) ReleaseAssetText(ctx context.Context, repo string, assetID int64
 	return b.client.ReleaseAssetText(ctx, repo, assetID)
 }
 
+// Releases lists the releases of one repository.
+func (b *Bound) Releases(ctx context.Context, repo string) ([]map[string]any, error) {
+	if err := b.guardTarget(repo); err != nil {
+		return nil, err
+	}
+	return b.client.Releases(ctx, repo)
+}
+
 // ReadFile reads a file from one repository.
 func (b *Bound) ReadFile(ctx context.Context, repo, path, ref string) ([]byte, bool, error) {
 	if err := b.guardTarget(repo); err != nil {

@@ -11,6 +11,7 @@ import (
 
 	"github.com/redtidev1918/releasegraph/internal/credential"
 	"github.com/redtidev1918/releasegraph/internal/domain"
+	rgerrors "github.com/redtidev1918/releasegraph/internal/errors"
 	"github.com/redtidev1918/releasegraph/internal/fleet"
 	"github.com/redtidev1918/releasegraph/internal/github"
 	"github.com/redtidev1918/releasegraph/internal/policy"
@@ -94,10 +95,12 @@ func executionContext(opts providerOptions) (domain.ExecutionContext, error) {
 
 	switch opts.scope {
 	case "repository":
-		if opts.repo == "" {
-			return domain.ExecutionContext{}, fmt.Errorf("--scope repository requires --repo")
+		// Repository scope is bound to the repository the process runs in, never
+		// to whatever --repo happens to name.
+		if self == "" {
+			return domain.ExecutionContext{}, fmt.Errorf("--scope repository requires GITHUB_REPOSITORY (run inside the repository)")
 		}
-		return domain.ExecutionContext{Scope: domain.ScopeRepository, Repository: opts.repo, Actor: actor, CredentialClass: domain.CredentialRepository}, nil
+		return domain.ExecutionContext{Scope: domain.ScopeRepository, Repository: self, Actor: actor, CredentialClass: domain.CredentialRepository}, nil
 	case "fleet":
 		if err := credential.RequireFleet("provider command"); err != nil {
 			return domain.ExecutionContext{}, err
@@ -338,8 +341,10 @@ func scanTargets(ctx context.Context, opts providerOptions, client *github.Bound
 				continue
 			}
 		} else if !execution.Allows(repo) {
-			scan.Errors = append(scan.Errors, fmt.Sprintf("%s: outside the bound repository scope", repo))
-			continue
+			// A repository-scoped process reaching for another repository is a
+			// hard failure, not a soft per-repository error.
+			return nil, rgerrors.New(rgerrors.ScopeViolation, fmt.Sprintf(
+				"scope=repository bound to %q may not operate on %q", execution.Repository, repo))
 		}
 		p, err := loadProviderPolicy(ctx, client, repo, opts.path)
 		if err != nil {

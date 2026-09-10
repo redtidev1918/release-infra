@@ -35,7 +35,7 @@ func TestDiscoverOwnerAgnosticFleet(t *testing.T) {
 	}))
 	defer server.Close()
 
-	out, err := Discover(context.Background(), github.NewForTest(server.URL), "acme", true)
+	out, err := Discover(context.Background(), github.NewForTest(server.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet}), "acme", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func TestDiscoverAuthenticatedFleetQueryIsValid(t *testing.T) {
 	}))
 	defer server.Close()
 
-	out, err := Discover(context.Background(), github.NewForTest(server.URL), "acme", false)
+	out, err := Discover(context.Background(), github.NewForTest(server.URL).Bind(domain.ExecutionContext{Scope: domain.ScopeFleet}), "acme", false)
 	if err != nil {
 		t.Fatal(err)
 	}
