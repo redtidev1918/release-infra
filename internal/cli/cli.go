@@ -55,6 +55,8 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		err = inspect(stdout, args[1:])
 	case "plan":
 		err = planCommand(stdout, args[1:])
+	case "provider":
+		err = providerCommand(stdout, args[1:])
 	case "static-check":
 		err = staticCheck(stdout, args[1:])
 	case "version":
@@ -84,7 +86,7 @@ func doctor(w io.Writer, args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"audit", "doctor", "fleet", "graph", "inspect", "plan", "static-check", "version"}}
+	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"audit", "doctor", "fleet", "graph", "inspect", "plan", "provider", "static-check", "version"}}
 	return write(w, format, info, humanDoctor)
 }
 
@@ -313,5 +315,7 @@ func effectiveMode(p *policy.Policy) string {
 	}
 	return p.Versioning.Provider
 }
-func usage(w io.Writer) { fmt.Fprintln(w, "usage: releasegraph [doctor|graph|inspect|plan|version]") }
-func Main()             { os.Exit(Run(os.Args[1:], os.Stdout, os.Stderr)) }
+func usage(w io.Writer) {
+	fmt.Fprintln(w, "usage: releasegraph [audit|doctor|fleet|graph|inspect|plan|provider|static-check|version]")
+}
+func Main() { os.Exit(Run(os.Args[1:], os.Stdout, os.Stderr)) }

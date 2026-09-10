@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path"
 	"regexp"
@@ -23,6 +24,10 @@ type Context struct {
 	PRMergeSHA string         `json:"prMergeSha,omitempty"`
 	Provider   Kind           `json:"provider"`
 	Labels     []string       `json:"labels,omitempty"`
+	// PolicyHashMatches reports whether the release was published under the
+	// current policy; false means asset differences are contract drift, not an
+	// incomplete release.
+	PolicyHashMatches bool `json:"policyHashMatches"`
 }
 
 // Report is the full reconciliation report for one version.
@@ -118,7 +123,9 @@ func Inspect(ctx context.Context, client *github.Client, verifier *registry.Veri
 	actual.ReleaseExists = found && !rel.Draft
 
 	if found {
-		actual.AssetsComplete, actual.ChecksumsVerified = assetState(p, rel.Assets, client, ctx, repo)
+		var policyHashMatches bool
+		actual.AssetsComplete, actual.ChecksumsVerified, policyHashMatches = assetState(p, rel.Assets, client, ctx, repo)
+		report.Context.PolicyHashMatches = policyHashMatches
 
 		// Latest is only meaningful for stable releases.
 		if !rel.Prerelease {
@@ -180,16 +187,48 @@ func providerState(ctx context.Context, client *github.Client, repo, version str
 	}
 }
 
-func assetState(p *policy.Policy, assets []releaseAsset, client *github.Client, ctx context.Context, repo string) (complete, sumsVerified bool) {
+// releaseMetadata is the RELEASE-METADATA.json contract recorded at publish time.
+type releaseMetadata struct {
+	Assets     []string          `json:"assets"`
+	AssetSHA   map[string]string `json:"asset_sha256"`
+	PolicyHash string            `json:"policy_hash"`
+}
+
+// assetState evaluates the contract recorded inside the release itself before
+// falling back to the current policy. A release published under an older policy
+// must not be judged against a policy that changed afterwards: newly required
+// assets would otherwise mark every historical release incomplete and block all
+// future versions.
+func assetState(p *policy.Policy, assets []releaseAsset, client *github.Client, ctx context.Context, repo string) (complete, sumsVerified, policyHashMatches bool) {
 	byName := map[string]releaseAsset{}
 	for _, a := range assets {
 		byName[a.Name] = a
 	}
-	required := append([]string{}, p.Assets.Required...)
+	// contract is the effective asset contract for this release.
+	contract := append([]string{}, p.Assets.Required...)
+	required := append([]string{}, contract...)
 	required = append(required, "RELEASE-METADATA.json")
 	checksumsEnabled := p.Checksums && len(p.Assets.Required) > 0
 	if checksumsEnabled {
 		required = append(required, "SHA256SUMS")
+	}
+	policyHashMatches = true
+
+	if metaAsset, ok := byName["RELEASE-METADATA.json"]; ok {
+		if text, found, err := client.ReleaseAssetText(ctx, repo, metaAsset.ID); err == nil && found {
+			var meta releaseMetadata
+			if json.Unmarshal([]byte(text), &meta) == nil && len(meta.Assets) > 0 {
+				if meta.PolicyHash != "" && p.Hash != "" {
+					policyHashMatches = meta.PolicyHash == p.Hash
+				}
+				contract = append([]string{}, meta.Assets...)
+				required = append([]string{}, contract...)
+				required = append(required, "RELEASE-METADATA.json")
+				if _, hasSums := byName["SHA256SUMS"]; hasSums {
+					required = append(required, "SHA256SUMS")
+				}
+			}
+		}
 	}
 	complete = true
 	for _, pattern := range required {
@@ -204,16 +243,17 @@ func assetState(p *policy.Policy, assets []releaseAsset, client *github.Client, 
 			complete = false
 		}
 	}
-	if !checksumsEnabled {
-		return complete, complete
+	_, hasSums := byName["SHA256SUMS"]
+	if !checksumsEnabled && !hasSums {
+		return complete, complete, policyHashMatches
 	}
 	sumsAsset, ok := byName["SHA256SUMS"]
 	if !ok {
-		return complete, false
+		return complete, false, policyHashMatches
 	}
 	text, found, err := client.ReleaseAssetText(ctx, repo, sumsAsset.ID)
 	if err != nil || !found {
-		return complete, false
+		return complete, false, policyHashMatches
 	}
 	listed := map[string]bool{}
 	for _, line := range strings.Split(text, "\n") {
@@ -222,8 +262,13 @@ func assetState(p *policy.Policy, assets []releaseAsset, client *github.Client, 
 			listed[strings.TrimPrefix(fields[1], "*")] = true
 		}
 	}
+	// Coverage is judged against the same contract used for the asset gate:
+	// the release's own recorded list when available, else the current policy.
 	covers := true
-	for _, pattern := range p.Assets.Required {
+	for _, pattern := range contract {
+		if pattern == "SHA256SUMS" || pattern == "RELEASE-METADATA.json" {
+			continue
+		}
 		matched := false
 		for name := range listed {
 			if ok, _ := path.Match(pattern, name); ok {
@@ -235,7 +280,7 @@ func assetState(p *policy.Policy, assets []releaseAsset, client *github.Client, 
 			covers = false
 		}
 	}
-	return complete, complete && covers
+	return complete, complete && covers, policyHashMatches
 }
 
 func registryState(ctx context.Context, client *github.Client, verifier *registry.Verifier, p *policy.Policy, repo, version string) (noneRequired, healthy bool) {
@@ -295,4 +340,10 @@ func Acknowledge(ctx context.Context, client *github.Client, report *Report, dry
 		}
 	}
 	return mutations, nil
+}
+
+// ScanResult is the fleet-wide outcome of a provider scan.
+type ScanResult struct {
+	Reports []Report `json:"reports"`
+	Errors  []string `json:"errors,omitempty"`
 }

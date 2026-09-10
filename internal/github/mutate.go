@@ -19,13 +19,18 @@ type IssueLabel struct {
 
 // PullRequest is the subset of a PR the provider layer needs.
 type PullRequest struct {
-	Number         int          `json:"number"`
-	Title          string       `json:"title"`
-	Merged         bool         `json:"merged"`
-	State          string       `json:"state"`
+	Number int    `json:"number"`
+	Title  string `json:"title"`
+	State  string `json:"state"`
+	// MergedAt is how the list endpoint signals a merged PR; the "merged"
+	// boolean only exists on the single-PR endpoint and is always absent here.
+	MergedAt       *string      `json:"merged_at"`
 	MergeCommitSHA string       `json:"merge_commit_sha"`
 	Labels         []IssueLabel `json:"labels"`
 }
+
+// Merged reports whether the pull request was merged.
+func (p PullRequest) Merged() bool { return p.MergedAt != nil && *p.MergedAt != "" }
 
 // Tag is one git tag as returned by the list-tags endpoint.
 type Tag struct {
@@ -53,7 +58,7 @@ func (c *Client) MergedPullRequests(ctx context.Context, repo string) ([]PullReq
 	}
 	merged := prs[:0]
 	for _, pr := range prs {
-		if pr.Merged {
+		if pr.Merged() {
 			merged = append(merged, pr)
 		}
 	}

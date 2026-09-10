@@ -43,7 +43,7 @@ func (f *fakeGitHub) handler() http.Handler {
 		for _, l := range f.prLabels {
 			labels += fmt.Sprintf(`{"name":%q},`, l)
 		}
-		fmt.Fprintf(w, `[{"number":30,"title":"chore(main): release 2.16.0","state":"closed","merged":true,"merge_commit_sha":"b6c2","labels":[%s]}]`, strings.TrimSuffix(labels, ","))
+		fmt.Fprintf(w, `[{"number":30,"title":"chore(main): release 2.16.0","state":"closed","merged_at":"2026-09-10T08:00:00Z","merge_commit_sha":"b6c2","labels":[%s]}]`, strings.TrimSuffix(labels, ","))
 	})
 
 	mux.HandleFunc("/repos/"+acme+"/git/ref/tags/v2.16.0", func(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +78,9 @@ func (f *fakeGitHub) handler() http.Handler {
 	})
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		f.mutations = append(f.mutations, r.Method+" "+r.URL.Path)
+		if r.Method != http.MethodGet {
+			f.mutations = append(f.mutations, r.Method+" "+r.URL.Path)
+		}
 		if r.Method == http.MethodPost && strings.Contains(r.URL.Path, "/labels") {
 			w.WriteHeader(http.StatusOK)
 			return
@@ -90,6 +92,13 @@ func (f *fakeGitHub) handler() http.Handler {
 		w.WriteHeader(http.StatusNotFound)
 	})
 	return mux
+}
+
+func newTestServer(t *testing.T, f *fakeGitHub) string {
+	t.Helper()
+	server := httptest.NewServer(f.handler())
+	t.Cleanup(server.Close)
+	return server.URL
 }
 
 func runInspect(t *testing.T, f *fakeGitHub) (*Report, *httptest.Server) {
