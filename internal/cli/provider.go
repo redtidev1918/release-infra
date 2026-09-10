@@ -21,13 +21,14 @@ import (
 //	releasegraph provider reconcile --repo owner/name [--version X] [--apply]
 //	releasegraph provider reconcile --all --owner someone [--apply]
 type providerOptions struct {
-	format  string
-	repo    string
-	version string
-	path    string
-	owner   string
-	all     bool
-	apply   bool
+	format   string
+	repo     string
+	version  string
+	path     string
+	owner    string
+	all      bool
+	apply    bool
+	workflow string
 }
 
 func providerCommand(w io.Writer, args []string) error {
@@ -45,6 +46,7 @@ func providerCommand(w io.Writer, args []string) error {
 	fs.StringVar(&opts.owner, "owner", "", "fleet owner for --all")
 	fs.BoolVar(&opts.all, "all", false, "scan every managed repository of --owner")
 	fs.BoolVar(&opts.apply, "apply", false, "apply provider mutations (default is a side-effect-free plan)")
+	fs.StringVar(&opts.workflow, "workflow", "release.yml", "release workflow file to dispatch for repair")
 	if err := fs.Parse(args[1:]); err != nil {
 		return err
 	}
@@ -56,6 +58,8 @@ func providerCommand(w io.Writer, args []string) error {
 		return providerReconcile(w, opts)
 	case "waive":
 		return providerWaive(w, opts)
+	case "repair":
+		return providerRepair(w, opts)
 	default:
 		return fmt.Errorf("unknown provider subcommand %q", sub)
 	}
@@ -73,6 +77,58 @@ func providerWaive(w io.Writer, opts providerOptions) error {
 		return err
 	}
 	fmt.Fprintf(w, "waived %s %s (release PR #%d) — say why in the PR conversation\n", opts.repo, opts.version, number)
+	return nil
+}
+
+// providerRepair resumes an incomplete version through the repository's own
+// release pipeline. It never starts a newer version and never touches tags.
+func providerRepair(w io.Writer, opts providerOptions) error {
+	ctx := context.Background()
+	client := github.New()
+	scan, err := scanProvider(ctx, opts)
+	if err != nil {
+		return err
+	}
+	type outcome struct {
+		Repository string            `json:"repository"`
+		Version    string            `json:"version"`
+		Drift      provider.Drift    `json:"drift"`
+		Allowed    bool              `json:"allowed"`
+		Reason     string            `json:"reason"`
+		Inputs     map[string]string `json:"inputs,omitempty"`
+		Dispatched bool              `json:"dispatched"`
+	}
+	outcomes := []outcome{}
+	for _, report := range scan.Reports {
+		allowed, reason, inputs := provider.RepairPlan(&report)
+		item := outcome{Repository: report.Context.Repository, Version: string(report.Context.Version), Drift: report.Verdict.Drift, Allowed: allowed, Reason: reason, Inputs: inputs}
+		if allowed && opts.apply {
+			applied, err := provider.Repair(ctx, client, &report, opts.workflow, false)
+			if err != nil {
+				scan.Errors = append(scan.Errors, fmt.Sprintf("%s: %v", report.Context.Repository, err))
+			} else {
+				item.Inputs = applied
+				item.Dispatched = true
+			}
+		}
+		outcomes = append(outcomes, item)
+	}
+	if opts.format == "json" || opts.format == "" {
+		return write(w, "json", map[string]any{"mode": mode(opts.apply), "workflow": opts.workflow, "outcomes": outcomes, "errors": scan.Errors}, nil)
+	}
+	for _, item := range outcomes {
+		state := "planned"
+		if item.Dispatched {
+			state = "dispatched"
+		}
+		if !item.Allowed {
+			state = "skipped"
+		}
+		fmt.Fprintf(w, "%-8s %s %s (%s): %s\n", state, item.Repository, item.Version, item.Drift, item.Reason)
+	}
+	for _, failure := range scan.Errors {
+		fmt.Fprintln(w, "ERROR", failure)
+	}
 	return nil
 }
 

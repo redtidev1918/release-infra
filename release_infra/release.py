@@ -4,8 +4,10 @@ import datetime as dt
 import fnmatch
 import json
 import os
+import re
 import subprocess
 import tempfile
+from typing import Any
 from pathlib import Path
 
 from . import __version__
@@ -47,6 +49,29 @@ def _release(tag: str) -> dict | None:
     latest = subprocess.run(["gh", "release", "view", "--json", "tagName"], text=True, capture_output=True)
     release["isLatest"] = not latest.returncode and json.loads(latest.stdout)["tagName"] == tag
     return release
+
+
+def _version_key(version: str) -> tuple:
+    """Order versions numerically without adding a dependency."""
+    parts: list[tuple[int, Any]] = []
+    for chunk in re.split(r"[.\-+]", version.removeprefix("v")):
+        parts.append((0, int(chunk)) if chunk.isdigit() else (1, chunk))
+    return tuple(parts)
+
+
+def _is_newest(version: str) -> bool:
+    """Report whether version is at least as new as the current Latest release.
+
+    Repairing an older version must never move the Latest badge backwards, so
+    publish() only passes --latest when this holds.
+    """
+    result = subprocess.run(["gh", "release", "view", "--json", "tagName"], text=True, capture_output=True)
+    if result.returncode:
+        return True
+    current = json.loads(result.stdout).get("tagName") or ""
+    if not current:
+        return True
+    return _version_key(version) >= _version_key(current)
 
 
 def _remote_tag_commit(tag: str) -> str | None:
@@ -206,7 +231,11 @@ def publish(policy_path: str = ".release-policy.yml", version: str | None = None
     prerelease = bool(policy.get("release", {}).get("prerelease", False))
     command = ["gh", "release", "edit", tag, "--draft=false", f"--prerelease={'true' if prerelease else 'false'}"]
     if not prerelease:
-        command.append("--latest")
+        if _is_newest(desired):
+            command.append("--latest")
+        else:
+            # Same-version repair of an older release: keep Latest where it is.
+            print(f"note: a newer release is currently Latest; publishing {tag} without --latest")
     _run(command)
     audit(policy_path, desired)
     reconcile_release_labels(desired)

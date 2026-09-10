@@ -28,12 +28,13 @@ func testPolicy() *policy.Policy {
 
 // fakeGitHub serves the endpoints provider.Inspect calls.
 type fakeGitHub struct {
-	prLabels  []string
-	release   bool
-	sums      string
-	asset404  bool
-	failLabel bool
-	mutations []string
+	prLabels   []string
+	release    bool
+	sums       string
+	asset404   bool
+	failLabel  bool
+	mutations  []string
+	dispatches []string
 }
 
 func (f *fakeGitHub) handler() http.Handler {
@@ -76,6 +77,15 @@ func (f *fakeGitHub) handler() http.Handler {
 			return
 		}
 		w.Write([]byte(f.sums))
+	})
+
+	mux.HandleFunc("/repos/"+acme+"/actions/workflows/release.yml/dispatches", func(w http.ResponseWriter, r *http.Request) {
+		f.dispatches = append(f.dispatches, r.URL.Path)
+		w.WriteHeader(http.StatusNoContent)
+	})
+
+	mux.HandleFunc("/repos/"+acme, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"default_branch":"main"}`)
 	})
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -284,5 +294,74 @@ func TestAcknowledgeRetriesOnNextRunAfterTransientFailure(t *testing.T) {
 	}
 	if len(f.mutations) == 0 {
 		t.Fatal("retry did not apply the ACK")
+	}
+}
+
+func TestRepairPlanOnlyResumesSameVersion(t *testing.T) {
+	// Incomplete release: allowed, and it must target the same version.
+	incomplete := obs(StatePending)
+	incomplete.Actual.ReleaseExists = false
+	report := &Report{Observed: incomplete, Verdict: Classify(incomplete)}
+	report.Context = Context{Repository: acme, Version: "2.16.0"}
+	allowed, reason, inputs := RepairPlan(report)
+	if !allowed {
+		t.Fatalf("recoverable version refused repair: %s", reason)
+	}
+	if inputs["version"] != "2.16.0" || inputs["repair"] != "true" || inputs["force"] != "true" {
+		t.Fatalf("repair inputs = %v", inputs)
+	}
+
+	// Healthy: nothing to do.
+	healthy := &Report{Observed: obs(StateTagged), Verdict: Classify(obs(StateTagged))}
+	if allowed, _, _ := RepairPlan(healthy); allowed {
+		t.Fatal("healthy release must not be repaired")
+	}
+
+	// Waived: explicitly accepted, never repaired.
+	waivedObs := obs(StateTagged)
+	waivedObs.Actual.Waived = true
+	waived := &Report{Observed: waivedObs, Verdict: Classify(waivedObs)}
+	if allowed, _, _ := RepairPlan(waived); allowed {
+		t.Fatal("waived version must not be repaired")
+	}
+
+	// Tag conflict: history rewrite is never the repair.
+	conflictObs := obs(StatePending)
+	conflictObs.Actual.TagCommit = "dead"
+	conflict := &Report{Observed: conflictObs, Verdict: Classify(conflictObs)}
+	if allowed, reason, _ := RepairPlan(conflict); allowed || !strings.Contains(reason, "TAG_CONFLICT") {
+		t.Fatalf("tag conflict must hard-refuse repair: %v %s", allowed, reason)
+	}
+}
+
+func TestRepairDispatchesSameVersionThroughRepoPipeline(t *testing.T) {
+	f := &fakeGitHub{prLabels: []string{labelPending}, release: false}
+	server := httptest.NewServer(f.handler())
+	defer server.Close()
+	client := github.NewForTest(server.URL)
+	report, err := Inspect(context.Background(), client, registry.New(), testPolicy(), acme, "2.16.0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Dry run only reports the plan.
+	planned, err := Repair(context.Background(), client, report, "", true)
+	if err != nil || planned["version"] != "2.16.0" {
+		t.Fatalf("dry-run plan = %v %v", planned, err)
+	}
+	if len(f.dispatches) != 0 {
+		t.Fatalf("dry run dispatched: %v", f.dispatches)
+	}
+
+	// Applying dispatches the repository's own release workflow on its default branch.
+	applied, err := Repair(context.Background(), client, report, "", false)
+	if err != nil {
+		t.Fatalf("Repair: %v", err)
+	}
+	if applied["repair"] != "true" {
+		t.Fatalf("inputs = %v", applied)
+	}
+	if len(f.dispatches) != 1 || !strings.Contains(f.dispatches[0], "actions/workflows/release.yml/dispatches") {
+		t.Fatalf("dispatches = %v", f.dispatches)
 	}
 }

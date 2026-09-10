@@ -263,3 +263,45 @@ class ReleaseTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LatestGuardTest(unittest.TestCase):
+    """Same-version repair must never move the Latest badge backwards."""
+
+    def test_version_key_orders_numerically(self):
+        self.assertLess(release._version_key("2.9.0"), release._version_key("2.16.0"))
+        self.assertLess(release._version_key("v2.16.1"), release._version_key("2.17.0"))
+        self.assertEqual(release._version_key("2.17.0"), release._version_key("v2.17.0"))
+
+    def test_repairing_older_version_does_not_claim_latest(self):
+        policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "2.16.0"}, "assets": {"required": []}, "registries": {"github": {"required": True}}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            with mock.patch.object(release, "_is_newest", return_value=False), \
+                    mock.patch.object(release, "_upload_idempotent"), \
+                    mock.patch.object(release, "audit"), \
+                    mock.patch.object(release, "prune"), \
+                    mock.patch.object(release, "_run", return_value="head-commit") as run, \
+                    mock.patch.object(release, "collect_assets", return_value=[]):
+                release.publish(str(path))
+        commands = [" ".join(call.args[0]) for call in run.call_args_list]
+        publish = [c for c in commands if c.startswith("gh release edit")]
+        self.assertEqual(len(publish), 1, commands)
+        self.assertNotIn("--latest", publish[0])
+
+    def test_current_version_still_claims_latest(self):
+        policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "2.18.0"}, "assets": {"required": []}, "registries": {"github": {"required": True}}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            with mock.patch.object(release, "_is_newest", return_value=True), \
+                    mock.patch.object(release, "_upload_idempotent"), \
+                    mock.patch.object(release, "audit"), \
+                    mock.patch.object(release, "prune"), \
+                    mock.patch.object(release, "_run", return_value="head-commit") as run, \
+                    mock.patch.object(release, "collect_assets", return_value=[]):
+                release.publish(str(path))
+        publish = [" ".join(call.args[0]) for call in run.call_args_list if call.args[0][:3] == ["gh", "release", "edit"]]
+        self.assertEqual(len(publish), 1, publish)
+        self.assertIn("--latest", publish[0])

@@ -376,3 +376,50 @@ func Waive(ctx context.Context, client *github.Client, repo string, version stri
 	}
 	return 0, fmt.Errorf("no merged release PR found for version %s", version)
 }
+
+// RepairPlan decides how an incomplete version is recovered. Same-version
+// recovery is the only allowed path: starting a newer version to escape an
+// unfinished release is exactly the failure mode this layer exists to prevent.
+func RepairPlan(r *Report) (allowed bool, reason string, inputs map[string]string) {
+	v := r.Verdict
+	switch {
+	case v.HardFail:
+		return false, "TAG_CONFLICT: an existing tag points at the wrong commit; manual intervention required", nil
+	case v.Waived:
+		return false, "version is explicitly waived; nothing to repair", nil
+	case v.Health == domain.HealthHealthy:
+		return false, "release transaction is already healthy", nil
+	case !v.RepairSameVersion:
+		return false, "release is not in a repairable state (" + string(v.Drift) + ")", nil
+	case r.Context.Version == "":
+		return false, "no version resolved for repair", nil
+	}
+	return true, "resume the same version through the repository's own release pipeline", map[string]string{
+		"version": string(r.Context.Version),
+		"force":   "true",
+		"repair":  "true",
+	}
+}
+
+// Repair re-enters the repository's release pipeline for the same version.
+// dryRun only reports the dispatch it would perform.
+func Repair(ctx context.Context, client *github.Client, r *Report, workflowFile string, dryRun bool) (map[string]string, error) {
+	allowed, reason, inputs := RepairPlan(r)
+	if !allowed {
+		return nil, fmt.Errorf("repair refused: %s", reason)
+	}
+	if workflowFile == "" {
+		workflowFile = "release.yml"
+	}
+	if dryRun {
+		return inputs, nil
+	}
+	ref, err := client.DefaultBranch(ctx, r.Context.Repository)
+	if err != nil {
+		return nil, err
+	}
+	if err := client.DispatchWorkflow(ctx, r.Context.Repository, workflowFile, ref, inputs); err != nil {
+		return nil, err
+	}
+	return inputs, nil
+}

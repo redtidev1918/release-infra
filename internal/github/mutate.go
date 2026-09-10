@@ -180,3 +180,38 @@ func (c *Client) request(ctx context.Context, method, path string, body []byte) 
 	}
 	return nil, 0, last
 }
+
+// DefaultBranch returns a repository's default branch.
+func (c *Client) DefaultBranch(ctx context.Context, repo string) (string, error) {
+	var meta struct {
+		DefaultBranch string `json:"default_branch"`
+	}
+	if err := c.Get(ctx, fmt.Sprintf("repos/%s", repo), &meta); err != nil {
+		return "", err
+	}
+	return meta.DefaultBranch, nil
+}
+
+// DispatchWorkflow triggers a workflow_dispatch run. This is how same-version
+// repair re-enters a repository's own release pipeline instead of fabricating
+// release objects from the outside.
+func (c *Client) DispatchWorkflow(ctx context.Context, repo, workflowFile, ref string, inputs map[string]string) error {
+	payload := map[string]any{"ref": ref}
+	if len(inputs) > 0 {
+		payload["inputs"] = inputs
+	}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return rgerrors.Wrap(rgerrors.InvariantViolation, "encode dispatch", err)
+	}
+	respBody, status, err := c.request(ctx, http.MethodPost,
+		fmt.Sprintf("repos/%s/actions/workflows/%s/dispatches", repo, workflowFile), body)
+	if err != nil {
+		return err
+	}
+	// 204 No Content is the documented success response.
+	if status != http.StatusNoContent && (status < 200 || status >= 300) {
+		return rgerrors.New(rgerrors.Transient, fmt.Sprintf("dispatch %s %d: %s", repo, status, strings.TrimSpace(string(respBody))))
+	}
+	return nil
+}
