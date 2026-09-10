@@ -4,11 +4,13 @@
   - [核心概念](/zh-CN/concepts.md)
   - [认证与权限](/zh-CN/authentication.md)
   - [发布健康](/zh-CN/health.md)
+  - [计划契约](/zh-CN/plan.md)
 - English
   - [ReleaseGraph documentation](/)
   - [Architecture](/ARCHITECTURE.md)
   - [Policy](/POLICY.md)
   - [Release health](/health.md)
+  - [Plan contract](/plan.md)
   - [Authentication](/AUTHENTICATION.md)
   - [Recovery](/RECOVERY.md)
   - [Migration](/MIGRATION.md)
