@@ -1,11 +1,22 @@
 package provider
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/redtidev1918/releasegraph/internal/domain"
 	"github.com/redtidev1918/releasegraph/internal/policy"
 )
+
+func TestVerdictJSONFieldNames(t *testing.T) {
+	raw, err := json.Marshal(Verdict{HardFail: true, Waived: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := string(raw), `{"drift":"","health":"","ackAllowed":false,"repairSameVersion":false,"hardFail":true,"waived":true}`; got != want {
+		t.Fatalf("Verdict JSON = %s, want %s", got, want)
+	}
+}
 
 // healthyActual is the acme/app 2.16.0 regression fixture: merged release PR,
 // correct tag, complete public release, registries verified.
