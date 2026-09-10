@@ -305,3 +305,25 @@ func (p *Policy) CapabilitiesOf() Capabilities {
 	caps.Registries = names
 	return caps
 }
+
+// Names renders the capability set as stable identifiers used by ReleaseGraph
+// compatibility metadata ("binary", "github-release", "checksums", registry
+// names). Rollout compares these with a ReleaseGraph release's
+// affected_capabilities to decide whether a repository is affected at all.
+func (c Capabilities) Names() []string {
+	names := []string{}
+	if c.GitHubRelease {
+		names = append(names, "github-release")
+	}
+	if c.Binaries {
+		names = append(names, "binary")
+	}
+	if c.Checksums {
+		names = append(names, "checksums")
+	}
+	for _, registry := range c.Registries {
+		names = append(names, registry)
+	}
+	sort.Strings(names)
+	return names
+}

@@ -60,7 +60,7 @@ func TestCanaryGatesFleetRollout(t *testing.T) {
 		entry("acme/deploy", "v1.4.0", false, fleet.ClassificationManaged),
 	}
 
-	blocked := BuildPlan(testManifest(t), entries, "v1.4.1", "acme/app", CanaryEvidence{Reason: "canary is pinned to v1.4.0"})
+	blocked := BuildPlan(testManifest(t), entries, "v1.4.1", "acme/app", CanaryEvidence{Reason: "canary is pinned to v1.4.0"}, Compatibility{Version: "v1.4.1"})
 	if len(blocked.Blocked) != 2 {
 		t.Fatalf("blocked = %v, want the two non-canary repositories", blocked.Blocked)
 	}
@@ -68,7 +68,7 @@ func TestCanaryGatesFleetRollout(t *testing.T) {
 		t.Fatalf("ready = %v, want only the canary", blocked.Ready)
 	}
 
-	passed := BuildPlan(testManifest(t), entries, "v1.4.1", "acme/app", CanaryEvidence{Pinned: true, Lifecycle: true})
+	passed := BuildPlan(testManifest(t), entries, "v1.4.1", "acme/app", CanaryEvidence{Pinned: true, Lifecycle: true}, Compatibility{Version: "v1.4.1"})
 	if len(passed.Ready) != 3 || len(passed.Blocked) != 0 {
 		t.Fatalf("after canary pass: ready=%v blocked=%v", passed.Ready, passed.Blocked)
 	}
@@ -77,7 +77,7 @@ func TestCanaryGatesFleetRollout(t *testing.T) {
 // A canary that is pinned but whose lifecycle never succeeded does not unblock.
 func TestCanaryPinnedWithoutSuccessfulLifecycleStaysBlocked(t *testing.T) {
 	entries := []Entry{entry("acme/lib", "v1.4.0", false, fleet.ClassificationManaged)}
-	plan := BuildPlan(testManifest(t), entries, "v1.4.1", "acme/app", CanaryEvidence{Pinned: true, Reason: "canary run concluded failure"})
+	plan := BuildPlan(testManifest(t), entries, "v1.4.1", "acme/app", CanaryEvidence{Pinned: true, Reason: "canary run concluded failure"}, Compatibility{Version: "v1.4.1"})
 	if len(plan.Blocked) != 1 {
 		t.Fatalf("blocked = %v, want the repository to stay blocked", plan.Blocked)
 	}
@@ -86,7 +86,7 @@ func TestCanaryPinnedWithoutSuccessfulLifecycleStaysBlocked(t *testing.T) {
 // Acceptance: a repository already on the target is a NOOP, not a repeated change.
 func TestAlreadyOnTargetIsCurrent(t *testing.T) {
 	entries := []Entry{entry("acme/lib", "v1.4.1", false, fleet.ClassificationManaged)}
-	plan := BuildPlan(testManifest(t), entries, "v1.4.1", "acme/app", CanaryEvidence{Pinned: true, Lifecycle: true})
+	plan := BuildPlan(testManifest(t), entries, "v1.4.1", "acme/app", CanaryEvidence{Pinned: true, Lifecycle: true}, Compatibility{Version: "v1.4.1"})
 	if plan.Entries[0].Status != StatusCurrent {
 		t.Fatalf("status = %s, want CURRENT", plan.Entries[0].Status)
 	}
@@ -98,7 +98,7 @@ func TestAlreadyOnTargetIsCurrent(t *testing.T) {
 // Acceptance: a repository outside fleet.yaml is never rolled out.
 func TestUndeclaredRepositoryIsNotRolledOut(t *testing.T) {
 	entries := []Entry{{Repository: "acme/mystery", Classification: fleet.ClassificationDiscoveredUnmanaged, Target: "v1.4.1", Current: ParsePin([]byte(workflowYAML))}}
-	plan := BuildPlan(testManifest(t), entries, "v1.4.1", "acme/app", CanaryEvidence{Pinned: true, Lifecycle: true})
+	plan := BuildPlan(testManifest(t), entries, "v1.4.1", "acme/app", CanaryEvidence{Pinned: true, Lifecycle: true}, Compatibility{Version: "v1.4.1"})
 	if plan.Entries[0].Status != StatusUnmanaged || len(plan.Ready) != 0 {
 		t.Fatalf("undeclared repository was rolled out: %+v", plan.Entries[0])
 	}
@@ -143,5 +143,61 @@ func TestRepinToCommitRecordsTheVersionAsAComment(t *testing.T) {
 	pin := ParsePin([]byte(next))
 	if pin.Ref != "949a267b48306e34b597e968269c492a31090bf2" || pin.Mutable {
 		t.Fatalf("parsed pin = %+v", pin)
+	}
+}
+
+// Acceptance: a release that changes one capability must not ask unrelated
+// repositories to upgrade.
+func TestCapabilityAwareFiltering(t *testing.T) {
+	compat := Compatibility{Version: "v1.5.0", AffectedCapabilities: []string{"binary"}}
+
+	// A binary-producing repository is affected.
+	status, reason := Affected([]string{"binary", "github-release", "checksums"}, compat, 1)
+	if status != CompatUpgradeRecommended {
+		t.Fatalf("binary repository = %s (%s), want affected", status, reason)
+	}
+	// A registry-only repository is not.
+	status, reason = Affected([]string{"github-release", "npm"}, compat, 1)
+	if status != CompatUnaffected {
+		t.Fatalf("npm-only repository = %s (%s), want UNAFFECTED", status, reason)
+	}
+	// An unknown scope (no declared capabilities) is never skipped silently.
+	status, reason = Affected([]string{}, Compatibility{Version: "v1.5.0"}, 1)
+	if status != CompatUpgradeRecommended {
+		t.Fatalf("undeclared scope = %s (%s), want conservative affected", status, reason)
+	}
+	// Raising the minimum policy schema requires migration, and an incompatible
+	// release is never applied.
+	status, _ = Affected([]string{"binary"}, Compatibility{MinimumPolicySchema: 2}, 1)
+	if status != CompatMigrationRequired {
+		t.Fatalf("schema raise = %s, want MIGRATION_REQUIRED", status)
+	}
+	status, _ = Affected([]string{"binary"}, Compatibility{MinimumPolicySchema: 3, Breaking: true}, 1)
+	if status != CompatIncompatible {
+		t.Fatalf("breaking schema jump = %s, want INCOMPATIBLE", status)
+	}
+}
+
+func TestPlanSkipsUnaffectedRepositories(t *testing.T) {
+	entries := []Entry{
+		{Repository: "acme/app", Classification: fleet.ClassificationManaged, Target: "v1.5.0", PolicySchema: 1,
+			Capabilities: []string{"binary"}, Current: ParsePin([]byte(workflowYAML))},
+		{Repository: "acme/lib", Classification: fleet.ClassificationManaged, Target: "v1.5.0", PolicySchema: 1,
+			Capabilities: []string{"npm"}, Current: ParsePin([]byte(workflowYAML))},
+	}
+	compat := Compatibility{Version: "v1.5.0", AffectedCapabilities: []string{"binary"}, MinimumPolicySchema: 1}
+	plan := BuildPlan(testManifest(t), entries, "v1.5.0", "", CanaryEvidence{Pinned: true, Lifecycle: true}, compat)
+
+	if len(plan.Unaffected) != 1 || plan.Unaffected[0] != "acme/lib" {
+		t.Fatalf("unaffected = %v, want the npm-only repository", plan.Unaffected)
+	}
+	if len(plan.Ready) != 1 || plan.Ready[0] != "acme/app" {
+		t.Fatalf("ready = %v, want only the binary repository", plan.Ready)
+	}
+
+	// Parse the published document shape.
+	parsed, err := ParseCompatibility([]byte(`{"version":"v1.5.0","workflow_api":4,"policy_schema":1,"minimum_policy_schema":1,"breaking":false,"affected_capabilities":["binary"]}`))
+	if err != nil || parsed.WorkflowAPI != 4 || len(parsed.AffectedCapabilities) != 1 {
+		t.Fatalf("parsed compatibility = %+v (%v)", parsed, err)
 	}
 }

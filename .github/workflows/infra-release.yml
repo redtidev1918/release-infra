@@ -2,6 +2,23 @@ name: Promote stable v1
 on:
   push:
     tags: ["v1.*.*"]
+  workflow_dispatch:
+    inputs:
+      affected_capabilities:
+        description: "Comma-separated capabilities this release changes (binary, npm, pypi, github-release, checksums)"
+        required: false
+        default: ""
+        type: string
+      breaking:
+        description: "Mark this release as breaking"
+        required: false
+        default: false
+        type: boolean
+      version:
+        description: "Version to promote when dispatched manually (e.g. 1.5.0)"
+        required: false
+        default: ""
+        type: string
 permissions: {contents: write}
 concurrency:
   group: release-${{ github.repository }}-${{ github.ref }}
@@ -33,6 +50,23 @@ jobs:
             test "$goos" != windows || extension=.exe
             CGO_ENABLED=0 GOOS="$goos" GOARCH="$goarch" go build -trimpath -ldflags "-s -w -X github.com/redtidev1918/releasegraph/internal/cli.version=$version" -o "dist/release/releasegraph-$goos-$goarch$extension" ./cmd/releasegraph
           done
+      - name: Write ReleaseGraph compatibility metadata
+        env:
+          AFFECTED_CAPABILITIES: ${{ inputs.affected_capabilities || '' }}
+          BREAKING: ${{ inputs.breaking || 'false' }}
+        run: |
+          set -euo pipefail
+          python - "$RELEASEGRAPH_VERSION" <<'PY'
+          import os, sys
+          from release_infra import compatibility
+          affected = [c for c in os.environ.get("AFFECTED_CAPABILITIES", "").replace(",", " ").split() if c]
+          path = compatibility.write(
+              sys.argv[1],
+              affected_capabilities=affected,
+              breaking=os.environ.get("BREAKING", "false").lower() == "true",
+          )
+          print(f"wrote {path}")
+          PY
       - name: Plan idempotent release
         id: plan
         run: |

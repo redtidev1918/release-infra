@@ -85,7 +85,11 @@ func rolloutCommand(w io.Writer, args []string) error {
 	}
 	canary, _ := manifest.Canary()
 	evidence := canaryEvidence(ctx, client, canary, version, targetCommit)
-	plan := rollout.BuildPlan(manifest, entries, version, canary, evidence)
+	compat, compatNote := fetchCompatibility(ctx, client, releaseRepo, version)
+	if compatNote != "" && format != "json" {
+		fmt.Fprintf(w, "note: %s\n", compatNote)
+	}
+	plan := rollout.BuildPlan(manifest, entries, version, canary, evidence, compat)
 
 	if len(only) > 0 {
 		plan = limitPlan(plan, only)
@@ -114,6 +118,40 @@ func rolloutCommand(w io.Writer, args []string) error {
 	return rolloutApply(ctx, w, format, client, plan, version, targetCommit)
 }
 
+// fetchCompatibility reads the target release's own compatibility metadata. When
+// it is absent the release is treated as affecting every repository: skipping a
+// repository is only ever based on declared facts.
+func fetchCompatibility(ctx context.Context, client *github.Bound, repo, version string) (rollout.Compatibility, string) {
+	var release struct {
+		Assets []struct {
+			Name string `json:"name"`
+			ID   int64  `json:"id"`
+		} `json:"assets"`
+	}
+	found, err := client.GetOptional(ctx, fmt.Sprintf("repos/%s/releases/tags/%s", repo, version), &release)
+	if err != nil || !found {
+		return rollout.Compatibility{Version: version}, "target release " + version + " not readable; treating every repository as affected"
+	}
+	for _, asset := range release.Assets {
+		if asset.Name != rollout.MetadataAsset {
+			continue
+		}
+		text, ok, err := client.ReleaseAssetText(ctx, repo, asset.ID)
+		if err != nil || !ok {
+			break
+		}
+		compat, err := rollout.ParseCompatibility([]byte(text))
+		if err != nil {
+			return rollout.Compatibility{Version: version}, err.Error()
+		}
+		if compat.Version == "" {
+			compat.Version = version
+		}
+		return compat, ""
+	}
+	return rollout.Compatibility{Version: version}, "release " + version + " declares no " + rollout.MetadataAsset + "; treating every repository as affected"
+}
+
 func humanRolloutPlan(w io.Writer, plan rollout.Plan) {
 	fmt.Fprintf(w, "target: %s\n", plan.Target)
 	if plan.Canary != "" {
@@ -132,6 +170,10 @@ func humanRolloutPlan(w io.Writer, plan rollout.Plan) {
 		if entry.Canary {
 			marker = " [canary]"
 		}
+		compat := ""
+		if entry.Compat != "" && entry.Status != rollout.StatusCurrent {
+			compat = " [" + entry.Compat + "]"
+		}
 		mutable := ""
 		if entry.Current.Mutable {
 			mutable = " (mutable channel alias)"
@@ -140,9 +182,10 @@ func humanRolloutPlan(w io.Writer, plan rollout.Plan) {
 		if current == "" {
 			current = "none"
 		}
-		fmt.Fprintf(w, "  %-42s %-9s %s -> %s%s%s\n", entry.Repository, entry.Status, current, entry.Target, marker, mutable)
+		fmt.Fprintf(w, "  %-42s %-17s %s -> %s%s%s%s\n", entry.Repository, entry.Status, current, entry.Target, marker, mutable, compat)
 	}
-	fmt.Fprintf(w, "\nready: %d  blocked: %d\n", len(plan.Ready), len(plan.Blocked))
+	fmt.Fprintf(w, "\nready: %d  blocked: %d  unaffected: %d  migration: %d  incompatible: %d\n",
+		len(plan.Ready), len(plan.Blocked), len(plan.Unaffected), len(plan.Migration), len(plan.Incompatible))
 }
 
 // resolveRefCommit resolves the version tag to the commit it points at, so the

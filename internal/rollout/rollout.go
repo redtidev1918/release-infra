@@ -15,6 +15,7 @@ import (
 
 	"github.com/redtidev1918/releasegraph/internal/fleet"
 	"github.com/redtidev1918/releasegraph/internal/github"
+	"github.com/redtidev1918/releasegraph/internal/policy"
 )
 
 // WorkflowPath is the release workflow businesses call and the file rollout edits.
@@ -77,12 +78,15 @@ var pinComment = regexp.MustCompile(`#\s*ReleaseGraph\s+(v\d+\.\d+\.\d+)`)
 
 // Status of one repository in a rollout plan.
 const (
-	StatusCurrent     = "CURRENT"         // already on the target version
-	StatusReady       = "READY"           // may be upgraded now
-	StatusCanaryFirst = "CANARY_REQUIRED" // the canary must pass before this one moves
-	StatusBlocked     = "BLOCKED"         // the canary has not passed
-	StatusNoPin       = "NO_PIN"          // no ReleaseGraph call found
-	StatusUnmanaged   = "UNMANAGED"       // not declared in fleet.yaml
+	StatusCurrent      = "CURRENT"         // already on the target version
+	StatusReady        = "READY"           // may be upgraded now
+	StatusCanaryFirst  = "CANARY_REQUIRED" // the canary must pass before this one moves
+	StatusBlocked      = "BLOCKED"         // the canary has not passed
+	StatusNoPin        = "NO_PIN"          // no ReleaseGraph call found
+	StatusUnmanaged    = "UNMANAGED"       // not declared in fleet.yaml
+	StatusUnaffected   = "UNAFFECTED"      // release does not touch this repository's capabilities
+	StatusMigration    = "MIGRATION_REQUIRED"
+	StatusIncompatible = "INCOMPATIBLE"
 )
 
 // Entry is one repository's rollout state.
@@ -97,17 +101,30 @@ type Entry struct {
 	TargetCommit string `json:"targetCommit,omitempty"`
 	Status       string `json:"status"`
 	Reason       string `json:"reason,omitempty"`
+	// Capabilities are the repository's own declared capabilities, read from its
+	// policy. Empty means "could not be read", which is treated as affected.
+	Capabilities []string `json:"capabilities,omitempty"`
+	PolicySchema int      `json:"policySchema,omitempty"`
+	Compat       string   `json:"compatibility,omitempty"`
 }
 
 // Plan is the full rollout decision for one target version.
 type Plan struct {
-	Target       string   `json:"target"`
-	Canary       string   `json:"canary,omitempty"`
-	CanaryPassed bool     `json:"canaryPassed"`
-	CanaryReason string   `json:"canaryReason,omitempty"`
-	Entries      []Entry  `json:"entries"`
-	Ready        []string `json:"ready"`
-	Blocked      []string `json:"blocked"`
+	Target       string `json:"target"`
+	Canary       string `json:"canary,omitempty"`
+	CanaryPassed bool   `json:"canaryPassed"`
+	CanaryReason string `json:"canaryReason,omitempty"`
+	// Compatibility of the target ReleaseGraph release, when it declares one.
+	Compatibility *Compatibility `json:"compatibility,omitempty"`
+	Entries       []Entry        `json:"entries"`
+	Ready         []string       `json:"ready"`
+	Blocked       []string       `json:"blocked"`
+	// Unaffected repositories are not upgraded: this release does not touch any
+	// capability they declare.
+	Unaffected []string `json:"unaffected"`
+	// Migration and Incompatible repositories cannot simply take the new pin.
+	Migration    []string `json:"migrationRequired"`
+	Incompatible []string `json:"incompatible"`
 }
 
 // CanaryEvidence is what a canary repository proves before a fleet rollout.
@@ -122,8 +139,8 @@ type CanaryEvidence struct {
 // Invariant: the fleet stays blocked until the canary repository runs the target
 // version and its latest release lifecycle succeeded. Rollout never assumes that
 // a published version is a verified version.
-func BuildPlan(manifest *fleet.Manifest, entries []Entry, target, canary string, evidence CanaryEvidence) Plan {
-	plan := Plan{Target: target, Canary: canary, CanaryPassed: evidence.Pinned && evidence.Lifecycle, CanaryReason: evidence.Reason, Entries: []Entry{}, Ready: []string{}, Blocked: []string{}}
+func BuildPlan(manifest *fleet.Manifest, entries []Entry, target, canary string, evidence CanaryEvidence, compat Compatibility) Plan {
+	plan := Plan{Target: target, Canary: canary, CanaryPassed: evidence.Pinned && evidence.Lifecycle, CanaryReason: evidence.Reason, Compatibility: &compat, Entries: []Entry{}, Ready: []string{}, Blocked: []string{}, Unaffected: []string{}, Migration: []string{}, Incompatible: []string{}}
 
 	for i := range entries {
 		entry := &entries[i]
@@ -139,6 +156,34 @@ func BuildPlan(manifest *fleet.Manifest, entries []Entry, target, canary string,
 			entry.Reason = "not declared in fleet.yaml"
 			plan.Entries = append(plan.Entries, *entry)
 			continue
+		}
+
+		// Capability-aware filtering: a fix that changes one capability must not
+		// ask unrelated repositories to upgrade. Unknown capabilities are treated
+		// as affected, never as an excuse to skip.
+		if entry.PolicySchema > 0 || len(entry.Capabilities) > 0 {
+			compatStatus, reason := Affected(entry.Capabilities, compat, entry.PolicySchema)
+			entry.Compat = compatStatus
+			switch compatStatus {
+			case CompatIncompatible:
+				entry.Status = StatusIncompatible
+				entry.Reason = reason
+				plan.Incompatible = append(plan.Incompatible, entry.Repository)
+				plan.Entries = append(plan.Entries, *entry)
+				continue
+			case CompatMigrationRequired:
+				entry.Status = StatusMigration
+				entry.Reason = reason
+				plan.Migration = append(plan.Migration, entry.Repository)
+				plan.Entries = append(plan.Entries, *entry)
+				continue
+			case CompatUnaffected:
+				entry.Status = StatusUnaffected
+				entry.Reason = reason
+				plan.Unaffected = append(plan.Unaffected, entry.Repository)
+				plan.Entries = append(plan.Entries, *entry)
+				continue
+			}
 		}
 
 		switch {
@@ -172,6 +217,13 @@ func InspectPins(ctx context.Context, client *github.Bound, manifest *fleet.Mani
 	entries := make([]Entry, 0, len(managed))
 	for _, repo := range managed {
 		entry := Entry{Repository: repo.Name, Classification: repo.Classification, Canary: repo.Canary, Target: target}
+		// The repository's own contract decides whether this release affects it.
+		if policyRaw, found, err := client.ReadFile(ctx, repo.Name, ".release-policy.yml", ""); err == nil && found {
+			if parsed, err := policy.Parse(policyRaw); err == nil {
+				entry.Capabilities = parsed.CapabilitiesOf().Names()
+				entry.PolicySchema = 1
+			}
+		}
 		raw, found, err := client.ReadFile(ctx, repo.Name, WorkflowPath, "")
 		switch {
 		case err != nil:
