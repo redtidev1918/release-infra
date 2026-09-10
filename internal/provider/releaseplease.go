@@ -84,7 +84,7 @@ func ResolveProvider(p *policy.Policy) Kind {
 
 // Inspect gathers actual release state and provider acknowledgement for one
 // version of a repository and classifies the drift. No mutations.
-func Inspect(ctx context.Context, client *github.Client, verifier *registry.Verifier, p *policy.Policy, repo, version string) (*Report, error) {
+func Inspect(ctx context.Context, client *github.Bound, verifier *registry.Verifier, p *policy.Policy, repo, version string) (*Report, error) {
 	tag := policy.ReleaseTag(p, version)
 	provider := ResolveProvider(p)
 
@@ -169,7 +169,7 @@ func Inspect(ctx context.Context, client *github.Client, verifier *registry.Veri
 }
 
 // providerState finds the merged release PR for version and maps its labels.
-func providerState(ctx context.Context, client *github.Client, repo, version string) (*github.PullRequest, State, error) {
+func providerState(ctx context.Context, client *github.Bound, repo, version string) (*github.PullRequest, State, error) {
 	prs, err := client.MergedPullRequests(ctx, repo)
 	if err != nil {
 		return nil, StateUnknown, err
@@ -216,7 +216,7 @@ type releaseMetadata struct {
 // readReleaseMetadata downloads and parses the release's own contract. A missing
 // or unparsable metadata asset yields a zero value, which callers treat as
 // "fall back to the current policy".
-func readReleaseMetadata(ctx context.Context, client *github.Client, repo string, assets []releaseAsset) releaseMetadata {
+func readReleaseMetadata(ctx context.Context, client *github.Bound, repo string, assets []releaseAsset) releaseMetadata {
 	for _, a := range assets {
 		if a.Name != "RELEASE-METADATA.json" {
 			continue
@@ -239,7 +239,7 @@ func readReleaseMetadata(ctx context.Context, client *github.Client, repo string
 // must not be judged against a policy that changed afterwards: newly required
 // assets would otherwise mark every historical release incomplete and block all
 // future versions.
-func assetState(p *policy.Policy, assets []releaseAsset, meta releaseMetadata, client *github.Client, ctx context.Context, repo string) (complete, sumsVerified, policyHashMatches bool) {
+func assetState(p *policy.Policy, assets []releaseAsset, meta releaseMetadata, client *github.Bound, ctx context.Context, repo string) (complete, sumsVerified, policyHashMatches bool) {
 	byName := map[string]releaseAsset{}
 	for _, a := range assets {
 		byName[a.Name] = a
@@ -318,7 +318,7 @@ func assetState(p *policy.Policy, assets []releaseAsset, meta releaseMetadata, c
 	return complete, complete && covers, policyHashMatches
 }
 
-func registryState(ctx context.Context, client *github.Client, verifier *registry.Verifier, p *policy.Policy, repo, version string) (noneRequired, healthy bool) {
+func registryState(ctx context.Context, client *github.Bound, verifier *registry.Verifier, p *policy.Policy, repo, version string) (noneRequired, healthy bool) {
 	healthy = true
 	any := false
 	names := make([]string, 0, len(p.Registries))
@@ -342,7 +342,7 @@ func registryState(ctx context.Context, client *github.Client, verifier *registr
 // Acknowledge reconciles provider labels after a healthy release. It is
 // idempotent: no tag/release mutation, label-only. dryRun returns the plan
 // without applying it.
-func Acknowledge(ctx context.Context, client *github.Client, report *Report, dryRun bool) ([]LabelMutation, error) {
+func Acknowledge(ctx context.Context, client *github.Bound, report *Report, dryRun bool) ([]LabelMutation, error) {
 	if !report.Verdict.ACKAllowed {
 		return nil, fmt.Errorf("ACK refused: %s (%s)", report.Verdict.Health, report.Verdict.Drift)
 	}
@@ -377,16 +377,18 @@ func Acknowledge(ctx context.Context, client *github.Client, report *Report, dry
 	return mutations, nil
 }
 
-// ScanResult is the fleet-wide outcome of a provider scan.
+// ScanResult is the fleet-wide outcome of a provider scan. It is pure data:
+// the scope-bound client that produced it stays in the calling layer.
 type ScanResult struct {
-	Reports []Report `json:"reports"`
-	Errors  []string `json:"errors,omitempty"`
+	Reports   []Report                `json:"reports"`
+	Errors    []string                `json:"errors,omitempty"`
+	Execution domain.ExecutionContext `json:"execution"`
 }
 
 // Waive records an explicit, auditable human decision that a historical version
 // must not be repaired retroactively and must not block newer versions. It only
 // adds a label; it never fabricates a release or moves a tag.
-func Waive(ctx context.Context, client *github.Client, repo string, version string) (int, error) {
+func Waive(ctx context.Context, client *github.Bound, repo string, version string) (int, error) {
 	prs, err := client.MergedPullRequests(ctx, repo)
 	if err != nil {
 		return 0, err
@@ -428,7 +430,7 @@ func RepairPlan(r *Report) (allowed bool, reason string, inputs map[string]strin
 
 // Repair re-enters the repository's release pipeline for the same version.
 // dryRun only reports the dispatch it would perform.
-func Repair(ctx context.Context, client *github.Client, r *Report, workflowFile string, dryRun bool) (map[string]string, error) {
+func Repair(ctx context.Context, client *github.Bound, r *Report, workflowFile string, dryRun bool) (map[string]string, error) {
 	allowed, reason, inputs := RepairPlan(r)
 	if !allowed {
 		return nil, fmt.Errorf("repair refused: %s", reason)

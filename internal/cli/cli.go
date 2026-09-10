@@ -12,7 +12,6 @@ import (
 
 	"github.com/redtidev1918/releasegraph/internal/assets"
 	rgdomain "github.com/redtidev1918/releasegraph/internal/domain"
-	"github.com/redtidev1918/releasegraph/internal/fleet"
 	"github.com/redtidev1918/releasegraph/internal/github"
 	"github.com/redtidev1918/releasegraph/internal/graph"
 	rgplan "github.com/redtidev1918/releasegraph/internal/plan"
@@ -151,29 +150,6 @@ func auditCommand(w io.Writer, args []string) error {
 	return write(w, format, gate, func(w io.Writer, _ any) {
 		for _, asset := range gate.Required {
 			fmt.Fprintf(w, "required %s %d %s\n", asset.Name, asset.Size, asset.SHA256)
-		}
-	})
-}
-
-func fleetCommand(w io.Writer, args []string) error {
-	var format, owner string
-	var publicOnly bool
-	fs := flags(&format)
-	fs.StringVar(&owner, "owner", "", "repository owner")
-	fs.BoolVar(&publicOnly, "public-only", false, "list public repositories only")
-	if err := fs.Parse(args); err != nil {
-		return err
-	}
-	if owner == "" {
-		return fmt.Errorf("--owner is required")
-	}
-	out, err := fleet.Discover(context.Background(), github.New(), owner, publicOnly)
-	if err != nil {
-		return err
-	}
-	return write(w, format, out, func(w io.Writer, _ any) {
-		for _, repo := range out.Repositories {
-			fmt.Fprintf(w, "%-40s %-12s %s\n", repo.Name, repo.Classification, repo.Health)
 		}
 	})
 }
