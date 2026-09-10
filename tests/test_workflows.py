@@ -124,10 +124,22 @@ class ProviderReconciliationWorkflowTest(unittest.TestCase):
     def test_provider_reconcile_runs_before_release_please(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
         reconcile = workflow.index("Provider pre-reconcile")
-        action = workflow.index("googleapis/release-please-action")
+        action = workflow.index(".release-please-action/dist/index.js")
         self.assertLess(reconcile, action, "provider pre-reconcile must precede release-please")
         self.assertIn("provider reconcile --repo", workflow)
         self.assertIn("--apply", workflow)
+
+    def test_release_please_retries_only_transient_github_api_failures(self):
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        release_please = workflow.split("  build-plan:", 1)[0]
+        self.assertIn("repository: googleapis/release-please-action", release_please)
+        self.assertIn("ref: 45996ed1f6d02564a971a2fa1b5860e934307cf7", release_please)
+        self.assertIn("node .release-please-action/dist/index.js", release_please)
+        self.assertIn("for attempt in 1 2 3 4", release_please)
+        self.assertIn("Something went wrong while executing your query", release_please)
+        self.assertIn("API rate limit exceeded", release_please)
+        self.assertIn("grep -Eqi", release_please)
+        self.assertIn("non-transient or exhausted error", release_please)
 
     def test_provider_ack_runs_only_after_release_is_published_and_audited(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()

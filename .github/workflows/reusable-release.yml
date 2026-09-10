@@ -61,13 +61,40 @@ jobs:
           # Dry-run first so an unexpected plan is visible in the log, then apply.
           "$RUNNER_TEMP/releasegraph" provider reconcile --repo "$GITHUB_REPOSITORY" || true
           "$RUNNER_TEMP/releasegraph" provider reconcile --repo "$GITHUB_REPOSITORY" --apply
-      - id: rp
-        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+      - uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
         with:
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
-          skip-github-release: true
+          node-version: "24"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: googleapis/release-please-action
+          ref: 45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+          path: .release-please-action
+      # Invoke the pinned bundle directly so only this step's GitHub API
+      # transient failures can be retried inside the same job.
+      - id: rp
+        name: Run release-please with bounded transient retry
+        env:
+          RELEASE_PLEASE_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+        run: |
+          set -euo pipefail
+          transient='Something went wrong while executing your query|ECONNRESET|ETIMEDOUT|socket hang up|API rate limit exceeded|secondary rate limit|HTTP 5[0-9][0-9]'
+          for attempt in 1 2 3 4; do
+            log="$RUNNER_TEMP/release-please-$attempt.log"
+            if env \
+              "INPUT_TOKEN=$RELEASE_PLEASE_TOKEN" \
+              "INPUT_CONFIG-FILE=release-please-config.json" \
+              "INPUT_MANIFEST-FILE=.release-please-manifest.json" \
+              "INPUT_SKIP-GITHUB-RELEASE=true" \
+              node .release-please-action/dist/index.js 2>&1 | tee "$log"; then
+              exit 0
+            fi
+            if (( attempt == 4 )) || ! grep -Eqi "$transient" "$log"; then
+              echo "release-please failed with a non-transient or exhausted error"
+              exit 1
+            fi
+            echo "Transient GitHub API failure; retry $attempt/3 after $((attempt * 10))s"
+            sleep $((attempt * 10))
+          done
 
   build-plan:
     needs: release_please
