@@ -389,6 +389,15 @@ jobs:
           platforms: ${{ steps.plan.outputs.ghcr_platforms }}
           push: true
           tags: ${{ steps.plan.outputs.ghcr_image }}:${{ steps.plan.outputs.version }},${{ steps.plan.outputs.ghcr_image }}:latest
+          # Published images must be able to report the exact release they run.
+          # Images opt in by declaring these ARGs; Dockerfiles that do not declare
+          # them ignore the values (a warning, not a failure).
+          build-args: |
+            APP_VERSION=${{ steps.plan.outputs.version }}
+            GIT_SHA=${{ github.sha }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.plan.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
           provenance: mode=max
           sbom: true
           cache-from: type=gha
