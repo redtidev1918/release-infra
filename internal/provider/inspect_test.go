@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -28,14 +29,18 @@ func testPolicy() *policy.Policy {
 
 // fakeGitHub serves the endpoints provider.Inspect calls.
 type fakeGitHub struct {
-	prLabels       []string
-	release        bool
-	sums           string
-	asset404       bool
-	failLabel      bool
-	metadataCommit string
-	mutations      []string
-	dispatches     []string
+	prLabels          []string
+	release           bool
+	sums              string
+	asset404          bool
+	failLabel         bool
+	metadataCommit    string
+	prTitle           string
+	manifestAtMerge   string
+	manifestAtParent  string
+	noManifestCommits bool
+	mutations         []string
+	dispatches        []string
 }
 
 func (f *fakeGitHub) handler() http.Handler {
@@ -46,7 +51,55 @@ func (f *fakeGitHub) handler() http.Handler {
 		for _, l := range f.prLabels {
 			labels += fmt.Sprintf(`{"name":%q},`, l)
 		}
-		fmt.Fprintf(w, `[{"number":30,"title":"chore(main): release 2.16.0","state":"closed","merged_at":"2026-09-10T08:00:00Z","merge_commit_sha":"b6c2","labels":[%s]}]`, strings.TrimSuffix(labels, ","))
+		title := f.prTitle
+		if title == "" {
+			title = "chore(main): release 2.16.0"
+		}
+		fmt.Fprintf(w, `[{"number":30,"title":%q,"state":"closed","merged_at":"2026-09-10T08:00:00Z","merge_commit_sha":"b6c2","labels":[%s]}]`, title, strings.TrimSuffix(labels, ","))
+	})
+
+	mux.HandleFunc("/repos/"+acme+"/contents/.release-please-manifest.json", func(w http.ResponseWriter, r *http.Request) {
+		body := f.manifestAtMerge
+		if strings.Contains(r.URL.RawQuery, "parent1") {
+			body = f.manifestAtParent
+		}
+		if body == "" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		fmt.Fprintf(w, `{"encoding":"base64","content":%q}`,
+			base64.StdEncoding.EncodeToString([]byte(body)))
+	})
+
+	mux.HandleFunc("/repos/"+acme+"/issues", func(w http.ResponseWriter, r *http.Request) {
+		// Mirrors reality: a pending label on the PR shows up in the label query.
+		pending := false
+		for _, l := range f.prLabels {
+			if strings.Contains(l, "pending") || strings.Contains(l, "triggered") {
+				pending = true
+			}
+		}
+		if !pending {
+			fmt.Fprint(w, `[]`)
+			return
+		}
+		labels := ""
+		for _, l := range f.prLabels {
+			labels += fmt.Sprintf(`{"name":%q},`, l)
+		}
+		fmt.Fprintf(w, `[{"number":30,"title":"chore: release","pull_request":{"merged_at":"2026-09-10T08:00:00Z"},"labels":[%s]}]`, strings.TrimSuffix(labels, ","))
+	})
+
+	mux.HandleFunc("/repos/"+acme+"/commits/b6c2", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"sha":"b6c2","parents":[{"sha":"parent1"}]}`)
+	})
+
+	mux.HandleFunc("/repos/"+acme+"/commits", func(w http.ResponseWriter, r *http.Request) {
+		if f.noManifestCommits || f.manifestAtMerge == "" {
+			fmt.Fprint(w, `[]`)
+			return
+		}
+		fmt.Fprint(w, `[{"sha":"b6c2"}]`)
 	})
 
 	mux.HandleFunc("/repos/"+acme+"/git/ref/tags/v2.16.0", func(w http.ResponseWriter, r *http.Request) {
@@ -394,5 +447,82 @@ func TestManualProviderUsesMetadataCommitAsExpectedTagTarget(t *testing.T) {
 	}
 	if report.Verdict.Drift != DriftInSync || report.Verdict.Health != domain.HealthHealthy {
 		t.Fatalf("manual provider verdict = %+v (expected HEALTHY/IN_SYNC)", report.Verdict)
+	}
+}
+
+// Release PR identification must not depend on a single signal: a title pattern
+// can differ per repository, while the manifest at the merge commit is
+// authoritative.
+func TestReleasePRIdentifiedByManifestWhenTitleDiffers(t *testing.T) {
+	f := &fakeGitHub{
+		prLabels:        []string{labelPending},
+		prTitle:         "chore: cut 2.16.0",
+		manifestAtMerge: `{".": "2.16.0"}`,
+		release:         true,
+		sums:            "aaaa  app-linux\nbbbb  app-macos\n",
+	}
+	report, _ := runInspect(t, f)
+	if report.Context.ProviderEvidence != EvidenceManifest {
+		t.Fatalf("evidence = %q, want manifest", report.Context.ProviderEvidence)
+	}
+	if report.Context.ReleasePR != 30 || report.Observed.ProviderState != StatePending {
+		t.Fatalf("context = %+v state = %s", report.Context, report.Observed.ProviderState)
+	}
+	if report.Verdict.Drift != DriftACKMissing || !report.Verdict.ACKAllowed {
+		t.Fatalf("verdict = %+v, want ACK_MISSING", report.Verdict)
+	}
+}
+
+// An outstanding autorelease label is identified directly: it is what blocks the
+// provider, and clearing it is exactly what an ACK does. Requiring the historical
+// release pull request to still be reachable would fail after history rewrites.
+func TestPendingLabelIsIdentifiedWithoutTheOriginalReleasePR(t *testing.T) {
+	f := &fakeGitHub{
+		prLabels:        []string{labelPending},
+		prTitle:         "chore: unrelated change",
+		manifestAtMerge: `{".": "9.9.9"}`,
+		release:         true,
+		sums:            "aaaa  app-linux\nbbbb  app-macos\n",
+	}
+	report, _ := runInspect(t, f)
+	if report.Context.ProviderEvidence != EvidenceLabel || report.Context.ReleasePR != 30 {
+		t.Fatalf("evidence = %q pr = %d, want the pending-label pull request", report.Context.ProviderEvidence, report.Context.ReleasePR)
+	}
+	if report.Observed.ProviderState != StatePending {
+		t.Fatalf("state = %s, want PENDING", report.Observed.ProviderState)
+	}
+}
+
+// With no outstanding label anywhere, the provider needs no acknowledgement: the
+// repository is healthy rather than permanently ACK_PENDING.
+func TestNoPendingLabelMeansNothingToAcknowledge(t *testing.T) {
+	f := &fakeGitHub{
+		release: true,
+		sums:    "aaaa  app-linux\nbbbb  app-macos\n",
+		prTitle: "chore: unrelated change",
+		// No release pull request is reachable, so the release's own metadata is
+		// the authoritative build commit (as for manual-versioned repositories).
+		metadataCommit: "b6c2",
+	}
+	report, _ := runInspect(t, f)
+	if report.Observed.ProviderState != StateTagged || report.Context.ProviderEvidence != EvidenceNoPending {
+		t.Fatalf("state = %s evidence = %q, want TAGGED with no outstanding label",
+			report.Observed.ProviderState, report.Context.ProviderEvidence)
+	}
+	if report.Verdict.Health != domain.HealthHealthy {
+		t.Fatalf("verdict = %+v, want HEALTHY", report.Verdict)
+	}
+}
+
+// The title signal still wins when it matches exactly.
+func TestReleasePRIdentifiedByTitle(t *testing.T) {
+	f := &fakeGitHub{
+		prLabels: []string{labelTagged},
+		release:  true,
+		sums:     "aaaa  app-linux\nbbbb  app-macos\n",
+	}
+	report, _ := runInspect(t, f)
+	if report.Context.ProviderEvidence != EvidenceTitle {
+		t.Fatalf("evidence = %q, want title", report.Context.ProviderEvidence)
 	}
 }

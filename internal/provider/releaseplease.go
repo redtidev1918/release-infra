@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"path"
 	"regexp"
 	"sort"
@@ -28,6 +29,8 @@ type Context struct {
 	// current policy; false means asset differences are contract drift, not an
 	// incomplete release.
 	PolicyHashMatches bool `json:"policyHashMatches"`
+	// ProviderEvidence names the signal that identified the release PR.
+	ProviderEvidence string `json:"providerEvidence,omitempty"`
 }
 
 // Report is the full reconciliation report for one version.
@@ -95,11 +98,12 @@ func Inspect(ctx context.Context, client *github.Bound, verifier *registry.Verif
 	// Provider side: find the merged release PR and its labels.
 	waived := false
 	if provider == KindReleasePlease {
-		pr, state, err := providerState(ctx, client, repo, version)
+		pr, state, evidence, err := providerState(ctx, client, p, repo, version)
 		if err != nil {
 			return nil, err
 		}
 		report.Observed.ProviderState = state
+		report.Context.ProviderEvidence = evidence
 		if pr != nil {
 			for _, l := range pr.Labels {
 				if l.Name == labelWaived {
@@ -192,40 +196,202 @@ func Inspect(ctx context.Context, client *github.Bound, verifier *registry.Verif
 	return report, nil
 }
 
-// providerState finds the merged release PR for version and maps its labels.
-func providerState(ctx context.Context, client *github.Bound, repo, version string) (*github.PullRequest, State, error) {
+// releasePREvidence records which signal identified the merged release PR.
+const (
+	EvidenceTitle    = "title"
+	EvidenceManifest = "manifest"
+	EvidenceLabel    = "label"
+	// EvidenceNoPending means no pull request carries an outstanding autorelease
+	// label: nothing is blocking the provider, so no ACK is needed.
+	EvidenceNoPending = "no-pending-label"
+)
+
+// providerState identifies where a version's provider acknowledgement lives, using
+// several independent signals because any single one can miss:
+//
+//   - the pull request title (release-please's default pattern),
+//   - the manifest-bump commit, which is the authoritative record that this
+//     merge released exactly this version,
+//   - any outstanding autorelease label, which is what actually blocks
+//     release-please and therefore the only thing an ACK must clear.
+//
+// A signal that cannot confirm the version leaves the provider state UNKNOWN
+// rather than guessing, so an ACK is never issued against the wrong pull request.
+func providerState(ctx context.Context, client *github.Bound, p *policy.Policy, repo, version string) (*github.PullRequest, State, string, error) {
 	prs, err := client.MergedPullRequests(ctx, repo)
 	if err != nil {
-		return nil, StateUnknown, err
+		return nil, StateUnknown, "", err
 	}
-	var pr *github.PullRequest
+
+	var titleMatch *github.PullRequest
 	for i := range prs {
-		candidate := &prs[i]
-		if m := releasePRPattern.FindStringSubmatch(candidate.Title); m != nil && m[1] == version {
-			pr = candidate
+		if match := releasePRPattern.FindStringSubmatch(prs[i].Title); match != nil && match[1] == version {
+			titleMatch = &prs[i]
 			break
 		}
 	}
-	if pr == nil {
-		// No merged release PR despite release-please mode is unreadable to us.
-		return nil, StateUnknown, nil
+
+	if titleMatch != nil {
+		return titleMatch, stateFromLabels(titleMatch), EvidenceTitle, nil
 	}
+
+	// The authoritative signal: find the merge that actually raised the release
+	// manifest to this version. Deriving it from commits that touched the
+	// manifest is precise and bounded, whereas guessing from pull request titles
+	// is not (release-please titles are configurable and may carry no version).
+	manifestEvidence := ""
+	if mergeSHA := manifestBumpCommit(ctx, client, p, repo, version); mergeSHA != "" {
+		for i := range prs {
+			if prs[i].MergeCommitSHA == mergeSHA {
+				return &prs[i], stateFromLabels(&prs[i]), EvidenceManifest, nil
+			}
+		}
+		// The manifest moved to this version but its merge commit is no longer
+		// reachable (history rewritten after the release): remember how we know
+		// the release happened and keep looking for outstanding labels.
+		manifestEvidence = EvidenceManifest
+	}
+
+	// A pending label on any pull request is what actually blocks release-please,
+	// and it is the exact thing the ACK clears. Identify it directly rather than
+	// requiring the historical release PR to still be reachable: repository
+	// history can be rewritten after a release.
+	if pending, found, err := pendingLabelPR(ctx, client, repo); err != nil {
+		return nil, StateUnknown, "", err
+	} else if found {
+		return pending, StatePending, EvidenceLabel, nil
+	}
+	if manifestEvidence != "" {
+		// The version was released and nothing is outstanding: there is no
+		// acknowledgement left to perform.
+		return nil, StateTagged, EvidenceNoPending, nil
+	}
+	return nil, StateTagged, EvidenceNoPending, nil
+}
+
+// pendingLabelPR finds a pull request that still carries an autorelease pending
+// or triggered label.
+func pendingLabelPR(ctx context.Context, client *github.Bound, repo string) (*github.PullRequest, bool, error) {
+	for _, label := range []string{labelPending, labelTriggered} {
+		var items []struct {
+			Number      int    `json:"number"`
+			Title       string `json:"title"`
+			PullRequest *struct {
+				MergedAt *string `json:"merged_at"`
+			} `json:"pull_request"`
+			Labels []struct {
+				Name string `json:"name"`
+			} `json:"labels"`
+		}
+		if err := client.Get(ctx, fmt.Sprintf("repos/%s/issues?state=all&labels=%s&per_page=10", repo, url.QueryEscape(label)), &items); err != nil {
+			return nil, false, err
+		}
+		for _, item := range items {
+			if item.PullRequest == nil {
+				continue
+			}
+			pr := &github.PullRequest{Number: item.Number, Title: item.Title}
+			for _, l := range item.Labels {
+				pr.Labels = append(pr.Labels, github.IssueLabel{Name: l.Name})
+			}
+			return pr, true, nil
+		}
+	}
+	return nil, false, nil
+}
+
+// manifestVersionAt reads the release manifest version at a commit. It returns ""
+// when the file cannot be read or does not pin this package.
+// manifestBumpCommit returns the commit that raised the release manifest to this
+// version, searched over commits that touched the manifest (newest first).
+func manifestBumpCommit(ctx context.Context, client *github.Bound, p *policy.Policy, repo, version string) string {
+	manifestPath := p.Versioning.Manifest
+	if manifestPath == "" {
+		manifestPath = ".release-please-manifest.json"
+	}
+	var commits []struct {
+		SHA string `json:"sha"`
+	}
+	if err := client.Get(ctx, fmt.Sprintf("repos/%s/commits?path=%s&per_page=5", repo, url.QueryEscape(manifestPath)), &commits); err != nil {
+		return ""
+	}
+	for _, commit := range commits {
+		if manifestIntroducedAt(ctx, client, p, repo, commit.SHA) == version {
+			return commit.SHA
+		}
+	}
+	return ""
+}
+
+// manifestIntroducedAt reports the version a merge commit is the first to record.
+//
+// Reading the manifest at a commit alone is not evidence: every commit after a
+// release still shows the released version. Only a commit that raised the
+// manifest from a different value introduced this version.
+func manifestIntroducedAt(ctx context.Context, client *github.Bound, p *policy.Policy, repo, mergeSHA string) string {
+	if mergeSHA == "" {
+		return ""
+	}
+	var commit struct {
+		Parents []struct {
+			SHA string `json:"sha"`
+		} `json:"parents"`
+	}
+	if err := client.Get(ctx, fmt.Sprintf("repos/%s/commits/%s", repo, mergeSHA), &commit); err != nil {
+		return ""
+	}
+	if len(commit.Parents) == 0 {
+		return ""
+	}
+	at := manifestVersionAtRef(ctx, client, p, repo, mergeSHA)
+	if at == "" {
+		return ""
+	}
+	if parent := manifestVersionAtRef(ctx, client, p, repo, commit.Parents[0].SHA); parent == at {
+		return ""
+	}
+	return at
+}
+
+// manifestVersionAt reports the manifest version at a ref.
+func manifestVersionAt(ctx context.Context, client *github.Bound, p *policy.Policy, repo, ref string) string {
+	return manifestVersionAtRef(ctx, client, p, repo, ref)
+}
+
+func manifestVersionAtRef(ctx context.Context, client *github.Bound, p *policy.Policy, repo, ref string) string {
+	manifestPath := p.Versioning.Manifest
+	if manifestPath == "" {
+		manifestPath = ".release-please-manifest.json"
+	}
+	raw, found, err := client.ReadFile(ctx, repo, manifestPath, ref)
+	if err != nil || !found {
+		return ""
+	}
+	// Resolve through the policy so a multi-component monorepo is read the same
+	// way its desired version is resolved (component selected by the policy).
+	if version, err := policy.DesiredVersionFromManifest(p, raw); err == nil {
+		return version
+	}
+	return ""
+}
+
+// stateFromLabels maps release-please labels onto the provider state. A merged
+// release PR with no autorelease label is treated as acknowledged: that is the
+// shape release-please itself leaves behind after a successful run.
+func stateFromLabels(pr *github.PullRequest) State {
 	labels := map[string]bool{}
-	for _, l := range pr.Labels {
-		labels[l.Name] = true
+	for _, label := range pr.Labels {
+		labels[label.Name] = true
 	}
 	switch {
 	case labels[labelTagged]:
-		return pr, StateTagged, nil
+		return StateTagged
 	case labels[labelTriggered]:
-		return pr, StateTriggered, nil
+		return StateTriggered
 	case labels[labelPending]:
-		return pr, StatePending, nil
+		return StatePending
 	default:
-		// Merged release PR with no autorelease label. release-please itself
-		// lands in this shape after a successful run; treat as acknowledged
-		// only when the title/version matched, else unknown.
-		return pr, StateTagged, nil
+		return StateTagged
 	}
 }
 

@@ -32,16 +32,19 @@ type Action struct {
 
 // ObserveSummary is the observed remote state, flattened for machines.
 type ObserveSummary struct {
-	Tag             string `json:"tag"`
-	TagCorrect      bool   `json:"tagCorrect"`
-	GitHubRelease   bool   `json:"githubRelease"`
-	Latest          bool   `json:"latest"`
-	Assets          bool   `json:"assets"`
-	Checksums       bool   `json:"checksums"`
-	Registries      bool   `json:"registries"`
-	Provider        string `json:"provider"`
-	ProviderState   string `json:"providerState"`
-	PolicyHashMatch bool   `json:"policyHashMatches"`
+	Tag           string `json:"tag"`
+	TagCorrect    bool   `json:"tagCorrect"`
+	GitHubRelease bool   `json:"githubRelease"`
+	Latest        bool   `json:"latest"`
+	Assets        bool   `json:"assets"`
+	Checksums     bool   `json:"checksums"`
+	Registries    bool   `json:"registries"`
+	Provider      string `json:"provider"`
+	ProviderState string `json:"providerState"`
+	// ProviderEvidence names the signal that identified the provider state:
+	// title, manifest, label, or no-pending-label.
+	ProviderEvidence string `json:"providerEvidence,omitempty"`
+	PolicyHashMatch  bool   `json:"policyHashMatches"`
 }
 
 // StatusReport is the machine-readable answer to "where does this stand?".
@@ -179,16 +182,17 @@ func statusFromReport(report *provider.Report, execution domain.ExecutionContext
 		Credential:    string(execution.CredentialClass),
 		Capabilities:  caps,
 		Observed: ObserveSummary{
-			Tag:             report.Context.Tag,
-			TagCorrect:      report.Observed.Actual.TagExists && report.Observed.Actual.TagCommit == report.Observed.Actual.ExpectedCommit,
-			GitHubRelease:   report.Observed.Actual.ReleaseExists,
-			Latest:          report.Observed.Actual.Latest,
-			Assets:          report.Observed.Actual.AssetsComplete,
-			Checksums:       report.Observed.Actual.ChecksumsVerified,
-			Registries:      report.Observed.Actual.RegistriesHealthy,
-			Provider:        string(report.Observed.Provider),
-			ProviderState:   string(report.Observed.ProviderState),
-			PolicyHashMatch: report.Context.PolicyHashMatches,
+			Tag:              report.Context.Tag,
+			TagCorrect:       report.Observed.Actual.TagExists && report.Observed.Actual.TagCommit == report.Observed.Actual.ExpectedCommit,
+			GitHubRelease:    report.Observed.Actual.ReleaseExists,
+			Latest:           report.Observed.Actual.Latest,
+			Assets:           report.Observed.Actual.AssetsComplete,
+			Checksums:        report.Observed.Actual.ChecksumsVerified,
+			Registries:       report.Observed.Actual.RegistriesHealthy,
+			Provider:         string(report.Observed.Provider),
+			ProviderState:    string(report.Observed.ProviderState),
+			ProviderEvidence: report.Context.ProviderEvidence,
+			PolicyHashMatch:  report.Context.PolicyHashMatches,
 		},
 		Diagnosis: string(report.Verdict.Drift),
 		Health:    string(report.Verdict.Health),

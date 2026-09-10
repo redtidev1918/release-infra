@@ -1,8 +1,8 @@
 {
   "repository": null,
-  "version": "2.16.0",
-  "tag": "v2.16.0",
-  "commit_sha": "head-commit",
+  "version": "1.2.3",
+  "tag": "v1.2.3",
+  "commit_sha": "",
   "build_run_id": null,
   "build_run_url": "https://github.com/None/actions/runs/None",
   "workflow_run_id": null,
@@ -17,10 +17,10 @@
     "required_assets": []
   },
   "release_infra_version": "1.0.0",
-  "policy_hash": "533ed46300082efc9034d58579d19f5c5b0b72c2876c238b5ad8d41a012a4526",
-  "release_policy_hash": "533ed46300082efc9034d58579d19f5c5b0b72c2876c238b5ad8d41a012a4526",
-  "build_started_at": "2026-09-10T12:33:54.479722+00:00",
-  "published_at": "2026-09-10T12:33:54.479738+00:00",
+  "policy_hash": "953c9e9fbcd938b5739e0ccd78c1c42f7dc1e65f0b759201c6554d8e2817636f",
+  "release_policy_hash": "953c9e9fbcd938b5739e0ccd78c1c42f7dc1e65f0b759201c6554d8e2817636f",
+  "build_started_at": "2026-09-10T13:17:56.647597+00:00",
+  "published_at": "2026-09-10T13:17:56.647611+00:00",
   "assets": [],
   "asset_sha256": {},
   "registries": {
@@ -30,9 +30,9 @@
   },
   "container_digest": null,
   "package_versions": {
-    "github": "2.16.0"
+    "github": "1.2.3"
   },
-  "source_commit": "head-commit",
+  "source_commit": "",
   "release_pr": null,
   "retry_count": 0
 }
