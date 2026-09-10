@@ -17,6 +17,9 @@ ReleaseGraph computes release plans from desired state, current GitHub and regis
 
 - [Architecture](ARCHITECTURE.md)
 - [Policy](POLICY.md)
+- [Calling the release workflow](callers.md)
+- [Release health](health.md)
+- [Plan contract](plan.md)
 - [Authentication](AUTHENTICATION.md)
 - [Recovery](RECOVERY.md)
 - [Migration](MIGRATION.md)

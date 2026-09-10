@@ -74,6 +74,32 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn("jobs.release_please.outputs.paths_released", workflow)
         self.assertIn("steps.rp.outputs.paths_released", workflow)
 
+    def test_every_forwarded_output_exists_on_its_job(self):
+        # A workflow_call output whose value points at a job output that does not
+        # exist resolves to the empty string for the CALLER, with no error
+        # anywhere in this repository. So the reference is checked structurally.
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        call = workflow.split("    outputs:", 1)[1].split("    inputs:", 1)[0]
+        forwarded = re.findall(r"value: \$\{\{ jobs\.([\w-]+)\.outputs\.(\w+) \}\}", call)
+        self.assertGreaterEqual(len(forwarded), 6, "caller outputs disappeared")
+        for job, name in forwarded:
+            with self.subTest(output=name, job=job):
+                section = workflow.split(f"\n  {job}:\n", 1)
+                self.assertEqual(len(section), 2, f"job {job} does not exist")
+                body = section[1].split("\n    steps:", 1)[0]
+                self.assertIn(f"      {name}: ", body, f"job {job} has no output {name}")
+
+    def test_callers_can_see_the_plan_verdict(self):
+        # 14 repositories call this workflow. Until these were exposed, a caller
+        # could learn `paths_released` and nothing else -- not even whether the
+        # run decided the repository was healthy.
+        workflow = Path(".github/workflows/reusable-release.yml").read_text()
+        call = workflow.split("    outputs:", 1)[1].split("    inputs:", 1)[0]
+        for exposed in ("release_health", "version", "tag", "tag_drift", "run_release"):
+            with self.subTest(output=exposed):
+                self.assertIn(f"\n      {exposed}:\n", call)
+        self.assertIn("jobs.build-plan.outputs.release_health", call)
+
     def test_finalize_configures_node_registry_before_npm_publication(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
         finalize = workflow.split("  finalize:", 1)[1]
