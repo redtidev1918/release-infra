@@ -26,19 +26,21 @@ func rolloutCommand(w io.Writer, args []string) error {
 		return fmt.Errorf("usage: releasegraph rollout [status|plan|apply]")
 	}
 	sub := args[0]
-	var format, manifestPath, version, releaseRepo string
+	var format, manifestPath, version, releaseRepo, rollbackTo, rollbackFrom string
 	var apply bool
 	var only []string
 	fs := flags(&format)
 	fs.Var((*repoList)(&only), "repos", "limit the rollout to these repositories (batch migration)")
 	fs.StringVar(&manifestPath, "manifest", "fleet.yaml", "fleet manifest")
 	fs.StringVar(&version, "version", "", "target ReleaseGraph version, e.g. v1.4.1")
+	fs.StringVar(&rollbackTo, "to", "", "rollback target version (rollback only)")
+	fs.StringVar(&rollbackFrom, "from", "", "bad version to roll back from (rollback only)")
 	fs.StringVar(&releaseRepo, "release-repo", "redtidev1918/releasegraph", "repository whose releases define versions")
 	fs.BoolVar(&apply, "apply", false, "open upgrade pull requests (default: plan only)")
 	if err := fs.Parse(args[1:]); err != nil {
 		return err
 	}
-	if sub != "status" && sub != "plan" && sub != "apply" {
+	if sub != "status" && sub != "plan" && sub != "apply" && sub != "rollback" {
 		return fmt.Errorf("unknown rollout subcommand %q", sub)
 	}
 
@@ -58,6 +60,10 @@ func rolloutCommand(w io.Writer, args []string) error {
 	manifest, err := fleet.LoadManifest(manifestPath)
 	if err != nil {
 		return err
+	}
+
+	if sub == "rollback" {
+		return rolloutRollback(ctx, w, format, client, manifest, releaseRepo, rollbackFrom, rollbackTo, apply, only)
 	}
 	if version == "" {
 		if sub == "apply" {
@@ -392,4 +398,91 @@ func fields(value string) []string {
 		}
 	}
 	return out
+}
+
+// rolloutRollback reverses a bad infrastructure pin by opening pull requests that
+// pin repositories back to a known-good version. It creates a new configuration
+// change and never rewrites release tags: a version stays immutable, so the fix
+// is a forward change of what repositories use.
+func rolloutRollback(ctx context.Context, w io.Writer, format string, client *github.Bound, manifest *fleet.Manifest, releaseRepo, fromVersion, toVersion string, apply bool, only []string) error {
+	if fromVersion == "" || toVersion == "" {
+		return fmt.Errorf("rollback requires --from <bad version> --to <good version>")
+	}
+	fromCommit, err := resolveRefCommit(ctx, client, releaseRepo, fromVersion)
+	if err != nil {
+		return fmt.Errorf("resolve %s: %w", fromVersion, err)
+	}
+	toCommit, err := resolveRefCommit(ctx, client, releaseRepo, toVersion)
+	if err != nil {
+		return fmt.Errorf("resolve %s: %w", toVersion, err)
+	}
+	requested := map[string]bool{}
+	for _, name := range only {
+		requested[name] = true
+	}
+
+	managed, _ := resolveManaged(ctx, client, manifest)
+	type outcome struct {
+		Repository  string `json:"repository"`
+		Status      string `json:"status"`
+		PullRequest string `json:"pullRequest,omitempty"`
+		Reason      string `json:"reason,omitempty"`
+	}
+	outcomes := []outcome{}
+	for _, repo := range managed {
+		if len(requested) > 0 && !requested[repo.Name] {
+			continue
+		}
+		if repo.Classification != fleet.ClassificationManaged {
+			outcomes = append(outcomes, outcome{Repository: repo.Name, Status: "skipped", Reason: repo.Classification})
+			continue
+		}
+		raw, found, err := client.ReadFile(ctx, repo.Name, rollout.WorkflowPath, "")
+		if err != nil || !found {
+			outcomes = append(outcomes, outcome{Repository: repo.Name, Status: "skipped", Reason: "no release workflow"})
+			continue
+		}
+		pin := rollout.ParsePin(raw)
+		if pin.Ref != fromCommit && pin.Ref != fromVersion && pin.Version != fromVersion {
+			outcomes = append(outcomes, outcome{Repository: repo.Name, Status: "skipped", Reason: "not pinned to " + fromVersion})
+			continue
+		}
+		if !apply {
+			outcomes = append(outcomes, outcome{Repository: repo.Name, Status: "would-roll-back", Reason: fromVersion + " -> " + toVersion})
+			continue
+		}
+		pr, err := client.OpenChangePR(ctx, github.FileUpdate{
+			Repo:      repo.Name,
+			Path:      rollout.WorkflowPath,
+			Branch:    "chore/releasegraph-rollback-" + toVersion,
+			Message:   "chore(release-infra): roll back ReleaseGraph to " + toVersion,
+			Title:     "chore(release-infra): roll back ReleaseGraph to " + toVersion,
+			Body:      "Pins the release infrastructure back to `" + toVersion + "` (commit `" + toCommit + "`) from `" + fromVersion + "`.\n\nRelease tags are immutable, so the rollback is a new configuration change rather than a tag rewrite.",
+			Transform: func(current string) (string, error) { return rollout.RepinToCommit(current, toVersion, toCommit) },
+		})
+		if err != nil {
+			outcomes = append(outcomes, outcome{Repository: repo.Name, Status: "failed", Reason: err.Error()})
+			continue
+		}
+		outcomes = append(outcomes, outcome{Repository: repo.Name, Status: "rolled-back", PullRequest: pr})
+	}
+
+	payload := map[string]any{"mode": mode(apply), "from": fromVersion, "to": toVersion, "outcomes": outcomes}
+	if format == "json" {
+		return write(w, "json", payload, nil)
+	}
+	for _, item := range outcomes {
+		switch item.Status {
+		case "rolled-back":
+			fmt.Fprintf(w, "rolled back  %s -> %s %s\n", item.Repository, toVersion, item.PullRequest)
+		case "would-roll-back":
+			fmt.Fprintf(w, "would roll back  %s (%s)\n", item.Repository, item.Reason)
+		default:
+			fmt.Fprintf(w, "%-10s %s: %s\n", item.Status, item.Repository, item.Reason)
+		}
+	}
+	if !apply {
+		fmt.Fprintln(w, "\ndry-run only; pass --apply to open rollback pull requests")
+	}
+	return nil
 }
