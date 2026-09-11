@@ -2,7 +2,7 @@
 
 Serverless, declarative, DAG-driven release orchestration for GitHub Actions.
 
-[简体中文](README.md) · [Documentation](https://redtidev1918.github.io/releasegraph/) · [中文文档](https://redtidev1918.github.io/releasegraph/#/zh-CN/README.md)
+**Language / 语言:** [中文](README.md) · English · [Documentation](https://redtidev1918.github.io/releasegraph/)
 
 ```text
         core
@@ -109,8 +109,8 @@ Build adapters own compilers and package managers and place candidates in `dist/
 
 See:
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Authentication](docs/AUTHENTICATION.md)
-- [Policy](docs/POLICY.md)
-- [Migration](docs/MIGRATION.md)
-- [Recovery](docs/RECOVERY.md)
+- [Architecture](docs/en/ARCHITECTURE.md)
+- [Authentication](docs/en/AUTHENTICATION.md)
+- [Policy](docs/en/POLICY.md)
+- [Migration](docs/en/MIGRATION.md)
+- [Recovery](docs/en/RECOVERY.md)

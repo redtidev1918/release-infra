@@ -2,7 +2,7 @@
 
 面向 GitHub Actions 的无服务器、声明式、DAG 驱动多仓库发布编排器。
 
-[English](README.en.md) · [文档站](https://redtidev1918.github.io/releasegraph/) · [中文文档](https://redtidev1918.github.io/releasegraph/#/zh-CN/README.md)
+**语言 / Language:** 中文 · [English](README.en.md) · [文档站](https://redtidev1918.github.io/releasegraph/)
 
 ```text
         core
@@ -108,7 +108,7 @@ metadata: true
 
 延伸阅读：
 
-- [架构说明](docs/zh-CN/concepts.md)
-- [快速开始](docs/zh-CN/quick-start.md)
-- [认证与权限](docs/zh-CN/authentication.md)
+- [架构说明](docs/concepts.md)
+- [快速开始](docs/quick-start.md)
+- [认证与权限](docs/authentication.md)
 - [英文文档](docs/README.md)
