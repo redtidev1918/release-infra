@@ -185,6 +185,9 @@
     }
   ],
   "release_config": {
+    ".release-please-manifest.json": {
+      ".": "0.6.1"
+    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -202,9 +205,6 @@
           "skip-github-release": true
         }
       }
-    },
-    ".release-please-manifest.json": {
-      ".": "0.6.1"
     }
   },
   "registries": {
@@ -217,7 +217,7 @@
   "branchContract": {
     "configured": false,
     "gateInstalled": false,
-    "gatePinned": null,
+    "gatePinned": false,
     "policyValid": null
   }
 }

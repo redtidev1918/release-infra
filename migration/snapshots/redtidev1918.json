@@ -38,7 +38,7 @@
   "branchContract": {
     "configured": false,
     "gateInstalled": false,
-    "gatePinned": null,
+    "gatePinned": false,
     "policyValid": null
   }
 }

@@ -362,7 +362,7 @@
   },
   "branchContract": {
     "configured": false,
-    "gateInstalled": true,
+    "gateInstalled": false,
     "gatePinned": false,
     "policyValid": null
   }
