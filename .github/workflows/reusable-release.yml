@@ -404,7 +404,7 @@ jobs:
           PYTHONPATH=.releasegraph python3 -m release_infra.cli asset-gate
           PYTHONPATH=.releasegraph python3 -m release_infra.cli stage "${args[@]}"
       - uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4.0.4
-        if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy' && contains(steps.plan.outputs.required_publish, 'npm publish')
+        if: steps.plan.outputs.run_release == '1' && steps.plan.outputs.release_health != 'healthy' && steps.plan.outputs.npm_publish_enabled == '1'
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/

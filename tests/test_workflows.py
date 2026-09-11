@@ -107,6 +107,14 @@ class WorkflowTest(unittest.TestCase):
         setup = finalize.index("actions/setup-node@")
         self.assertLess(setup, publication)
         self.assertIn("registry-url: https://registry.npmjs.org/", finalize)
+        # The toolchain step must be selected by the plan's structured channel
+        # flag, never by searching the publish command for a substring: a policy
+        # that publishes with `npx --yes npm@11 publish` never contains
+        # "npm publish", so the step silently skipped and the publication ran
+        # without a registry token.
+        node_step = finalize[setup:publication]
+        self.assertIn("steps.plan.outputs.npm_publish_enabled == '1'", node_step)
+        self.assertNotIn("required_publish", node_step)
 
     def test_required_registry_verification_retries_registry_propagation(self):
         workflow = Path(".github/workflows/reusable-release.yml").read_text()
