@@ -145,6 +145,27 @@ class ReleaseTest(unittest.TestCase):
         self.assertEqual(result["ghcr_required"], "false")
         self.assertEqual(result["ghcr_image"], "ghcr.io/owner/app")
 
+    def test_npm_registry_requests_the_node_toolchain(self):
+        # A registry entry is a channel, not a command to be parsed. The plan has
+        # to state it, because `npx --yes npm@11 publish` never contains the
+        # substring "npm publish".
+        policy = {"kind": "hybrid", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}, "npm": {"required": True, "publish": "npx --yes npm@11 publish --provenance", "verify": "npm view app@$RELEASE_VERSION version"}}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            with mock.patch.object(release, "_release", return_value=None):
+                result = release.plan(str(path))
+        self.assertEqual(result["npm_publish_enabled"], "1")
+
+    def test_github_only_policy_does_not_request_the_node_toolchain(self):
+        policy = {"kind": "hybrid", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / ".release-policy.yml"
+            path.write_text(json.dumps(policy))
+            with mock.patch.object(release, "_release", return_value=None):
+                result = release.plan(str(path))
+        self.assertEqual(result["npm_publish_enabled"], "0")
+
     def test_incomplete_public_release_waits_for_explicit_repair(self):
         policy = {"kind": "binary", "versioning": {"mode": "manual", "version": "1.2.3"}, "assets": {"required": ["app"]}, "registries": {"github": {"required": True}}}
         public = {"isDraft": False, "assets": [{"name": "app", "size": 1}]}

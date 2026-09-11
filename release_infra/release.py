@@ -192,6 +192,7 @@ def plan(policy_path: str = ".release-policy.yml", version: str | None = None, *
         "ghcr_enabled": str("ghcr" in registries).lower(), "ghcr_required": str(ghcr.get("required", True)).lower(),
         "ghcr_context": ghcr.get("context", "."), "ghcr_file": ghcr.get("file", "Dockerfile"),
         "ghcr_image": ghcr.get("image", ""), "ghcr_platforms": ghcr.get("platforms", "linux/amd64"),
+        "npm_publish_enabled": "1" if registries.get("npm", {}).get("required", True) and registries.get("npm", {}).get("publish") else "0",
         "required_publish": " && ".join(config.get("publish", ":") for name, config in registries.items() if name != "ghcr" and config.get("required", True) and config.get("publish")),
         "required_verify": " && ".join(config.get("verify", ":") for config in registries.values() if config.get("required", True) and config.get("verify")),
         "optional_publish": "; ".join(f"({config['publish']}) || true" for name, config in registries.items() if name != "ghcr" and not config.get("required", True) and config.get("publish")),
