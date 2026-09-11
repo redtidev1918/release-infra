@@ -146,6 +146,70 @@ func (b *Bound) RemoveIssueLabel(ctx context.Context, repo string, number int, l
 	return b.client.RemoveIssueLabel(ctx, repo, number, label)
 }
 
+// OpenPullRequests lists the open pull requests of one repository.
+func (b *Bound) OpenPullRequests(ctx context.Context, repo string) ([]OpenPullRequest, error) {
+	if err := b.guardTarget(repo); err != nil {
+		return nil, err
+	}
+	return b.client.OpenPullRequests(ctx, repo)
+}
+
+// CompareCommits compares head against base.
+func (b *Bound) CompareCommits(ctx context.Context, repo, base, head string) (Compare, bool, error) {
+	if err := b.guardTarget(repo); err != nil {
+		return Compare{}, false, err
+	}
+	return b.client.CompareCommits(ctx, repo, base, head)
+}
+
+// HeadCheckState reports the combined check verdict for a commit.
+func (b *Bound) HeadCheckState(ctx context.Context, repo, sha string) (string, error) {
+	if err := b.guardTarget(repo); err != nil {
+		return "", err
+	}
+	return b.client.HeadCheckState(ctx, repo, sha)
+}
+
+// OpenIssues lists the open issues of one repository.
+func (b *Bound) OpenIssues(ctx context.Context, repo string) ([]Issue, error) {
+	if err := b.guardTarget(repo); err != nil {
+		return nil, err
+	}
+	return b.client.OpenIssues(ctx, repo)
+}
+
+// CreateIssue opens an issue in one repository.
+//
+// The lifecycle contract's mutations are allowed in repository and fleet scope
+// for the same reason label acknowledgement is: they act on the repository the
+// process is already responsible for. A repository-scoped process cannot reach
+// another repository at all, because guardTarget refuses it before any request
+// is made, so widening this to fleet scope grants no extra reach.
+func (b *Bound) CreateIssue(ctx context.Context, repo, title, body string, labels []string) (int, error) {
+	if err := b.guardTarget(repo); err != nil {
+		return 0, err
+	}
+	return b.client.CreateIssue(ctx, repo, title, body, labels)
+}
+
+// CommentOnIssue posts a comment on an issue or pull request.
+func (b *Bound) CommentOnIssue(ctx context.Context, repo string, number int, body string) error {
+	if err := b.guardTarget(repo); err != nil {
+		return err
+	}
+	return b.client.CommentOnIssue(ctx, repo, number, body)
+}
+
+// ClosePullRequest closes a pull request without merging it. This is the
+// strongest mutation the lifecycle contract can reach: the client exposes no
+// merge, no branch deletion and no history rewrite at all.
+func (b *Bound) ClosePullRequest(ctx context.Context, repo string, number int) error {
+	if err := b.guardTarget(repo); err != nil {
+		return err
+	}
+	return b.client.ClosePullRequest(ctx, repo, number)
+}
+
 // DispatchWorkflow triggers another repository's workflow. This is a control
 // plane capability: it is refused outside fleet scope.
 func (b *Bound) DispatchWorkflow(ctx context.Context, repo, workflowFile, ref string, inputs map[string]string) error {

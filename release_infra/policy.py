@@ -117,11 +117,57 @@ def validate_policy(policy: Any) -> None:
             production_operations = git.get("productionOperations")
             if production_operations is not None:
                 validate_production_operations(production_operations)
+        pull_requests = repository.get("pullRequests")
+        if pull_requests is not None:
+            if not isinstance(pull_requests, dict):
+                raise PolicyError("repository.pullRequests must be an object")
+            lifecycle = pull_requests.get("lifecycle")
+            if lifecycle is not None:
+                validate_pr_lifecycle(lifecycle)
 
 
 def _validate_branch_patterns(field: str, patterns: Any) -> None:
     if not isinstance(patterns, list) or not patterns or not all(isinstance(v, str) and v for v in patterns):
         raise PolicyError(f"{field} must be a non-empty list of non-empty strings")
+
+
+def validate_pr_lifecycle(lifecycle: Any) -> None:
+    """Mirror internal/policy.validatePRLifecycle.
+
+    Two invariants are deliberately not opt-in: the contract never deletes a
+    branch, and it never closes parked work without first archiving it into an
+    issue. Both are rejected rather than accepted-and-ignored, so a policy that
+    says otherwise is a policy error on both sides.
+    """
+    field = "repository.pullRequests.lifecycle"
+    if not isinstance(lifecycle, dict):
+        raise PolicyError(f"{field} must be an object")
+    if lifecycle.get("deleteBranch") is True:
+        raise PolicyError(f"{field}.deleteBranch must be false; the lifecycle contract never deletes a branch")
+    parked = lifecycle.get("parkedAfterDays")
+    if parked is not None and (isinstance(parked, bool) or not isinstance(parked, int) or not 1 <= parked <= 365):
+        raise PolicyError(f"{field}.parkedAfterDays must be between 1 and 365")
+    closes = lifecycle.get("closeParked", True) is not False
+    archives = lifecycle.get("archiveParkedToIssue", True) is not False
+    if closes and not archives:
+        raise PolicyError(
+            f"{field}.archiveParkedToIssue must be true while parked pull requests are closed; "
+            "closing without an issue discards the work"
+        )
+    exempt = lifecycle.get("exempt", {})
+    if not isinstance(exempt, dict):
+        raise PolicyError(f"{field}.exempt must be an object")
+    # Branch patterns are checked for shape, not for glob syntax: the branch
+    # language is validated by the Go core, exactly as it already is for
+    # repository.git.productionOperations.branches.
+    _validate_string_list(f"{field}.exempt.branches", exempt.get("branches", []))
+    _validate_string_list(f"{field}.exempt.actors", exempt.get("actors", []))
+    _validate_string_list(f"{field}.exempt.labels", exempt.get("labels", []))
+
+
+def _validate_string_list(field: str, values: Any) -> None:
+    if not isinstance(values, list) or not all(isinstance(v, str) and v and "\n" not in v for v in values):
+        raise PolicyError(f"{field} must be a list of non-empty single-line strings")
 
 
 def validate_production_operations(po: Any) -> None:

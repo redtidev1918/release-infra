@@ -9,6 +9,7 @@
   - [Plan Contract](/en/plan.md)
   - [Calling the Release Workflow](/en/callers.md)
   - [Branch Contract](/en/branch-contract.md)
+  - [PR Lifecycle](/en/pr-lifecycle.md)
 - Development
   - [Architecture](/en/ARCHITECTURE.md)
   - [Policy](/en/POLICY.md)
