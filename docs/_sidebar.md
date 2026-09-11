@@ -1,22 +1,10 @@
-- 中文
-  - [文档中心](/)
+- 开始使用
+  - [概览](/)
   - [📥 下载](/download.md)
   - [快速开始](/quick-start.md)
   - [核心概念](/concepts.md)
+- 使用与配置
   - [认证与权限](/authentication.md)
   - [发布健康](/health.md)
   - [计划契约](/plan.md)
   - [如何调用发布工作流](/callers.md)
-- English
-  - [Documentation](/en/)
-  - [📥 Download](/en/download.md)
-  - [Architecture](/en/ARCHITECTURE.md)
-  - [Policy](/en/POLICY.md)
-  - [Release health](/en/health.md)
-  - [Plan contract](/en/plan.md)
-  - [Calling the release workflow](/en/callers.md)
-  - [Authentication](/en/authentication.md)
-  - [Recovery](/en/RECOVERY.md)
-  - [Migration](/en/MIGRATION.md)
-  - [Quick start](/en/quick-start.md)
-  - [Core concepts](/en/concepts.md)

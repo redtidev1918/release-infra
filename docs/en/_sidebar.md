@@ -1,0 +1,15 @@
+- Getting Started
+  - [Overview](/en/README.md)
+  - [📥 Download](/en/download.md)
+  - [Quick Start](/en/quick-start.md)
+  - [Core Concepts](/en/concepts.md)
+- Usage & Configuration
+  - [Authentication](/en/authentication.md)
+  - [Release Health](/en/health.md)
+  - [Plan Contract](/en/plan.md)
+  - [Calling the Release Workflow](/en/callers.md)
+- Development
+  - [Architecture](/en/ARCHITECTURE.md)
+  - [Policy](/en/POLICY.md)
+  - [Recovery](/en/RECOVERY.md)
+  - [Migration](/en/MIGRATION.md)
