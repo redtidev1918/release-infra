@@ -7,6 +7,9 @@
   "template": false,
   "classification": "managed",
   "health": "HEALTHY",
+  "health_reasons": [],
+  "missing_assets": [],
+  "empty_assets": [],
   "release_policy": {
     "kind": "container",
     "versioning": {
@@ -41,7 +44,7 @@
     "checksums": false,
     "sbom": true
   },
-  "release_infra_version": "v1",
+  "release_infra_version": null,
   "desired_version": "1.0.1",
   "latest_release": "v1.0.1",
   "latest_release_at": "2026-09-09T05:01:47Z",
@@ -54,17 +57,13 @@
     {
       "name": "Release",
       "path": ".github/workflows/release.yml"
-    },
-    {
-      "name": "Deploy static content to Pages",
-      "path": ".github/workflows/static.yml"
     }
   ],
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/pixivflow-webui/actions/runs/34443230533",
-    "updated_at": "2026-09-10T05:59:00Z"
+    "url": "https://github.com/redtidev1918/pixivflow-webui/actions/runs/34568162775",
+    "updated_at": "2026-09-11T06:01:01Z"
   },
   "signals": [
     ".release-please-manifest.json",

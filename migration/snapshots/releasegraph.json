@@ -7,12 +7,15 @@
   "template": false,
   "classification": "managed",
   "health": "HEALTHY",
+  "health_reasons": [],
+  "missing_assets": [],
+  "empty_assets": [],
   "release_policy": {
     "apiVersion": "releasegraph.dev/v1",
     "kind": "hybrid",
     "versioning": {
       "mode": "manual",
-      "version": "1.2.3"
+      "version": "1.4.8"
     },
     "assets": {
       "required": [
@@ -23,7 +26,9 @@
         "releasegraph-windows-amd64.exe",
         "releasegraph-windows-arm64.exe"
       ],
-      "optional": []
+      "optional": [
+        "RELEASEGRAPH-METADATA.json"
+      ]
     },
     "registries": {
       "github": {
@@ -41,9 +46,9 @@
   },
   "release_infra_version": null,
   "desired_version": null,
-  "latest_release": "v1.2.3",
-  "latest_release_at": "2026-09-09T16:21:17Z",
-  "latest_tag": "v1.2.3",
+  "latest_release": "v1.4.8",
+  "latest_release_at": "2026-09-10T15:20:32Z",
+  "latest_tag": "v1.4.8",
   "draft_releases": [],
   "actual_assets": [
     "RELEASE-METADATA.json",
@@ -51,38 +56,13 @@
     "releasegraph-darwin-arm64",
     "releasegraph-linux-amd64",
     "releasegraph-linux-arm64",
+    "RELEASEGRAPH-METADATA.json",
     "releasegraph-windows-amd64.exe",
     "releasegraph-windows-arm64.exe",
     "SHA256SUMS"
   ],
-  "release_workflows": [
-    {
-      "name": "Deploy static content to Pages",
-      "path": ".github/workflows/docs.yml"
-    },
-    {
-      "name": "ReleaseGraph Go Canary",
-      "path": ".github/workflows/go-canary.yml"
-    },
-    {
-      "name": "Promote stable v1",
-      "path": ".github/workflows/infra-release.yml"
-    },
-    {
-      "name": "ReleaseGraph Read-Only Plan",
-      "path": ".github/workflows/reusable-readonly-plan.yml"
-    },
-    {
-      "name": "Release Infrastructure v1",
-      "path": ".github/workflows/reusable-release.yml"
-    }
-  ],
-  "latest_release_run": {
-    "status": "completed",
-    "conclusion": "success",
-    "url": "https://github.com/redtidev1918/releasegraph/actions/runs/34376029677",
-    "updated_at": "2026-09-09T16:20:21Z"
-  },
+  "release_workflows": [],
+  "latest_release_run": null,
   "signals": [
     ".release-policy.yml",
     "CHANGELOG.md",
@@ -92,64 +72,111 @@
   "workflow_paths": [
     ".github/workflows/docs.yml",
     ".github/workflows/fleet-audit.yml",
+    ".github/workflows/fleet-rollout.yml",
     ".github/workflows/go-canary.yml",
     ".github/workflows/infra-canary.yml",
     ".github/workflows/infra-release.yml",
     ".github/workflows/notify-profile.yml",
+    ".github/workflows/provider-watchdog.yml",
     ".github/workflows/reusable-readonly-plan.yml",
     ".github/workflows/reusable-release.yml"
   ],
   "release_history": [
     {
-      "tag": "v1.2.3",
+      "tag": "v1.4.8",
       "draft": false,
       "prerelease": false,
-      "published_at": "2026-09-09T16:21:17Z",
+      "published_at": "2026-09-10T15:20:32Z",
       "assets": [
         {
           "name": "RELEASE-METADATA.json",
-          "size": 1868,
-          "sha256": "sha256:821322c04d66b7b892354fe45d5fd88ed65d8c71dfbaf2086eb6e24fb1e8d0cf"
+          "size": 2394,
+          "sha256": "sha256:2b582da5a6608a154a1e039f8113091fbc31fdfcb0033f3341c6e7792c1f453f"
         },
         {
           "name": "releasegraph-darwin-amd64",
-          "size": 6926720,
-          "sha256": "sha256:0ce7254464970175b74f0b07de05efb993dbec2c2f12808fc6acb1ea06331091"
+          "size": 7307520,
+          "sha256": "sha256:9594e7b4ed04b47069b835c08fe9595eae723245ca08a2dcbbbe396ad495845d"
         },
         {
           "name": "releasegraph-darwin-arm64",
-          "size": 6472962,
-          "sha256": "sha256:eacd026808d56ce8c8eb58b322f25430f6b5b528936542b4dc33209dd658e145"
+          "size": 6794850,
+          "sha256": "sha256:2f45c3ada1002a26f93040c5b7ee50593f85e8843341e0a7a76f7bfe678caa1e"
         },
         {
           "name": "releasegraph-linux-amd64",
-          "size": 6783160,
-          "sha256": "sha256:c93cfd54466899ce018934dec6e4ae2b0b88632418b85d6883aa059471641f44"
+          "size": 7184568,
+          "sha256": "sha256:87f1a4f276c79d41b795c0ef1148e0bf6af0b3176ecbb907e5e1f0bdaa5e44a0"
         },
         {
           "name": "releasegraph-linux-arm64",
-          "size": 6357176,
-          "sha256": "sha256:88168b9a2fafa325fd89044e57df299b115f6bb5fa08f6ba26c502a46b9d85e9"
+          "size": 6684856,
+          "sha256": "sha256:01464f7f98d73494bbf3c59426740223e1341eba1e0504823fc8470b80a5be44"
+        },
+        {
+          "name": "RELEASEGRAPH-METADATA.json",
+          "size": 150,
+          "sha256": "sha256:b5ecebe427243591f8309c56ed4f87db1855efd9d14e4a79c03efcae067c2e55"
         },
         {
           "name": "releasegraph-windows-amd64.exe",
-          "size": 6968320,
-          "sha256": "sha256:48e3e79630bf615eb5a7c7b0c9557caf0cc3cddd3e373ec663f318cf08714745"
+          "size": 7376896,
+          "sha256": "sha256:3fcc55363618ed5f8daaa3e935fc974815e38984f49d9fd8617ef04effd36843"
         },
         {
           "name": "releasegraph-windows-arm64.exe",
-          "size": 6363648,
-          "sha256": "sha256:abc9d9f135a821d98d2b44e0bf427a89747da9ad3f0ac740fbd7a5d7413f5817"
+          "size": 6722048,
+          "sha256": "sha256:1415bd8c4c606656c29e43a85044a405ad380ca0b978ffc4575cb803af195311"
         },
         {
           "name": "SHA256SUMS",
-          "size": 560,
-          "sha256": "sha256:65fee83526ba1922b805ec6aa12bef09f0436ccb6542f0e0094e2b8388197b42"
+          "size": 653,
+          "sha256": "sha256:4340ac4064ba905d3b54ffa16613a77ab511f97dea3b537da7d46ea5876e123a"
         }
       ]
     }
   ],
   "tags": [
+    {
+      "name": "v1.4.8",
+      "commit": "d6d0bbec4e37bec025ab13de1783d4af96d6f925"
+    },
+    {
+      "name": "v1.4.7",
+      "commit": "f4e4d308e145b6c663374a71068da4c3b6526254"
+    },
+    {
+      "name": "v1.4.6",
+      "commit": "36d1bbce3c00d13c5383706cbc66d9ba17f8f72c"
+    },
+    {
+      "name": "v1.4.5",
+      "commit": "33010e2ef085d7f27a6af48a1d67c9c31fb147cf"
+    },
+    {
+      "name": "v1.4.4",
+      "commit": "f0b1da0a62a7f4f26eab36353a58c6254b751c07"
+    },
+    {
+      "name": "v1.4.3",
+      "commit": "6b3843bfdd73338831630e004eaf3535b84dcfd3"
+    },
+    {
+      "name": "v1.4.2",
+      "commit": "7124a2232a0f084458e0f95f9d898c50ff686e87"
+    },
+    {
+      "name": "v1.4.1",
+      "commit": "949a267b48306e34b597e968269c492a31090bf2"
+    },
+    {
+      "name": "v1.4.0",
+      "commit": "79e35db0021e6b1fe1ec8cc8c973346cb0869a5f"
+    },
+    {
+      "name": "v1.3.0",
+      "commit": "d465684fc559aea7f073454f82d07df155c1f4d1"
+    },
     {
       "name": "v1.2.3",
       "commit": "438c62cb368eb33bee77143a8bcce53a3fd581a2"
@@ -308,7 +335,7 @@
     },
     {
       "name": "v1",
-      "commit": "438c62cb368eb33bee77143a8bcce53a3fd581a2"
+      "commit": "d6d0bbec4e37bec025ab13de1783d4af96d6f925"
     }
   ],
   "release_config": {},
