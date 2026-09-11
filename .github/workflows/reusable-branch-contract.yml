@@ -42,16 +42,45 @@ jobs:
           # Full history is required: the contract decides on git topology
           # (merge-base / rev-parse), never on content similarity.
           fetch-depth: 0
+      # IMPORTANT:
+      # The consumer pins this reusable workflow by commit SHA. The engine must
+      # be built from exactly that same workflow commit; using a mutable channel
+      # (v1/main/master) here would make an apparently immutable caller execute
+      # mutable code. job.workflow_sha is the commit of the reusable workflow
+      # file itself (NOT github.sha, which is the caller's event commit), and
+      # job.workflow_repository is the repository that defines it. There is
+      # deliberately no fallback to a mutable ref: if the runtime cannot supply
+      # the workflow SHA, the runtime self-check below fails closed.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: redtidev1918/releasegraph
-          ref: v1
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
           path: .releasegraph-engine
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: .releasegraph-engine/go.mod
       - name: Build branch-contract CLI
         run: (cd .releasegraph-engine && go build -trimpath -o ../releasegraph ./cmd/releasegraph)
+      # Runtime provenance assertion: the engine source that was just checked
+      # out and built must be the exact commit of this reusable workflow. This
+      # fails closed on empty workflow SHA or any drift, so a future edit to
+      # the checkout (or a runtime behavior change) can never silently execute
+      # a different engine than the pinned workflow definition.
+      - name: Assert engine provenance
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: |
+          if [ -z "$WORKFLOW_SHA" ]; then
+            echo "job.workflow_sha is empty; cannot prove engine provenance" >&2
+            exit 1
+          fi
+          engine_sha="$(git -C .releasegraph-engine rev-parse HEAD)"
+          echo "workflow_sha=$WORKFLOW_SHA"
+          echo "engine_sha=$engine_sha"
+          if [ "$engine_sha" != "$WORKFLOW_SHA" ]; then
+            echo "engine ($engine_sha) does not match the reusable workflow commit ($WORKFLOW_SHA)" >&2
+            exit 1
+          fi
       - name: Resolve refs
         # Event-derived values are passed through the environment, never
         # interpolated into the inline script (untrusted input).
