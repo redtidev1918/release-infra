@@ -39,7 +39,21 @@
       "failed_draft": 2
     },
     "checksums": false,
-    "sbom": false
+    "sbom": false,
+    "repository": {
+      "git": {
+        "productionOperations": {
+          "base": "default",
+          "branches": [
+            "chore/cutover-*",
+            "ops/*",
+            "release/*",
+            "hotfix/*"
+          ],
+          "requireLatestBase": true
+        }
+      }
+    }
   },
   "release_infra_version": null,
   "desired_version": "2.6.1",
@@ -59,8 +73,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/pixiv-token-getter/actions/runs/34622936673",
-    "updated_at": "2026-09-11T16:40:56Z"
+    "url": "https://github.com/redtidev1918/pixiv-token-getter/actions/runs/34631301637",
+    "updated_at": "2026-09-11T18:06:22Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -70,6 +84,7 @@
     "release-please-config.json"
   ],
   "workflow_paths": [
+    ".github/workflows/branch-contract.yml",
     ".github/workflows/notify-profile.yml",
     ".github/workflows/release.yml",
     ".github/workflows/static.yml",
@@ -125,9 +140,6 @@
     }
   ],
   "release_config": {
-    ".release-please-manifest.json": {
-      ".": "2.6.1"
-    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -140,6 +152,9 @@
           "skip-github-release": true
         }
       }
+    },
+    ".release-please-manifest.json": {
+      ".": "2.6.1"
     }
   },
   "registries": {
@@ -150,9 +165,9 @@
     }
   },
   "branchContract": {
-    "configured": false,
-    "gateInstalled": false,
-    "gatePinned": false,
-    "policyValid": null
+    "configured": true,
+    "gateInstalled": true,
+    "gatePinned": true,
+    "policyValid": true
   }
 }

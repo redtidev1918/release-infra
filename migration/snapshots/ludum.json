@@ -39,7 +39,21 @@
       "failed_draft": 2
     },
     "checksums": false,
-    "sbom": false
+    "sbom": false,
+    "repository": {
+      "git": {
+        "productionOperations": {
+          "base": "default",
+          "branches": [
+            "chore/cutover-*",
+            "ops/*",
+            "release/*",
+            "hotfix/*"
+          ],
+          "requireLatestBase": true
+        }
+      }
+    }
   },
   "release_infra_version": null,
   "desired_version": "3.0.3",
@@ -59,8 +73,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/ludum/actions/runs/34610331217",
-    "updated_at": "2026-09-11T14:28:42Z"
+    "url": "https://github.com/redtidev1918/ludum/actions/runs/34631289248",
+    "updated_at": "2026-09-11T18:06:03Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -70,6 +84,7 @@
     "release-please-config.json"
   ],
   "workflow_paths": [
+    ".github/workflows/branch-contract.yml",
     ".github/workflows/ci.yml",
     ".github/workflows/notify-profile.yml",
     ".github/workflows/release.yml",
@@ -122,9 +137,6 @@
     }
   ],
   "release_config": {
-    ".release-please-manifest.json": {
-      ".": "3.0.3"
-    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -137,6 +149,9 @@
           "skip-github-release": true
         }
       }
+    },
+    ".release-please-manifest.json": {
+      ".": "3.0.3"
     }
   },
   "registries": {
@@ -147,9 +162,9 @@
     }
   },
   "branchContract": {
-    "configured": false,
-    "gateInstalled": false,
-    "gatePinned": false,
-    "policyValid": null
+    "configured": true,
+    "gateInstalled": true,
+    "gatePinned": true,
+    "policyValid": true
   }
 }

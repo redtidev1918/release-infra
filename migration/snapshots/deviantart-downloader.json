@@ -42,7 +42,21 @@
       "failed_draft": 2
     },
     "checksums": true,
-    "sbom": false
+    "sbom": false,
+    "repository": {
+      "git": {
+        "productionOperations": {
+          "base": "default",
+          "branches": [
+            "chore/cutover-*",
+            "ops/*",
+            "release/*",
+            "hotfix/*"
+          ],
+          "requireLatestBase": true
+        }
+      }
+    }
   },
   "release_infra_version": null,
   "desired_version": "4.1.1",
@@ -65,8 +79,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/deviantart-downloader/actions/runs/34609530075",
-    "updated_at": "2026-09-11T14:20:42Z"
+    "url": "https://github.com/redtidev1918/deviantart-downloader/actions/runs/34631265039",
+    "updated_at": "2026-09-11T18:05:58Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -77,6 +91,7 @@
     "setup.py"
   ],
   "workflow_paths": [
+    ".github/workflows/branch-contract.yml",
     ".github/workflows/ci.yml",
     ".github/workflows/notify-profile.yml",
     ".github/workflows/release.yml",
@@ -152,9 +167,6 @@
     }
   ],
   "release_config": {
-    ".release-please-manifest.json": {
-      ".": "4.1.1"
-    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -167,6 +179,9 @@
           "skip-github-release": true
         }
       }
+    },
+    ".release-please-manifest.json": {
+      ".": "4.1.1"
     }
   },
   "registries": {
@@ -177,9 +192,9 @@
     }
   },
   "branchContract": {
-    "configured": false,
-    "gateInstalled": false,
-    "gatePinned": false,
-    "policyValid": null
+    "configured": true,
+    "gateInstalled": true,
+    "gatePinned": true,
+    "policyValid": true
   }
 }

@@ -42,7 +42,21 @@
       "failed_draft": 2
     },
     "checksums": false,
-    "sbom": true
+    "sbom": true,
+    "repository": {
+      "git": {
+        "productionOperations": {
+          "base": "default",
+          "branches": [
+            "chore/cutover-*",
+            "ops/*",
+            "release/*",
+            "hotfix/*"
+          ],
+          "requireLatestBase": true
+        }
+      }
+    }
   },
   "release_infra_version": null,
   "desired_version": "1.0.1",
@@ -62,8 +76,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/pixivflow-webui/actions/runs/34622241648",
-    "updated_at": "2026-09-11T16:29:19Z"
+    "url": "https://github.com/redtidev1918/pixivflow-webui/actions/runs/34631306375",
+    "updated_at": "2026-09-11T18:06:13Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -73,6 +87,7 @@
     "release-please-config.json"
   ],
   "workflow_paths": [
+    ".github/workflows/branch-contract.yml",
     ".github/workflows/notify-profile.yml",
     ".github/workflows/release.yml",
     ".github/workflows/static.yml",
@@ -100,9 +115,6 @@
     }
   ],
   "release_config": {
-    ".release-please-manifest.json": {
-      ".": "1.0.1"
-    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -115,6 +127,9 @@
           "skip-github-release": true
         }
       }
+    },
+    ".release-please-manifest.json": {
+      ".": "1.0.1"
     }
   },
   "registries": {
@@ -125,9 +140,9 @@
     }
   },
   "branchContract": {
-    "configured": false,
-    "gateInstalled": false,
-    "gatePinned": false,
-    "policyValid": null
+    "configured": true,
+    "gateInstalled": true,
+    "gatePinned": true,
+    "policyValid": true
   }
 }

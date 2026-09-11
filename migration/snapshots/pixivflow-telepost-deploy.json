@@ -199,9 +199,6 @@
     }
   ],
   "release_config": {
-    ".release-please-manifest.json": {
-      ".": "1.12.0"
-    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -213,6 +210,9 @@
           "include-component-in-tag": false
         }
       }
+    },
+    ".release-please-manifest.json": {
+      ".": "1.12.0"
     }
   },
   "registries": {},
