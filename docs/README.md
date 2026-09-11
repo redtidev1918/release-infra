@@ -19,3 +19,29 @@ ReleaseGraph 是一个面向 GitHub Actions 的无服务器、多仓库发布编
 - [英文恢复说明](/en/RECOVERY.md)
 
 当前 Go 核心仍处于只读 canary 阶段；Go 写操作、registry 检查与 dispatch 尚未标为稳定能力。
+
+## fleet 观测快照
+
+本仓库是 release control / fleet repository。除了 desired / managed 清单
+[`fleet.yaml`](https://github.com/redtidev1918/releasegraph/blob/main/fleet.yaml) 之外，
+还**有意版本化提交**两个生成物快照：
+
+| 文件 | 用途 | 生成方式 |
+| :-- | :-- | :-- |
+| [`STATUS.md`](https://github.com/redtidev1918/releasegraph/blob/main/STATUS.md) | 人类可读的 fleet 状态快照 | `.github/workflows/fleet-audit.yml` 运行 `release_infra/inventory.py` |
+| [`status.json`](https://github.com/redtidev1918/releasegraph/blob/main/status.json) | 机器可读的同源快照（含 `schema_version`） | 同一次运行，与 `STATUS.md` 时间戳一致 |
+
+它们**不是手工配置**，也**不改成纯 CI artifact**：提交入库让 git 历史天然成为 fleet 状态
+的变化记录，可以回溯「某个仓库何时从 `NEEDS_REVIEW` 变成 `HEALTHY`」。workflow 只在状态
+变化时提交，不会每次运行都产生 commit。
+
+职责边界：
+
+```text
+fleet.yaml   = desired / managed inventory（唯一事实源）
+STATUS.md    = generated human snapshot
+status.json  = generated machine snapshot
+```
+
+两个文件头部都已标注 **GENERATED — DO NOT EDIT**。要改状态请改 `fleet.yaml` 或生成器，
+而不是改快照。

@@ -25,3 +25,27 @@ ReleaseGraph computes release plans from desired state, current GitHub and regis
 - [Migration](MIGRATION.md)
 - [Quick start](quick-start.md)
 - [Core concepts](concepts.md)
+
+## Fleet observation snapshots
+
+This repository is a release control / fleet repository. Besides the desired / managed
+inventory in `fleet.yaml`, two **generated snapshots are intentionally committed**:
+
+| File | Purpose | How it is produced |
+| :-- | :-- | :-- |
+| `STATUS.md` | Human-readable fleet status snapshot | `.github/workflows/fleet-audit.yml` runs `release_infra/inventory.py` |
+| `status.json` | Machine-readable twin (with `schema_version`) | The same run; identical timestamp to `STATUS.md` |
+
+They are **not hand-maintained configuration**, and they are deliberately **not** demoted to pure
+CI artifacts: committing them makes git history the record of how fleet state changed over time —
+for example when a repository moved from `NEEDS_REVIEW` to `HEALTHY`. The workflow commits only
+when the state actually changes, so it does not produce a commit on every run.
+
+```text
+fleet.yaml   = desired / managed inventory (source of truth)
+STATUS.md    = generated human snapshot
+status.json  = generated machine snapshot
+```
+
+Both files carry a **GENERATED — DO NOT EDIT** header. To change state, change `fleet.yaml` or the
+generator — not the snapshot.

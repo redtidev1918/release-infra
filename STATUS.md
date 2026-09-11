@@ -1,6 +1,11 @@
 # Release Fleet Dashboard
 
-Generated: `2026-09-10T08:10:11.489652+00:00`
+> **GENERATED — DO NOT EDIT.** 本文件由 `.github/workflows/fleet-audit.yml` 运行
+> `release_infra/inventory.py` 生成，仅在 fleet 状态发生变化时提交，因此 git 历史
+> 就是 fleet 状态的变化记录。desired / managed 清单的唯一事实源是
+> [`fleet.yaml`](./fleet.yaml)。机器可读的同源快照见 [`status.json`](./status.json)。
+
+Generated: `2026-09-11T09:00:28.676820+00:00`
 
 | Repository | Class | Desired | Latest | Assets | Workflow | Health |
 |---|---|---:|---:|---:|---|---|
