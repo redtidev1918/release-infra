@@ -291,6 +291,56 @@ def scan(owner: str, *, include_private: bool = True) -> list[dict[str, Any]]:
     return sorted(inventory, key=lambda item: item["repo"].lower())
 
 
+#: The sidecar written by `releasegraph pr-lifecycle audit --output`. Go owns the
+#: classification; this module owns the field that reaches the dashboard, so the
+#: two never render the same verdict in two different ways.
+PR_LIFECYCLE_SIDECAR = "pr-lifecycle.json"
+
+
+def _pr_lifecycle_summaries(root: Path) -> dict[str, dict[str, Any]]:
+    """Read the PR lifecycle sidecar, keyed by repository full name.
+
+    A missing or malformed sidecar yields no summaries rather than failing the
+    audit: the release dimension must not break because an optional governance
+    dimension was unavailable. An absent key renders as "not declared", which is
+    exactly what the absence means.
+    """
+    try:
+        document = json.loads((root / PR_LIFECYCLE_SIDECAR).read_text())
+    except (OSError, ValueError):
+        return {}
+    summaries: dict[str, dict[str, Any]] = {}
+    for outcome in document.get("repositories") or []:
+        name = outcome.get("repository")
+        if not isinstance(name, str) or not name:
+            continue
+        summaries[name] = {
+            "status": outcome.get("status", "unknown"),
+            "enabled": bool(outcome.get("enabled", False)),
+            "open": int(outcome.get("open") or 0),
+            "inQueue": int(outcome.get("inQueue") or 0),
+            "shouldLeave": int(outcome.get("shouldLeave") or 0),
+        }
+    return summaries
+
+
+def _pr_lifecycle_column(summary: dict[str, Any] | None) -> str:
+    """Render one repository's lifecycle column for STATUS.md.
+
+    A repository that has declared no contract shows the same dash as one with
+    no branch contract: an undeclared dimension is not a finding. A declaration
+    that is present shows the queue as in-queue/open, with the pull requests
+    about to leave called out separately, so a large open count is never read as
+    a backlog without its queue size.
+    """
+    if not summary or not summary.get("enabled") or summary.get("status") != "evaluated":
+        return "—"
+    column = f"{summary['inQueue']}/{summary['open']}"
+    if summary.get("shouldLeave"):
+        column += f" (-{summary['shouldLeave']})"
+    return column
+
+
 def _atomic_write(path: Path, content: str) -> None:
     temporary = path.with_name(f".{path.name}.tmp")
     temporary.write_text(content)
@@ -307,6 +357,9 @@ GENERATED_NOTE = (
 def write_outputs(inventory: list[dict], output: str | Path = ".") -> None:
     root = Path(output)
     root.mkdir(parents=True, exist_ok=True)
+    lifecycles = _pr_lifecycle_summaries(root)
+    for item in inventory:
+        item["prLifecycle"] = lifecycles.get(item["repo"])
     document = {
         "schema_version": 1,
         "generated_at": dt.datetime.now(dt.UTC).isoformat(),
@@ -329,8 +382,8 @@ def write_outputs(inventory: list[dict], output: str | Path = ".") -> None:
         "",
         f"Generated: `{document['generated_at']}`",
         "",
-        "| Repository | Class | Desired | Latest | Assets | Workflow | Contract | Health |",
-        "|---|---|---:|---:|---:|---|---|---|",
+        "| Repository | Class | Desired | Latest | Assets | Workflow | Contract | PR Lifecycle | Health |",
+        "|---|---|---:|---:|---:|---|---|---|---|",
     ]
     for item in inventory:
         run = item.get("latest_release_run") or {}
@@ -343,5 +396,5 @@ def write_outputs(inventory: list[dict], output: str | Path = ".") -> None:
             contract_state = "gate"
         else:
             contract_state = "—"
-        lines.append(f"| {item['repo']} | {item.get('classification', 'needs-review')} | {item.get('desired_version') or '—'} | {item.get('latest_release') or '—'} | {len(item.get('actual_assets', []))} | {run.get('conclusion') or run.get('status') or '—'} | {contract_state} | {item.get('health', 'NEEDS_REVIEW')} |")
+        lines.append(f"| {item['repo']} | {item.get('classification', 'needs-review')} | {item.get('desired_version') or '—'} | {item.get('latest_release') or '—'} | {len(item.get('actual_assets', []))} | {run.get('conclusion') or run.get('status') or '—'} | {contract_state} | {_pr_lifecycle_column(item.get('prLifecycle'))} | {item.get('health', 'NEEDS_REVIEW')} |")
     _atomic_write(root / "STATUS.md", "\n".join(lines) + "\n")
