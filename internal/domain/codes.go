@@ -23,6 +23,10 @@ const (
 	CodePreviousBlocking       = "RG_PREVIOUS_RELEASE_BLOCKING"
 	CodeCanaryFailed           = "RG_CANARY_FAILED"
 	CodeRolloutBlocked         = "RG_ROLLOUT_BLOCKED"
+	// CodeBranchContractViolated means a production-operation branch failed
+	// the production-operation branch contract (wrong base target, ancestry
+	// not rooted at the current production-base HEAD, or out-of-scope change).
+	CodeBranchContractViolated = "RG_BRANCH_CONTRACT_VIOLATED"
 )
 
 // Exit codes are part of the CLI contract: automation distinguishes "healthy",

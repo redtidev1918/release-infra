@@ -63,6 +63,65 @@
     "retention": {"type": "object", "properties": {"stable": {"type": "integer", "minimum": 1}, "prerelease": {"type": "integer", "minimum": 0}, "failed_draft": {"type": "integer", "minimum": 0}}},
     "release": {"type": "object", "properties": {"prerelease": {"type": "boolean"}, "post_publish": {"type": "string"}}},
     "checksums": {"type": "boolean"},
-    "sbom": {"type": "boolean"}
+    "sbom": {"type": "boolean"},
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "git": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "productionOperations": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["base", "branches"],
+              "properties": {
+                "base": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Production base ref: a branch name (main, master) or the literal \"default\" to resolve the repository default branch."
+                },
+                "branches": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {"type": "string", "minLength": 1},
+                  "description": "Glob patterns naming production-operation branches (chore/cutover-*, ops/*, release/*, hotfix/*)."
+                },
+                "requireLatestBase": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Must be true: a production-operation branch must descend from the current HEAD of the production base."
+                },
+                "operations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["branches"],
+                    "properties": {
+                      "branches": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {"type": "string", "minLength": 1}
+                      },
+                      "allowedPaths": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {"type": "string", "minLength": 1},
+                        "description": "Optional change-scope whitelist for the operation; glob patterns, \"**\" crosses directories."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

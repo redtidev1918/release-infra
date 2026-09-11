@@ -132,6 +132,48 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class BranchContractWorkflowTest(unittest.TestCase):
+    """Structure invariants of the reusable production-operation branch contract gate."""
+
+    def test_branch_contract_gate_is_reusable_read_only_and_hard_failing(self):
+        workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
+        self.assertIn("workflow_call:", workflow)
+        self.assertIn("contents: read", workflow)
+        # Ancestry decisions need full git topology evidence.
+        self.assertIn("fetch-depth: 0", workflow)
+        self.assertIn("branch-contract check", workflow)
+        self.assertIn("path: .releasegraph-engine", workflow)
+        # No escape hatches: the gate must be able to fail the PR.
+        self.assertNotIn("continue-on-error", workflow)
+
+    def test_branch_contract_gate_never_mutates_the_production_branch(self):
+        workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
+        for forbidden in (
+            "git rebase",
+            "git push --force",
+            "git push -f",
+            "git switch --create",
+            "git commit",
+            "branch-contract new",
+        ):
+            self.assertNotIn(forbidden, workflow)
+
+    def test_branch_contract_gate_pins_all_actions(self):
+        workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
+        actions = re.findall(r"uses:\s*([^\s#]+)@([^\s#]+)", workflow)
+        self.assertTrue(actions)
+        for action, ref in actions:
+            if action == "redtidev1918/releasegraph/.github/workflows/reusable-branch-contract.yml":
+                continue
+            self.assertEqual(len(ref), 40, (action, ref))
+
+    def test_branch_contract_gate_attaches_diff_proof(self):
+        workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
+        self.assertIn("branch-contract.txt", workflow)
+        self.assertIn("actions/upload-artifact@", workflow)
+        self.assertIn("if: always()", workflow)
+
+
 class ProviderReconciliationWorkflowTest(unittest.TestCase):
     """Ordering invariants of the version provider reconciliation layer."""
 

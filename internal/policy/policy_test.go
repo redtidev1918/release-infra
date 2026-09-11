@@ -50,3 +50,54 @@ func TestRepositoryPolicyLoads(t *testing.T) {
 		t.Fatalf("policy=%+v", p)
 	}
 }
+
+func validProductionOperations() *ProductionOperations {
+	return &ProductionOperations{
+		Base:     "default",
+		Branches: []string{"chore/cutover-*", "ops/*", "release/*", "hotfix/*"},
+		Operations: map[string]OperationScope{
+			"cutover": {Branches: []string{"chore/cutover-*"}, AllowedPaths: []string{"fly/*.toml", ".github/workflows/**"}},
+		},
+	}
+}
+
+func TestProductionOperationsValidation(t *testing.T) {
+	base := func() *Policy {
+		return &Policy{Kind: "none", Versioning: Versioning{Mode: "manual", Version: "1.0.0"}, Repository: Repository{Git: GitPolicy{ProductionOperations: validProductionOperations()}}}
+	}
+	if err := Validate(base()); err != nil {
+		t.Fatalf("valid policy rejected: %v", err)
+	}
+	cases := []struct {
+		name   string
+		mutate func(*Policy)
+	}{
+		{"empty base", func(p *Policy) { p.Repository.Git.ProductionOperations.Base = "" }},
+		{"no branch patterns", func(p *Policy) { p.Repository.Git.ProductionOperations.Branches = nil }},
+		{"requireLatestBase false", func(p *Policy) { v := false; p.Repository.Git.ProductionOperations.RequireLatestBase = &v }},
+		{"invalid glob", func(p *Policy) { p.Repository.Git.ProductionOperations.Branches = []string{"chore/cutover-["} }},
+		{"operation without branches", func(p *Policy) { p.Repository.Git.ProductionOperations.Operations["x"] = OperationScope{} }},
+		{"operation invalid allowedPath", func(p *Policy) {
+			p.Repository.Git.ProductionOperations.Operations["cutover"] = OperationScope{Branches: []string{"chore/cutover-*"}, AllowedPaths: []string{"a["}}
+		}},
+	}
+	for _, tc := range cases {
+		p := base()
+		tc.mutate(p)
+		if err := Validate(p); err == nil {
+			t.Errorf("%s: expected policy error", tc.name)
+		}
+	}
+}
+
+func TestRequireLatestDefaultsTrue(t *testing.T) {
+	po := validProductionOperations()
+	if !po.RequireLatest() {
+		t.Fatal("nil RequireLatestBase must default to enforced")
+	}
+	v := true
+	po.RequireLatestBase = &v
+	if !po.RequireLatest() {
+		t.Fatal("explicit true must stay enforced")
+	}
+}
