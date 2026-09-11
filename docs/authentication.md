@@ -17,4 +17,4 @@ managed repository 使用该次 GitHub Actions job 的短期 `GITHUB_TOKEN`，�
 
 小型 fleet 可以使用只覆盖 graph 仓库的 fine-grained PAT。不要默认使用 classic 全仓库 PAT。reusable workflow 不能提升 caller 已授予的 token 权限。
 
-完整配置示例见[英文认证文档](../AUTHENTICATION.md)。
+完整配置示例见[英文认证文档](/en/authentication.md)。

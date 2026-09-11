@@ -7,9 +7,6 @@
   "template": false,
   "classification": "managed",
   "health": "HEALTHY",
-  "health_reasons": [],
-  "missing_assets": [],
-  "empty_assets": [],
   "release_policy": {
     "kind": "flutter",
     "versioning": {
@@ -54,7 +51,7 @@
     "checksums": true,
     "sbom": false
   },
-  "release_infra_version": null,
+  "release_infra_version": "v1",
   "desired_version": "2.3.4",
   "latest_release": "v2.3.4",
   "latest_release_at": "2026-08-27T05:11:06Z",
@@ -73,13 +70,17 @@
     {
       "name": "Release",
       "path": ".github/workflows/release.yml"
+    },
+    {
+      "name": "Deploy documentation to Pages",
+      "path": ".github/workflows/static.yml"
     }
   ],
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/NekoTime/actions/runs/34564666040",
-    "updated_at": "2026-09-11T05:06:30Z"
+    "url": "https://github.com/redtidev1918/NekoTime/actions/runs/34440008191",
+    "updated_at": "2026-09-10T05:10:36Z"
   },
   "signals": [
     ".release-please-manifest.json",

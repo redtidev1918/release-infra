@@ -7,9 +7,6 @@
   "template": false,
   "classification": "managed",
   "health": "HEALTHY",
-  "health_reasons": [],
-  "missing_assets": [],
-  "empty_assets": [],
   "release_policy": {
     "kind": "node-library",
     "versioning": {
@@ -41,7 +38,7 @@
     "checksums": false,
     "sbom": false
   },
-  "release_infra_version": null,
+  "release_infra_version": "v1",
   "desired_version": "0.2.0",
   "latest_release": "v0.2.0",
   "latest_release_at": "2026-08-27T15:54:26Z",
@@ -54,13 +51,17 @@
     {
       "name": "Release",
       "path": ".github/workflows/release.yml"
+    },
+    {
+      "name": "Deploy documentation to Pages",
+      "path": ".github/workflows/static.yml"
     }
   ],
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/paranote/actions/runs/34568097729",
-    "updated_at": "2026-09-11T06:00:08Z"
+    "url": "https://github.com/redtidev1918/paranote/actions/runs/34443209315",
+    "updated_at": "2026-09-10T05:58:38Z"
   },
   "signals": [
     ".release-please-manifest.json",

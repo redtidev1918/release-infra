@@ -1,8 +1,6 @@
-# Calling the release workflow
+# 如何调用发布工作流
 
-A managed repository carries one caller at `.github/workflows/release.yml` and
-nothing else release-related. All release logic lives here, so a business
-repository never implements versioning, asset gating, or publication itself.
+受管仓库只带一个调用方文件 `.github/workflows/release.yml`，除此之外不带任何发布相关的东西。所有发布逻辑都在本仓库，所以业务仓库自己从不实现版本管理、资产闸门或发布动作。
 
 ```yaml
 jobs:
@@ -12,18 +10,18 @@ jobs:
     secrets: inherit
 ```
 
-Pin the tag. `@v1` is the published major; a commit SHA pins exactly.
+请固定 tag：`@v1` 是已发布的大版本，写 commit SHA 则精确固定。
 
-## Outputs
+## 输出
 
-| Output | Values | Use it for |
+| 输出 | 取值 | 用途 |
 |---|---|---|
-| `release_health` | `healthy` \| `tag-drift` \| `repair` \| `missing` | **The field to branch on.** Anything other than `healthy` means the released state does not satisfy the policy. |
-| `run_release` | `1` \| `0` | Whether this run may release at all, or is a no-op. |
-| `version` | e.g. `1.2.3` | What the run planned for. |
-| `tag` | e.g. `v1.2.3` | The tag it planned for. |
-| `tag_drift` | `true` \| `false` | The existing tag is not the current head. |
-| `paths_released` | Release Please component paths | Monorepo components released in this run. |
+| `release_health` | `healthy` \| `tag-drift` \| `repair` \| `missing` | **要分支判断的字段。** 只要不是 `healthy`，就说明已发布状态不满足 policy |
+| `run_release` | `1` \| `0` | 这次运行到底会不会发布，还是一次 no-op |
+| `version` | 如 `1.2.3` | 本次计划的目标版本 |
+| `tag` | 如 `v1.2.3` | 本次计划的目标 tag |
+| `tag_drift` | `true` \| `false` | 已存在的 tag 不是当前 head |
+| `paths_released` | Release Please 组件路径 | 本次发布的 monorepo 组件 |
 
 ```yaml
 - id: release
@@ -32,37 +30,24 @@ Pin the tag. `@v1` is the published major; a commit SHA pins exactly.
   run: echo "::warning::release state is ${{ steps.release.outputs.release_health }}"
 ```
 
-These are additive. The four `release_health` strings are a **frozen
-production contract**: the workflow branches on `!= 'healthy'` in eight places
-and 14 repositories call it, so a value may be added but never renamed or
-removed. See [health](health.md) for why the vocabulary is closed, and for how
-health differs from the action a caller should take.
+这些都是**增量**的。四个 `release_health` 字符串是**冻结的生产契约**：工作流内部有 8 处用 `!= 'healthy'` 判断，且有 14 个仓库调用它，所以只能增加取值，**不能改名或删除**。词表为何是封闭的、以及健康与"调用方该做什么动作"的区别，见 [发布健康](health.md)。
 
-Every output is forwarded from the `build-plan` job. A workflow output that
-names a job output which does not exist resolves to the **empty string** for the
-caller, with no error anywhere — so
-`test_every_forwarded_output_exists_on_its_job` checks the references
-structurally rather than trusting them.
+每个输出都是从 `build-plan` job 转发出来的。如果某个 workflow 输出指向了一个并不存在的 job 输出，调用方拿到的会是**空字符串**，而且仓库里任何地方都不会报错 —— 所以 `test_every_forwarded_output_exists_on_its_job` 用结构化方式检查这些引用，而不是信任它们。
 
-## Inputs
+## 输入
 
-| Input | Default | Meaning |
+| 输入 | 默认 | 含义 |
 |---|---|---|
-| `version` | `""` | Override the version to plan for. |
-| `dry_run` | `false` | Plan and build, publish nothing. |
-| `force` | `false` | Re-run diagnostics for an already-healthy version. |
-| `repair` | `false` | Repair an incomplete release of the **same** version. |
-| `stage` | `all` | Which stages to run. |
+| `version` | `""` | 覆盖计划的目标版本 |
+| `dry_run` | `false` | 只计划和构建，不发布任何东西 |
+| `force` | `false` | 对已健康的版本重跑诊断 |
+| `repair` | `false` | 修复**同一个**版本的不完整发布 |
+| `stage` | `all` | 运行哪些阶段 |
 
 ## Secrets
 
-All optional: `RELEASE_PLEASE_TOKEN`, `NPM_TOKEN`, `ANDROID_KEYSTORE_B64`,
-`ANDROID_KEYSTORE_PROPERTIES`. A missing secret disables the corresponding
-publication rather than failing the run.
+全部可选：`RELEASE_PLEASE_TOKEN`、`NPM_TOKEN`、`ANDROID_KEYSTORE_B64`、`ANDROID_KEYSTORE_PROPERTIES`。缺某个 secret 只会关掉对应的发布，不会让整次运行失败。
 
-## What a caller must not do
+## 调用方不该做的事
 
-A business repository does not run `gh release create`, `git tag -f`,
-`git push --force`, or any hand-written API mutation to fix its own release.
-Those bypass every exactly-once invariant the platform enforces. If a primitive
-is missing, it belongs here as a new primitive with its own tests and dry run.
+业务仓库不要跑 `gh release create`、`git tag -f`、`git push --force`，也不要用任何手写 API 变更去"修"自己的发布。那些做法会绕开平台强制执行的每一条 exactly-once 不变量。如果缺某个原语，它应该作为新原语加进本仓库，带上自己的测试和 dry run。

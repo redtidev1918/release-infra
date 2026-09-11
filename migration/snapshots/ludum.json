@@ -7,9 +7,6 @@
   "template": false,
   "classification": "managed",
   "health": "HEALTHY",
-  "health_reasons": [],
-  "missing_assets": [],
-  "empty_assets": [],
   "release_policy": {
     "kind": "node-library",
     "versioning": {
@@ -41,7 +38,7 @@
     "checksums": false,
     "sbom": false
   },
-  "release_infra_version": null,
+  "release_infra_version": "v1",
   "desired_version": "3.0.3",
   "latest_release": "v3.0.3",
   "latest_release_at": "2026-09-09T13:37:00Z",
@@ -54,13 +51,17 @@
     {
       "name": "Release",
       "path": ".github/workflows/release.yml"
+    },
+    {
+      "name": "Deploy documentation to Pages",
+      "path": ".github/workflows/static.yml"
     }
   ],
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/ludum/actions/runs/34563534282",
-    "updated_at": "2026-09-11T04:48:01Z"
+    "url": "https://github.com/redtidev1918/ludum/actions/runs/34438624645",
+    "updated_at": "2026-09-10T04:48:58Z"
   },
   "signals": [
     ".release-please-manifest.json",
