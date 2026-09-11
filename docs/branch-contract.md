@@ -91,8 +91,10 @@ permissions:
   contents: read
 jobs:
   branch-contract:
-    uses: redtidev1918/releasegraph/.github/workflows/reusable-branch-contract.yml@v1
+    uses: redtidev1918/releasegraph/.github/workflows/reusable-branch-contract.yml@0b0c28990abac59aa5ae1d2c50bf95ce06d26a8d # ReleaseGraph v1.4.11
 ```
+
+人类可读的版本 tag 可以出现在注释里，但生产 caller 必须用完整的 40 位 commit SHA 固定 reusable workflow。
 
 行为：
 
