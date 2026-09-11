@@ -226,7 +226,11 @@ class BranchContractWorkflowTest(unittest.TestCase):
         workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
         self.assertIn("EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}", workflow)
         self.assertIn('--head-sha "$HEAD_SHA"', workflow)
-        self.assertIn('echo "HEAD_SHA=$EVENT_HEAD_SHA" >> "$GITHUB_ENV"', workflow)
+        # The env file is written from a grouped redirect (SC2129) around the
+        # whole resolve step, so assert both the export and its destination
+        # instead of a single-line redirect that no longer exists.
+        self.assertIn('echo "HEAD_SHA=$EVENT_HEAD_SHA"', workflow)
+        self.assertIn('} >> "$GITHUB_ENV"', workflow)
 
     def test_branch_contract_gate_attaches_diff_proof(self):
         workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
