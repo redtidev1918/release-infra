@@ -167,6 +167,57 @@ class BranchContractWorkflowTest(unittest.TestCase):
                 continue
             self.assertEqual(len(ref), 40, (action, ref))
 
+    @staticmethod
+    def _engine_checkout_block() -> str:
+        """Locate the engine checkout step — the actions/checkout step whose
+        with: block contains path: .releasegraph-engine — by step boundaries,
+        so the consumer-repository checkout earlier in the same workflow can
+        never be mistaken for it."""
+        workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
+        lines = workflow.splitlines()
+        anchor = next(i for i, line in enumerate(lines) if "path: .releasegraph-engine" in line)
+        start = max(i for i in range(anchor) if lines[i].startswith("      - "))
+        end = next((i for i in range(anchor + 1, len(lines)) if lines[i].startswith("      - ")), len(lines))
+        return "\n".join(lines[start:end])
+
+    def test_branch_contract_engine_checkout_is_pinned_to_the_workflow_commit(self):
+        """The reusable workflow definition and the ReleaseGraph engine it
+        executes MUST come from the same immutable commit: repository and ref
+        of the engine checkout derive from the reusable workflow's own job
+        context (job.workflow_repository / job.workflow_sha), never from a
+        hardcoded repository/ref pair."""
+        block = self._engine_checkout_block()
+        self.assertIn("repository: ${{ job.workflow_repository }}", block)
+        self.assertIn("ref: ${{ job.workflow_sha }}", block)
+        self.assertNotIn("repository: redtidev1918/releasegraph", block)
+        for mutable in ("ref: v1", "ref: main", "ref: master", "ref: latest"):
+            self.assertNotIn(mutable, block)
+
+    def test_branch_contract_engine_sha_tracks_caller_pin_not_mutable_channel(self):
+        """Semantic regression for the provenance incident this guards against:
+        a consumer pins the reusable workflow @SHA-A; later the v1 channel
+        moves to SHA-B. If the engine checkout resolved a mutable channel, the
+        caller's immutable pin would silently execute SHA-B. The contract is
+        that the engine ref IS the caller's pin (job.workflow_sha), so
+        workflow version == engine version by construction."""
+        workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
+        self.assertIn("ref: ${{ job.workflow_sha }}", workflow)
+        self.assertNotIn("ref: v1", workflow)
+        self.assertNotIn("ref: main", workflow)
+        self.assertNotIn("ref: master", workflow)
+
+    def test_branch_contract_runtime_asserts_engine_provenance(self):
+        """Static invariants are enforced at CI authoring time; the workflow
+        also asserts at runtime that the checked-out engine HEAD equals the
+        workflow commit, and fails closed (empty SHA or mismatch -> exit 1)
+        instead of falling back to a mutable ref."""
+        workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
+        self.assertIn("name: Assert engine provenance", workflow)
+        self.assertIn("WORKFLOW_SHA: ${{ job.workflow_sha }}", workflow)
+        self.assertIn("git -C .releasegraph-engine rev-parse HEAD", workflow)
+        self.assertIn('[ -z "$WORKFLOW_SHA" ]', workflow)
+        self.assertIn("exit 1", workflow)
+
     def test_branch_contract_gate_attaches_diff_proof(self):
         workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
         self.assertIn("branch-contract.txt", workflow)

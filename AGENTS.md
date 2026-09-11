@@ -48,6 +48,9 @@ and its own build/test configuration.
     advanced, recreate the branch from the latest base before merge.
     AGENTS.md is guidance — the reusable branch-contract workflow is the
     enforcement (see `docs/branch-contract.md`).
+    Reusable governance workflows must never internally resolve their engine
+    from a mutable channel such as v1/main; use the reusable workflow's own
+    immutable workflow SHA (`job.workflow_sha`).
 
 ## Scope and credentials
 
