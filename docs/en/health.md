@@ -12,7 +12,7 @@ Three layers describe this one vocabulary, and they are kept in agreement by
 |---|---|
 | Python fleet inventory | `release_infra/health.py` |
 | Go core | `internal/domain/health.go`, values from `internal/domain/model.go` |
-| Published schema | [`schemas/health-v1.json`](../schemas/health-v1.json) |
+| Published schema | [`schemas/health-v1.json`](../../schemas/health-v1.json) |
 
 ## Values
 

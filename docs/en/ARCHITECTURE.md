@@ -61,4 +61,4 @@ The release transaction key is `repository + version`. A missing tag is created;
 
 No classic all-repository super PAT is required.
 
-The current Go canary stops after a live, read-only plan. Registry inspection, dispatch, and mutation remain on the Python path until their contracts are implemented and canaried.
+The Go core is not read-only today: it performs provider reconciliation (`provider reconcile --apply`) inside the reusable workflow. Release planning, static checks, asset gate, staging, publishing, audit, and release repair still run on the Python v1 path, and the remaining Go capabilities are adopted read-only until their contracts are implemented and canaried.

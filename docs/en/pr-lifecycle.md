@@ -201,7 +201,7 @@ transient provider failure is `Retry`, a policy error is `Blocked`.
 ## CI integration
 
 One scheduled workflow enforces the contract fleet-wide:
-[`.github/workflows/pr-lifecycle.yml`](../.github/workflows/pr-lifecycle.yml).
+[`.github/workflows/pr-lifecycle.yml`](../../.github/workflows/pr-lifecycle.yml).
 No repository installs a `stale.yml` of its own: one policy, one classifier, one
 audit trail.
 

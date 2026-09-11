@@ -1,6 +1,6 @@
 - Getting Started
   - [Overview](/en/README.md)
-  - [📥 Download](/en/download.md)
+  - [Download](/en/download.md)
   - [Quick Start](/en/quick-start.md)
   - [Core Concepts](/en/concepts.md)
 - Usage & Configuration

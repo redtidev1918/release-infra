@@ -96,7 +96,7 @@ ReleaseGraph core. Unknown fields and invalid globs are config errors.
 ## CI integration
 
 ReleaseGraph ships a canonical reusable gate:
-[`.github/workflows/reusable-branch-contract.yml`](../.github/workflows/reusable-branch-contract.yml).
+[`.github/workflows/reusable-branch-contract.yml`](../../.github/workflows/reusable-branch-contract.yml).
 Consumer repositories keep only a thin caller, pinned to an immutable ref:
 
 ```yaml

@@ -111,4 +111,4 @@ metadata: true
 - [架构说明](docs/concepts.md)
 - [快速开始](docs/quick-start.md)
 - [认证与权限](docs/authentication.md)
-- [英文文档](docs/README.md)
+- [中文文档](docs/README.md)

@@ -19,7 +19,9 @@ ReleaseGraph 是一个面向 GitHub Actions 的无服务器、多仓库发布编
 - [英文 Policy 参考](/en/POLICY.md)
 - [英文恢复说明](/en/RECOVERY.md)
 
-当前 Go 核心仍处于只读 canary 阶段；Go 写操作、registry 检查与 dispatch 尚未标为稳定能力。
+Go 核心在生产中已承担 provider reconciliation 这一步写操作（`provider reconcile --apply`）；
+写入式发布、release repair、dispatch、registry 发布与保留策略仍走 Python v1 路径，Go 的
+这些能力尚未标为稳定。其余 Go 命令可安全地只读使用。
 
 ## fleet 观测快照
 

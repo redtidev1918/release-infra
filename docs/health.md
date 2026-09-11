@@ -8,7 +8,7 @@
 |---|---|
 | Python 机队盘点 | `release_infra/health.py` |
 | Go 核心 | `internal/domain/health.go`，取值来自 `internal/domain/model.go` |
-| 发布的 schema | [`schemas/health-v1.json`](../../schemas/health-v1.json) |
+| 发布的 schema | [`schemas/health-v1.json`](../schemas/health-v1.json) |
 
 ## 取值
 

@@ -1,6 +1,6 @@
 # Release policy
 
-Each managed repository has one `.release-policy.yml`, validated against [`schemas/release-policy.schema.json`](../schemas/release-policy.schema.json). The file uses JSON syntax to avoid a YAML runtime dependency.
+Each managed repository has one `.release-policy.yml`, validated against [`schemas/release-policy.schema.json`](../../schemas/release-policy.schema.json). The file uses JSON syntax to avoid a YAML runtime dependency.
 
 ```json
 {
