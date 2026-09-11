@@ -95,6 +95,66 @@ def _package_status(files: set[str], contents: dict[str, str | None]) -> dict[st
     return status
 
 
+# The canonical reusable gate. A consumer installs it by calling this exact
+# path from a job. Nothing else is an installation: not a file whose name
+# contains "branch-contract", not a comment, not a `run:` script, and not the
+# reusable definition shipped by the provider itself.
+CANONICAL_GATE = "redtidev1918/releasegraph/.github/workflows/reusable-branch-contract.yml"
+_IMMUTABLE_REF = re.compile(r"[0-9a-fA-F]{40}")
+
+
+def _uncommented(line: str) -> str:
+    """Drop a trailing YAML comment; a '#' inside quotes is content, not a comment."""
+    quote = ""
+    for index, char in enumerate(line):
+        if quote:
+            quote = "" if char == quote else quote
+        elif char in "\"'":
+            quote = char
+        elif char == "#" and (index == 0 or line[index - 1] in " \t"):
+            return line[:index]
+    return line
+
+
+def _gate_caller_refs(text: str) -> list[str]:
+    """Refs of job-level `uses:` calls that name the canonical reusable gate.
+
+    GitHub allows a reusable workflow to be called from a job and only from a
+    job, so installation is decided structurally rather than textually: the
+    `uses:` must be a direct child of a job, which excludes steps, `run:`
+    scripts, prose and the header comment of the reusable definition itself.
+    """
+    refs: list[str] = []
+    keys: list[tuple[int, str]] = []
+    block_at = -1
+    for raw in text.splitlines():
+        line = _uncommented(raw).rstrip()
+        if not line.strip():
+            continue
+        indent = len(line) - len(line.lstrip(" "))
+        if block_at >= 0:
+            if indent > block_at:  # still inside a block scalar, e.g. `run: |`
+                continue
+            block_at = -1
+        entry = line.strip()
+        if entry.startswith("- "):
+            entry = entry[2:].lstrip()
+        key, sep, value = entry.partition(":")
+        key = key.strip()
+        if not sep or not key or " " in key:
+            continue
+        while keys and keys[-1][0] >= indent:
+            keys.pop()
+        keys.append((indent, key))
+        if len(keys) == 3 and keys[0][1] == "jobs" and keys[2][1] == "uses":
+            target = value.strip().strip("'\"")
+            if target.startswith(f"{CANONICAL_GATE}@"):
+                refs.append(target[len(CANONICAL_GATE) + 1:])
+        if value.strip()[:1] in ("|", ">"):
+            block_at = indent
+    return refs
+
+
 def _branch_contract_status(gh: GitHub, name: str, paths: set[str], parsed_policy: dict | None) -> dict[str, Any]:
     """Report branch-contract governance installation for one repository.
 
@@ -102,17 +162,17 @@ def _branch_contract_status(gh: GitHub, name: str, paths: set[str], parsed_polic
     the reusable gate installed and pinned. PR-level ancestry correctness is
     the gate's job at pull-request time; temporary feature branches are never
     scanned and a PR violation is never a repository health failure.
+
+    `gateInstalled` means the repository contains a consumer job that calls the
+    canonical reusable gate — not that some file is named `branch-contract` and
+    not that it ships the reusable definition. `gatePinned` is only meaningful
+    once installed, and then requires every caller ref to be a full commit SHA.
     """
     operations = (((parsed_policy or {}).get("repository") or {}).get("git") or {}).get("productionOperations")
-    gate_installed = False
-    gate_pinned: bool | None = None
-    for path in sorted(p for p in paths if p.startswith(".github/workflows/") and "branch-contract" in p):
-        content = _content(gh, name, path) or ""
-        refs = re.findall(r"reusable-branch-contract\.yml@([^\s\"']+)", content)
-        if not refs:
-            continue
-        gate_installed = True
-        gate_pinned = all(re.fullmatch(r"[0-9a-f]{40}", ref) for ref in refs)
+    workflows = sorted(p for p in paths if p.startswith(".github/workflows/") and p.endswith((".yml", ".yaml")))
+    refs = [ref for path in workflows for ref in _gate_caller_refs(_content(gh, name, path) or "")]
+    gate_installed = bool(refs)
+    gate_pinned = bool(gate_installed and all(_IMMUTABLE_REF.fullmatch(ref) for ref in refs))
     policy_valid: bool | None = None
     if operations is not None:
         try:
