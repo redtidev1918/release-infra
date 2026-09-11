@@ -2,7 +2,6 @@
   - [文档中心](/)
   - [📥 下载](/download.md)
   - [快速开始](/quick-start.md)
-  - [Quick start](#/en/quick-start.md)
   - [核心概念](/concepts.md)
   - [认证与权限](/authentication.md)
   - [发布健康](/health.md)
@@ -19,3 +18,5 @@
   - [Authentication](/en/authentication.md)
   - [Recovery](/en/RECOVERY.md)
   - [Migration](/en/MIGRATION.md)
+  - [Quick start](/en/quick-start.md)
+  - [Core concepts](/en/concepts.md)
