@@ -93,23 +93,25 @@ jobs:
           EVENT_PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           EVENT_REF_NAME: ${{ github.ref_name }}
         run: |
-          if [ -n "$INPUT_DEFAULT_BRANCH" ]; then
-            echo "DEFAULT_BRANCH=$INPUT_DEFAULT_BRANCH" >> "$GITHUB_ENV"
-          else
-            echo "DEFAULT_BRANCH=$EVENT_DEFAULT_BRANCH" >> "$GITHUB_ENV"
-          fi
-          if [ -n "$EVENT_HEAD_REF" ]; then
-            echo "HEAD_REF=$EVENT_HEAD_REF" >> "$GITHUB_ENV"
-          else
-            echo "HEAD_REF=$EVENT_REF_NAME" >> "$GITHUB_ENV"
-          fi
-          # The topology must be evaluated on the actual PR head commit, never
-          # on the merge commit (whose ancestry against the base is trivially
-          # clean) and never on a branch name (which does not resolve inside a
-          # pull_request merge-ref checkout).
-          echo "HEAD_SHA=$EVENT_HEAD_SHA" >> "$GITHUB_ENV"
-          echo "PR_BASE_REF=$EVENT_PR_BASE_REF" >> "$GITHUB_ENV"
-          echo "EXTRA_BASE_REF=$INPUT_BASE_BRANCH" >> "$GITHUB_ENV"
+          {
+            if [ -n "$INPUT_DEFAULT_BRANCH" ]; then
+              echo "DEFAULT_BRANCH=$INPUT_DEFAULT_BRANCH"
+            else
+              echo "DEFAULT_BRANCH=$EVENT_DEFAULT_BRANCH"
+            fi
+            if [ -n "$EVENT_HEAD_REF" ]; then
+              echo "HEAD_REF=$EVENT_HEAD_REF"
+            else
+              echo "HEAD_REF=$EVENT_REF_NAME"
+            fi
+            # The topology must be evaluated on the actual PR head commit,
+            # never on the merge commit (whose ancestry against the base is
+            # trivially clean) and never on a branch name (which does not
+            # resolve inside a pull_request merge-ref checkout).
+            echo "HEAD_SHA=$EVENT_HEAD_SHA"
+            echo "PR_BASE_REF=$EVENT_PR_BASE_REF"
+            echo "EXTRA_BASE_REF=$INPUT_BASE_BRANCH"
+          } >> "$GITHUB_ENV"
       - name: Fetch production base evidence
         run: |
           git fetch --no-tags origin \
