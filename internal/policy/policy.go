@@ -97,11 +97,91 @@ type OperationScope struct {
 }
 
 type Repository struct {
-	Git GitPolicy `json:"git,omitempty" yaml:"git,omitempty"`
+	Git          GitPolicy    `json:"git,omitempty" yaml:"git,omitempty"`
+	PullRequests PullRequests `json:"pullRequests,omitempty" yaml:"pullRequests,omitempty"`
 }
 
 type GitPolicy struct {
 	ProductionOperations *ProductionOperations `json:"productionOperations,omitempty" yaml:"productionOperations,omitempty"`
+}
+
+// PullRequests declares the pull-request lifecycle contract: an open pull
+// request is a merge candidate, not a work tracker.
+type PullRequests struct {
+	Lifecycle *PRLifecycle `json:"lifecycle,omitempty" yaml:"lifecycle,omitempty"`
+}
+
+// PRLifecycle declares when an open pull request stops being a merge candidate.
+//
+// The contract answers one question per open pull request ("is this still part
+// of the merge queue?") and separates two very different outcomes: work that
+// has already landed (OBSOLETE) and work that is paused (PARKED). Paused work
+// is archived into an issue before it leaves the queue, so closing a pull
+// request never discards engineering context.
+type PRLifecycle struct {
+	// Enabled is nil or true (default): the contract is enforced and classified
+	// pull requests may be mutated. An explicit false declares the contract
+	// without enforcing it, which keeps a repository's audit output while
+	// leaving its pull requests untouched.
+	Enabled *bool `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	// ParkedAfterDays is the inactivity window after which a pull request that
+	// is still a draft or conflicting is classified PARKED. nil means
+	// DefaultParkedAfterDays.
+	ParkedAfterDays *int `json:"parkedAfterDays,omitempty" yaml:"parkedAfterDays,omitempty"`
+	// ArchiveParkedToIssue is nil or true (default): parked work is archived
+	// into an issue before the pull request is closed. Validate rejects false
+	// while parked pull requests are closed, because closing without an issue
+	// is how context gets lost.
+	ArchiveParkedToIssue *bool `json:"archiveParkedToIssue,omitempty" yaml:"archiveParkedToIssue,omitempty"`
+	// CloseParked is nil or true (default): parked pull requests leave the
+	// merge queue.
+	CloseParked *bool `json:"closeParked,omitempty" yaml:"closeParked,omitempty"`
+	// DeleteBranch must be false. The contract never deletes a branch: a
+	// closed pull request is a pointer to work that may be resumed, and
+	// Validate rejects an explicit true rather than accepting an opt-in.
+	DeleteBranch *bool `json:"deleteBranch,omitempty" yaml:"deleteBranch,omitempty"`
+	// Exempt declares what the contract never classifies as parked or obsolete.
+	Exempt PRExemptions `json:"exempt,omitempty" yaml:"exempt,omitempty"`
+}
+
+// PRExemptions are the pull requests the lifecycle contract never acts on.
+type PRExemptions struct {
+	// Branches are glob patterns of head branches that are managed elsewhere
+	// (for example release-please's branches).
+	Branches []string `json:"branches,omitempty" yaml:"branches,omitempty"`
+	// Actors are the authors whose pull requests are managed elsewhere (bots).
+	Actors []string `json:"actors,omitempty" yaml:"actors,omitempty"`
+	// Labels are the labels that retain a pull request on purpose. "keep-open"
+	// is the human escape hatch: a labelled pull request is never touched.
+	Labels []string `json:"labels,omitempty" yaml:"labels,omitempty"`
+}
+
+// DefaultParkedAfterDays is the inactivity window used when the policy does not
+// declare one.
+const DefaultParkedAfterDays = 7
+
+// IsEnabled reports whether the contract may act on pull requests. A declared
+// contract is enforced unless the policy explicitly disables it.
+func (l *PRLifecycle) IsEnabled() bool {
+	return l != nil && (l.Enabled == nil || *l.Enabled)
+}
+
+// ParkedAfter is the inactivity window in days.
+func (l *PRLifecycle) ParkedAfter() int {
+	if l == nil || l.ParkedAfterDays == nil {
+		return DefaultParkedAfterDays
+	}
+	return *l.ParkedAfterDays
+}
+
+// ArchivesToIssue reports whether parked work is archived before it is closed.
+func (l *PRLifecycle) ArchivesToIssue() bool {
+	return l == nil || l.ArchiveParkedToIssue == nil || *l.ArchiveParkedToIssue
+}
+
+// ClosesParked reports whether parked pull requests leave the merge queue.
+func (l *PRLifecycle) ClosesParked() bool {
+	return l == nil || l.CloseParked == nil || *l.CloseParked
 }
 
 type Release struct {
@@ -243,6 +323,47 @@ func Validate(p *Policy) error {
 	if po := p.Repository.Git.ProductionOperations; po != nil {
 		if err := validateProductionOperations(po); err != nil {
 			return err
+		}
+	}
+	if lifecycle := p.Repository.PullRequests.Lifecycle; lifecycle != nil {
+		if err := validatePRLifecycle(lifecycle); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validatePRLifecycle enforces the lifecycle contract's own invariants. Two of
+// them are deliberately not opt-in flags: the contract never deletes a branch,
+// and it never closes parked work without first archiving it into an issue.
+func validatePRLifecycle(lifecycle *PRLifecycle) error {
+	const field = "repository.pullRequests.lifecycle"
+	if lifecycle.DeleteBranch != nil && *lifecycle.DeleteBranch {
+		return rgerrors.New(rgerrors.Policy, field+".deleteBranch must be false; the lifecycle contract never deletes a branch")
+	}
+	if lifecycle.ParkedAfterDays != nil && (*lifecycle.ParkedAfterDays < 1 || *lifecycle.ParkedAfterDays > 365) {
+		return rgerrors.New(rgerrors.Policy, field+".parkedAfterDays must be between 1 and 365")
+	}
+	if lifecycle.ClosesParked() && !lifecycle.ArchivesToIssue() {
+		return rgerrors.New(rgerrors.Policy, field+".archiveParkedToIssue must be true while parked pull requests are closed; closing without an issue discards the work")
+	}
+	if err := validateGlobs(field+".exempt.branches", lifecycle.Exempt.Branches); err != nil {
+		return err
+	}
+	if err := validateValues(field+".exempt.actors", lifecycle.Exempt.Actors); err != nil {
+		return err
+	}
+	return validateValues(field+".exempt.labels", lifecycle.Exempt.Labels)
+}
+
+// validateValues checks a list of literal (non-glob) policy values.
+func validateValues(field string, values []string) error {
+	for _, value := range values {
+		if value == "" {
+			return rgerrors.New(rgerrors.Policy, field+" must contain non-empty strings")
+		}
+		if containsNewline(value) {
+			return rgerrors.New(rgerrors.Policy, field+" must contain single-line strings")
 		}
 	}
 	return nil

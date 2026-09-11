@@ -120,6 +120,69 @@
               }
             }
           }
+        },
+        "pullRequests": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "lifecycle": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Nil or true enforces the contract; false declares it for auditing without acting on pull requests."
+                },
+                "parkedAfterDays": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 365,
+                  "default": 7,
+                  "description": "Inactivity window after which a draft or conflicting pull request is classified PARKED."
+                },
+                "archiveParkedToIssue": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Archive parked work into an issue before closing the pull request. Must be true while closeParked is true."
+                },
+                "closeParked": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Parked pull requests leave the merge queue once their work has been archived."
+                },
+                "deleteBranch": {
+                  "type": "boolean",
+                  "const": false,
+                  "description": "Must be false: the lifecycle contract never deletes a branch."
+                },
+                "exempt": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "branches": {
+                      "type": "array",
+                      "uniqueItems": true,
+                      "items": {"type": "string", "minLength": 1},
+                      "description": "Head-branch glob patterns managed elsewhere, such as release-please's branches."
+                    },
+                    "actors": {
+                      "type": "array",
+                      "uniqueItems": true,
+                      "items": {"type": "string", "minLength": 1},
+                      "description": "Authors whose pull requests are managed elsewhere (bots)."
+                    },
+                    "labels": {
+                      "type": "array",
+                      "uniqueItems": true,
+                      "items": {"type": "string", "minLength": 1},
+                      "description": "Labels that retain a pull request on purpose. keep-open is the human escape hatch."
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

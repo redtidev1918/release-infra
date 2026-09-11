@@ -167,10 +167,10 @@ func (c *Client) request(ctx context.Context, method, path string, body []byte) 
 		data, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		if resp.StatusCode == http.StatusUnauthorized {
-			return nil, resp.StatusCode, rgerrors.New(rgerrors.Authentication, "GitHub authentication failed")
+			return nil, resp.StatusCode, rgerrors.New(rgerrors.Authentication, githubErrorDetail("GitHub authentication failed", resp.StatusCode, data))
 		}
 		if resp.StatusCode == http.StatusForbidden {
-			return nil, resp.StatusCode, rgerrors.New(rgerrors.Permission, "GitHub permission denied")
+			return nil, resp.StatusCode, rgerrors.New(rgerrors.Permission, githubErrorDetail("GitHub permission denied", resp.StatusCode, data))
 		}
 		if resp.StatusCode >= 500 || resp.StatusCode == http.StatusTooManyRequests {
 			last = rgerrors.New(rgerrors.Transient, fmt.Sprintf("GitHub %s", resp.Status))
