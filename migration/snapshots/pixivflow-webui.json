@@ -7,6 +7,9 @@
   "template": false,
   "classification": "managed",
   "health": "HEALTHY",
+  "health_reasons": [],
+  "missing_assets": [],
+  "empty_assets": [],
   "release_policy": {
     "kind": "container",
     "versioning": {
@@ -41,7 +44,7 @@
     "checksums": false,
     "sbom": true
   },
-  "release_infra_version": "v1",
+  "release_infra_version": null,
   "desired_version": "1.0.1",
   "latest_release": "v1.0.1",
   "latest_release_at": "2026-09-09T05:01:47Z",
@@ -54,17 +57,13 @@
     {
       "name": "Release",
       "path": ".github/workflows/release.yml"
-    },
-    {
-      "name": "Deploy static content to Pages",
-      "path": ".github/workflows/static.yml"
     }
   ],
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/pixivflow-webui/actions/runs/34443230533",
-    "updated_at": "2026-09-10T05:59:00Z"
+    "url": "https://github.com/redtidev1918/pixivflow-webui/actions/runs/34622241648",
+    "updated_at": "2026-09-11T16:29:19Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -76,7 +75,8 @@
   "workflow_paths": [
     ".github/workflows/notify-profile.yml",
     ".github/workflows/release.yml",
-    ".github/workflows/static.yml"
+    ".github/workflows/static.yml",
+    ".github/workflows/update-download-page.yml"
   ],
   "release_history": [
     {
@@ -100,9 +100,6 @@
     }
   ],
   "release_config": {
-    ".release-please-manifest.json": {
-      ".": "1.0.1"
-    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -115,6 +112,9 @@
           "skip-github-release": true
         }
       }
+    },
+    ".release-please-manifest.json": {
+      ".": "1.0.1"
     }
   },
   "registries": {
@@ -123,5 +123,11 @@
       "declared": "1.0.1",
       "published": null
     }
+  },
+  "branchContract": {
+    "configured": false,
+    "gateInstalled": false,
+    "gatePinned": null,
+    "policyValid": null
   }
 }

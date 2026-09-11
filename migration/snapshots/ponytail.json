@@ -7,6 +7,13 @@
   "template": false,
   "classification": "fork",
   "health": "NO_RELEASE",
+  "health_reasons": [
+    {
+      "code": "repository_fork"
+    }
+  ],
+  "missing_assets": [],
+  "empty_assets": [],
   "release_policy": null,
   "release_infra_version": null,
   "desired_version": null,
@@ -15,12 +22,7 @@
   "latest_tag": "v4.9.0",
   "draft_releases": [],
   "actual_assets": [],
-  "release_workflows": [
-    {
-      "name": "publish",
-      "path": ".github/workflows/publish.yml"
-    }
-  ],
+  "release_workflows": [],
   "latest_release_run": null,
   "signals": [
     "package.json"
@@ -99,5 +101,11 @@
       "declared": "4.9.0",
       "published": "4.9.0"
     }
+  },
+  "branchContract": {
+    "configured": false,
+    "gateInstalled": false,
+    "gatePinned": null,
+    "policyValid": null
   }
 }

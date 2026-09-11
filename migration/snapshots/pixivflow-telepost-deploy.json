@@ -7,6 +7,9 @@
   "template": false,
   "classification": "managed",
   "health": "HEALTHY",
+  "health_reasons": [],
+  "missing_assets": [],
+  "empty_assets": [],
   "release_policy": {
     "kind": "hybrid",
     "versioning": {
@@ -50,13 +53,39 @@
       "failed_draft": 3
     },
     "checksums": true,
-    "sbom": true
+    "sbom": true,
+    "repository": {
+      "git": {
+        "productionOperations": {
+          "base": "default",
+          "branches": [
+            "chore/cutover-*",
+            "ops/*",
+            "release/*",
+            "hotfix/*"
+          ],
+          "requireLatestBase": true,
+          "operations": {
+            "cutover": {
+              "branches": [
+                "chore/cutover-*"
+              ],
+              "allowedPaths": [
+                "control-plane/wrangler.toml",
+                "fly/*.toml",
+                ".github/workflows/**"
+              ]
+            }
+          }
+        }
+      }
+    }
   },
-  "release_infra_version": "v1",
-  "desired_version": "1.10.2",
-  "latest_release": "v1.10.2",
-  "latest_release_at": "2026-09-09T13:33:25Z",
-  "latest_tag": "v1.10.2",
+  "release_infra_version": null,
+  "desired_version": "1.12.0",
+  "latest_release": "v1.12.0",
+  "latest_release_at": "2026-09-11T05:28:59Z",
+  "latest_tag": "v1.12.0",
   "draft_releases": [],
   "actual_assets": [
     "deploy-darwin-amd64.tar.gz",
@@ -72,17 +101,13 @@
     {
       "name": "Release",
       "path": ".github/workflows/release.yml"
-    },
-    {
-      "name": "Deploy static content to Pages",
-      "path": ".github/workflows/static.yml"
     }
   ],
   "latest_release_run": {
-    "status": "completed",
-    "conclusion": "success",
-    "url": "https://github.com/redtidev1918/pixivflow-telepost-deploy/actions/runs/34443785722",
-    "updated_at": "2026-09-10T06:06:45Z"
+    "status": "in_progress",
+    "conclusion": null,
+    "url": "https://github.com/redtidev1918/pixivflow-telepost-deploy/actions/runs/34624689584",
+    "updated_at": "2026-09-11T16:54:45Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -92,63 +117,74 @@
     "release-please-config.json"
   ],
   "workflow_paths": [
+    ".github/workflows/branch-contract.yml",
+    ".github/workflows/egress-probe.yml",
     ".github/workflows/notify-profile.yml",
+    ".github/workflows/pixivflow-batch.yml",
     ".github/workflows/release.yml",
-    ".github/workflows/schedule-watchdog.yml",
     ".github/workflows/static.yml",
+    ".github/workflows/update-download-page.yml",
     ".github/workflows/validate.yml"
   ],
   "release_history": [
     {
-      "tag": "v1.10.2",
+      "tag": "v1.12.0",
       "draft": false,
       "prerelease": false,
-      "published_at": "2026-09-09T13:33:25Z",
+      "published_at": "2026-09-11T05:28:59Z",
       "assets": [
         {
           "name": "deploy-darwin-amd64.tar.gz",
-          "size": 2438762,
-          "sha256": "sha256:cda8b7cd4a8ec17e0778db9d3b6bccffebab172ddde7eb261a8898312a7a04c2"
+          "size": 2438107,
+          "sha256": "sha256:1537f804640e036761e5950e46b64fc75aa30fcbbd199ad30f65137bf3917ca4"
         },
         {
           "name": "deploy-darwin-arm64.tar.gz",
-          "size": 2279685,
-          "sha256": "sha256:89b1fcc28bf16b9ef9550bb653f5e866a2e5ff7eb3db0b368d840ea8466bf1fb"
+          "size": 2281470,
+          "sha256": "sha256:d7570cd7fb142cad1f7eaf6d5c5b7b2aa9db659e1bbc017937260f3a95bea42a"
         },
         {
           "name": "deploy-linux-amd64.tar.gz",
-          "size": 2406075,
-          "sha256": "sha256:7524b8f374cf97fc9838fe5c8997fbdc20bed7818a186dc2d060a5afa183dac2"
+          "size": 2407300,
+          "sha256": "sha256:d713b66271330f829f23e996493185043f1df1742474c81fd31bbd4eb9751bd7"
         },
         {
           "name": "deploy-linux-arm64.tar.gz",
-          "size": 2203508,
-          "sha256": "sha256:87f0fe3c24285ed1cee6a00c4a62fefe3c38c127f3c19b2ce0d22e5d8f2ff2e3"
+          "size": 2205751,
+          "sha256": "sha256:498e164a602835f3b6edb29c97af2209131c680f7a68cac36a65fe12390f546e"
         },
         {
           "name": "deploy-windows-amd64.tar.gz",
-          "size": 2464081,
-          "sha256": "sha256:708e031f0fb6b55b705f231645596c24ddd99b343387c44f782d32d9eca7aea7"
+          "size": 2466790,
+          "sha256": "sha256:1408873429ce40a3edc1f130a54254df381763dcc91aaec4706eb1b5818aaea0"
         },
         {
           "name": "deploy-windows-arm64.tar.gz",
-          "size": 2231007,
-          "sha256": "sha256:655afee421222eb940348b43eace6ed5f86947841dd2552e655b42bac3ec2bda"
+          "size": 2232712,
+          "sha256": "sha256:81d35136eda1d7ff6fbc748224be74c9c0c48da39bb3a9311e367cdf62126f7f"
         },
         {
           "name": "RELEASE-METADATA.json",
-          "size": 2347,
-          "sha256": "sha256:adbd4c4a41cbdf40a9bb758248af172cfd50dfffd3822bffe6f5fb4ae315f9b7"
+          "size": 2735,
+          "sha256": "sha256:6546f52b1746b31cff8b9909a21535288cbb301a2ccec607ed07569f7b4f3d7b"
         },
         {
           "name": "SHA256SUMS",
           "size": 558,
-          "sha256": "sha256:5bd1c923838ce452cb982465c6608104b93ad7dbe02065cf98397bca11132bfd"
+          "sha256": "sha256:e3edfd7805eb2fb0b890aad61e9074e3902f637a2ba65efce19ca72c5764a2a7"
         }
       ]
     }
   ],
   "tags": [
+    {
+      "name": "v1.12.0",
+      "commit": "2faf9cc3edd2543162f777d780ab10709ad134d1"
+    },
+    {
+      "name": "v1.11.0",
+      "commit": "2ba46b242fef59f0702867271c63a629b99fcd12"
+    },
     {
       "name": "v1.10.2",
       "commit": "c69ea6265cb555789a58e2ded9c8af404140dc12"
@@ -163,9 +199,6 @@
     }
   ],
   "release_config": {
-    ".release-please-manifest.json": {
-      ".": "1.10.2"
-    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -177,7 +210,16 @@
           "include-component-in-tag": false
         }
       }
+    },
+    ".release-please-manifest.json": {
+      ".": "1.12.0"
     }
   },
-  "registries": {}
+  "registries": {},
+  "branchContract": {
+    "configured": true,
+    "gateInstalled": true,
+    "gatePinned": true,
+    "policyValid": true
+  }
 }

@@ -7,6 +7,9 @@
   "template": false,
   "classification": "managed",
   "health": "HEALTHY",
+  "health_reasons": [],
+  "missing_assets": [],
+  "empty_assets": [],
   "release_policy": {
     "kind": "python-library",
     "versioning": {
@@ -41,7 +44,7 @@
     "checksums": true,
     "sbom": false
   },
-  "release_infra_version": "v1",
+  "release_infra_version": null,
   "desired_version": "0.6.1",
   "latest_release": "v0.6.1",
   "latest_release_at": "2026-09-08T06:02:14Z",
@@ -57,17 +60,13 @@
     {
       "name": "Release",
       "path": ".github/workflows/release.yml"
-    },
-    {
-      "name": "Deploy documentation to Pages",
-      "path": ".github/workflows/static.yml"
     }
   ],
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/telepress/actions/runs/34446036731",
-    "updated_at": "2026-09-10T06:37:38Z"
+    "url": "https://github.com/redtidev1918/telepress/actions/runs/34623717043",
+    "updated_at": "2026-09-11T16:44:37Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -80,7 +79,8 @@
     ".github/workflows/ci.yml",
     ".github/workflows/notify-profile.yml",
     ".github/workflows/release.yml",
-    ".github/workflows/static.yml"
+    ".github/workflows/static.yml",
+    ".github/workflows/update-download-page.yml"
   ],
   "release_history": [
     {
@@ -185,9 +185,6 @@
     }
   ],
   "release_config": {
-    ".release-please-manifest.json": {
-      ".": "0.6.1"
-    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -205,6 +202,9 @@
           "skip-github-release": true
         }
       }
+    },
+    ".release-please-manifest.json": {
+      ".": "0.6.1"
     }
   },
   "registries": {
@@ -213,5 +213,11 @@
       "declared": null,
       "published": "0.6.1"
     }
+  },
+  "branchContract": {
+    "configured": false,
+    "gateInstalled": false,
+    "gatePinned": null,
+    "policyValid": null
   }
 }

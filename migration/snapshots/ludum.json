@@ -7,6 +7,9 @@
   "template": false,
   "classification": "managed",
   "health": "HEALTHY",
+  "health_reasons": [],
+  "missing_assets": [],
+  "empty_assets": [],
   "release_policy": {
     "kind": "node-library",
     "versioning": {
@@ -38,7 +41,7 @@
     "checksums": false,
     "sbom": false
   },
-  "release_infra_version": "v1",
+  "release_infra_version": null,
   "desired_version": "3.0.3",
   "latest_release": "v3.0.3",
   "latest_release_at": "2026-09-09T13:37:00Z",
@@ -51,17 +54,13 @@
     {
       "name": "Release",
       "path": ".github/workflows/release.yml"
-    },
-    {
-      "name": "Deploy documentation to Pages",
-      "path": ".github/workflows/static.yml"
     }
   ],
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/ludum/actions/runs/34438624645",
-    "updated_at": "2026-09-10T04:48:58Z"
+    "url": "https://github.com/redtidev1918/ludum/actions/runs/34610331217",
+    "updated_at": "2026-09-11T14:28:42Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -74,7 +73,8 @@
     ".github/workflows/ci.yml",
     ".github/workflows/notify-profile.yml",
     ".github/workflows/release.yml",
-    ".github/workflows/static.yml"
+    ".github/workflows/static.yml",
+    ".github/workflows/update-download-page.yml"
   ],
   "release_history": [
     {
@@ -122,9 +122,6 @@
     }
   ],
   "release_config": {
-    ".release-please-manifest.json": {
-      ".": "3.0.3"
-    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -137,6 +134,9 @@
           "skip-github-release": true
         }
       }
+    },
+    ".release-please-manifest.json": {
+      ".": "3.0.3"
     }
   },
   "registries": {
@@ -145,5 +145,11 @@
       "declared": "3.0.3",
       "published": "3.0.3"
     }
+  },
+  "branchContract": {
+    "configured": false,
+    "gateInstalled": false,
+    "gatePinned": null,
+    "policyValid": null
   }
 }
