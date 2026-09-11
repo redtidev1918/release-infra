@@ -11,7 +11,7 @@ ReleaseGraph computes release plans from desired state, current GitHub and regis
 1. Read the [architecture](ARCHITECTURE.md) and [policy contract](POLICY.md).
 2. Copy the [control repository example](https://github.com/redtidev1918/releasegraph/tree/v1/examples/control).
 3. Run `releasegraph plan --graph release-graph.yml --live --output json` with read-only access.
-4. Review [authentication](AUTHENTICATION.md) before enabling writes.
+4. Review [authentication](authentication.md) before enabling writes.
 
 ## Documentation
 
@@ -20,8 +20,8 @@ ReleaseGraph computes release plans from desired state, current GitHub and regis
 - [Calling the release workflow](callers.md)
 - [Release health](health.md)
 - [Plan contract](plan.md)
-- [Authentication](AUTHENTICATION.md)
+- [Authentication](authentication.md)
 - [Recovery](RECOVERY.md)
 - [Migration](MIGRATION.md)
-- [中文快速开始](/quick-start.md)
-- [中文核心概念](/concepts.md)
+- [Quick start](quick-start.md)
+- [Core concepts](concepts.md)

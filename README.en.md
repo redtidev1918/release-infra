@@ -110,7 +110,7 @@ Build adapters own compilers and package managers and place candidates in `dist/
 See:
 
 - [Architecture](docs/en/ARCHITECTURE.md)
-- [Authentication](docs/en/AUTHENTICATION.md)
+- [Authentication](docs/en/authentication.md)
 - [Policy](docs/en/POLICY.md)
 - [Migration](docs/en/MIGRATION.md)
 - [Recovery](docs/en/RECOVERY.md)

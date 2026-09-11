@@ -1,5 +1,7 @@
 # 快速开始
 
+**语言 / Language:** 中文 · [English](/en/quick-start.md)
+
 先只读试用，再逐步授权。
 
 ## 1. 构建 CLI

@@ -1,5 +1,7 @@
 # 核心概念
 
+**语言 / Language:** 中文 · [English](/en/concepts.md)
+
 ## Desired 与 Actual
 
 事件不是事实来源。ReleaseGraph 收到事件后，会重新查询 Git tag、GitHub Release、资产、workflow 和 registry，再用以下输入生成计划：
