@@ -8,6 +8,7 @@
   - [Release Health](/en/health.md)
   - [Plan Contract](/en/plan.md)
   - [Calling the Release Workflow](/en/callers.md)
+  - [Branch Contract](/en/branch-contract.md)
 - Development
   - [Architecture](/en/ARCHITECTURE.md)
   - [Policy](/en/POLICY.md)

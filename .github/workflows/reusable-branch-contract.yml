@@ -1,0 +1,113 @@
+name: ReleaseGraph Branch Contract
+# Reusable production-operation branch contract gate.
+#
+# Consumer repositories keep a thin caller:
+#
+#   jobs:
+#     branch-contract:
+#       uses: redtidev1918/releasegraph/.github/workflows/reusable-branch-contract.yml@<pinned-ref>
+#
+# The gate hard-fails a pull request whose head branch matches the
+# repository's production-operation patterns and violates the contract.
+# Feature branches are skipped. It never rebases, force-pushes, or mutates
+# the production branch; it detects, explains and suggests only.
+on:
+  workflow_call:
+    inputs:
+      policy-path:
+        required: false
+        type: string
+        default: .release-policy.yml
+      default-branch:
+        required: false
+        type: string
+        default: ""
+        description: "Repository default branch; empty resolves github.event.repository.default_branch."
+      base-branch:
+        required: false
+        type: string
+        default: ""
+        description: "Configured production base when it differs from the default branch and the PR base."
+permissions:
+  contents: read
+jobs:
+  branch-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history is required: the contract decides on git topology
+          # (merge-base / rev-parse), never on content similarity.
+          fetch-depth: 0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: redtidev1918/releasegraph
+          ref: v1
+          path: .releasegraph-engine
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: .releasegraph-engine/go.mod
+      - name: Build branch-contract CLI
+        run: (cd .releasegraph-engine && go build -trimpath -o ../releasegraph ./cmd/releasegraph)
+      - name: Resolve refs
+        env:
+          INPUT_DEFAULT_BRANCH: ${{ inputs.default-branch }}
+          INPUT_BASE_BRANCH: ${{ inputs.base-branch }}
+        run: |
+          if [ -n "$INPUT_DEFAULT_BRANCH" ]; then
+            echo "DEFAULT_BRANCH=$INPUT_DEFAULT_BRANCH" >> "$GITHUB_ENV"
+          else
+            echo "DEFAULT_BRANCH=${{ github.event.repository.default_branch }}" >> "$GITHUB_ENV"
+          fi
+          echo "HEAD_REF=${{ github.event.pull_request.head.ref || github.ref_name }}" >> "$GITHUB_ENV"
+          echo "PR_BASE_REF=${{ github.event.pull_request.base.ref }}" >> "$GITHUB_ENV"
+          echo "EXTRA_BASE_REF=$INPUT_BASE_BRANCH" >> "$GITHUB_ENV"
+      - name: Fetch production base evidence
+        run: |
+          git fetch --no-tags origin \
+            "+refs/heads/${PR_BASE_REF}:refs/remotes/origin/${PR_BASE_REF}" \
+            "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
+          if [ -n "$EXTRA_BASE_REF" ] && [ "$EXTRA_BASE_REF" != "$PR_BASE_REF" ] && [ "$EXTRA_BASE_REF" != "$DEFAULT_BRANCH" ]; then
+            git fetch --no-tags origin "+refs/heads/${EXTRA_BASE_REF}:refs/remotes/origin/${EXTRA_BASE_REF}"
+          fi
+      - name: Branch contract check
+        env:
+          POLICY_PATH: ${{ inputs.policy-path }}
+        run: |
+          set +e
+          if [ -n "$PR_BASE_REF" ]; then
+            ./releasegraph branch-contract check \
+              --head "$HEAD_REF" \
+              --base "$PR_BASE_REF" \
+              --default-branch "$DEFAULT_BRANCH" \
+              --path "$POLICY_PATH" \
+              --output human | tee branch-contract.txt
+          else
+            ./releasegraph branch-contract check \
+              --head "$HEAD_REF" \
+              --default-branch "$DEFAULT_BRANCH" \
+              --path "$POLICY_PATH" \
+              --output human | tee branch-contract.txt
+          fi
+          status=${PIPESTATUS[0]}
+          set -e
+          exit "$status"
+      - name: Upload diff proof
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: branch-contract-diff-proof
+          path: branch-contract.txt
+          retention-days: 14
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Branch contract"
+            echo '```'
+            cat branch-contract.txt 2>/dev/null || echo "(no output)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

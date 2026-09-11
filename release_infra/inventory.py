@@ -15,6 +15,7 @@ from typing import Any
 
 from . import health
 from .github import GitHub, GitHubError
+from .policy import PolicyError, validate_production_operations
 
 
 SIGNALS = {
@@ -94,6 +95,39 @@ def _package_status(files: set[str], contents: dict[str, str | None]) -> dict[st
     return status
 
 
+def _branch_contract_status(gh: GitHub, name: str, paths: set[str], parsed_policy: dict | None) -> dict[str, Any]:
+    """Report branch-contract governance installation for one repository.
+
+    This is governance compliance only: whether the contract is configured and
+    the reusable gate installed and pinned. PR-level ancestry correctness is
+    the gate's job at pull-request time; temporary feature branches are never
+    scanned and a PR violation is never a repository health failure.
+    """
+    operations = (((parsed_policy or {}).get("repository") or {}).get("git") or {}).get("productionOperations")
+    gate_installed = False
+    gate_pinned: bool | None = None
+    for path in sorted(p for p in paths if p.startswith(".github/workflows/") and "branch-contract" in p):
+        content = _content(gh, name, path) or ""
+        refs = re.findall(r"reusable-branch-contract\.yml@([^\s\"']+)", content)
+        if not refs:
+            continue
+        gate_installed = True
+        gate_pinned = all(re.fullmatch(r"[0-9a-f]{40}", ref) for ref in refs)
+    policy_valid: bool | None = None
+    if operations is not None:
+        try:
+            validate_production_operations(operations)
+            policy_valid = True
+        except PolicyError:
+            policy_valid = False
+    return {
+        "configured": operations is not None,
+        "gateInstalled": gate_installed,
+        "gatePinned": gate_pinned,
+        "policyValid": policy_valid,
+    }
+
+
 def _scan_repo(source: dict) -> dict[str, Any]:
     gh = GitHub()
     name = source["full_name"]
@@ -140,6 +174,7 @@ def _scan_repo(source: dict) -> dict[str, Any]:
     release_workflow_ids = {wf["id"] for wf in release_workflows}
     latest_run = next((run for run in runs if run.get("workflow_id") in release_workflow_ids and run.get("head_branch") == branch), None)
     package_status = _package_status(top_files, contents)
+    branch_contract = _branch_contract_status(gh, name, paths, parsed_policy)
     latest_tag_name = latest.get("tag_name") if latest else None
     release_matches_desired = not desired or latest_tag_name in _release_tags(desired, parsed_policy)
     assessment = health.evaluate(
@@ -180,6 +215,7 @@ def _scan_repo(source: dict) -> dict[str, Any]:
         "tags": [{"name": tag["name"], "commit": tag["commit"]["sha"]} for tag in tags],
         "release_config": {key: json.loads(value) for key, value in contents.items() if key in {".release-please-manifest.json", "release-please-config.json"} and value},
         "registries": package_status,
+        "branchContract": branch_contract,
     }
 
 
@@ -233,10 +269,19 @@ def write_outputs(inventory: list[dict], output: str | Path = ".") -> None:
         "",
         f"Generated: `{document['generated_at']}`",
         "",
-        "| Repository | Class | Desired | Latest | Assets | Workflow | Health |",
-        "|---|---|---:|---:|---:|---|---|",
+        "| Repository | Class | Desired | Latest | Assets | Workflow | Contract | Health |",
+        "|---|---|---:|---:|---:|---|---|---|",
     ]
     for item in inventory:
         run = item.get("latest_release_run") or {}
-        lines.append(f"| {item['repo']} | {item.get('classification', 'needs-review')} | {item.get('desired_version') or '—'} | {item.get('latest_release') or '—'} | {len(item.get('actual_assets', []))} | {run.get('conclusion') or run.get('status') or '—'} | {item.get('health', 'NEEDS_REVIEW')} |")
+        contract = item.get("branchContract") or {}
+        if contract.get("configured") and contract.get("gateInstalled"):
+            contract_state = "policy+gate" if contract.get("gatePinned", False) else "policy+gate(unpinned)"
+        elif contract.get("configured"):
+            contract_state = "policy"
+        elif contract.get("gateInstalled"):
+            contract_state = "gate"
+        else:
+            contract_state = "—"
+        lines.append(f"| {item['repo']} | {item.get('classification', 'needs-review')} | {item.get('desired_version') or '—'} | {item.get('latest_release') or '—'} | {len(item.get('actual_assets', []))} | {run.get('conclusion') or run.get('status') or '—'} | {contract_state} | {item.get('health', 'NEEDS_REVIEW')} |")
     _atomic_write(root / "STATUS.md", "\n".join(lines) + "\n")

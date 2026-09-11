@@ -15,6 +15,7 @@ import (
 
 	"github.com/redtidev1918/releasegraph/internal/config"
 	rgerrors "github.com/redtidev1918/releasegraph/internal/errors"
+	"github.com/redtidev1918/releasegraph/internal/glob"
 )
 
 type Versioning struct {
@@ -63,6 +64,46 @@ type Retention struct {
 	FailedDraft int `json:"failed_draft,omitempty" yaml:"failed_draft,omitempty"`
 }
 
+// ProductionOperations declares the production-operation branch contract:
+// branches that perform a production state transition (cutovers, releases,
+// hotfixes, ops changes) must target the production base directly and must
+// descend from its current HEAD.
+type ProductionOperations struct {
+	// Base is the production base ref: a branch name ("main", "master") or
+	// the literal "default" to resolve the repository default branch.
+	Base string `json:"base" yaml:"base"`
+	// Branches are the glob patterns naming production-operation branches.
+	Branches []string `json:"branches" yaml:"branches"`
+	// RequireLatestBase is nil or true (default): the branch must descend
+	// from the current HEAD of the production base. The contract deliberately
+	// provides no opt-out; Validate rejects an explicit false.
+	RequireLatestBase *bool `json:"requireLatestBase,omitempty" yaml:"requireLatestBase,omitempty"`
+	// Operations optionally narrows the change scope per operation name.
+	Operations map[string]OperationScope `json:"operations,omitempty" yaml:"operations,omitempty"`
+}
+
+// RequireLatest reports whether the latest-base invariant is enforced. It is
+// true unless policy validation would have rejected the policy.
+func (po *ProductionOperations) RequireLatest() bool {
+	return po == nil || po.RequireLatestBase == nil || *po.RequireLatestBase
+}
+
+type OperationScope struct {
+	// Branches are the glob patterns this scope applies to.
+	Branches []string `json:"branches" yaml:"branches"`
+	// AllowedPaths are optional change-scope glob patterns ("**" crosses
+	// directories). Absent means the scope is not enforced.
+	AllowedPaths []string `json:"allowedPaths,omitempty" yaml:"allowedPaths,omitempty"`
+}
+
+type Repository struct {
+	Git GitPolicy `json:"git,omitempty" yaml:"git,omitempty"`
+}
+
+type GitPolicy struct {
+	ProductionOperations *ProductionOperations `json:"productionOperations,omitempty" yaml:"productionOperations,omitempty"`
+}
+
 type Release struct {
 	Prerelease  bool   `json:"prerelease,omitempty" yaml:"prerelease,omitempty"`
 	PostPublish string `json:"post_publish,omitempty" yaml:"post_publish,omitempty"`
@@ -99,6 +140,7 @@ type Policy struct {
 	Checksums  bool                `json:"checksums" yaml:"checksums"`
 	Metadata   bool                `json:"metadata,omitempty" yaml:"metadata,omitempty"`
 	SBOM       bool                `json:"sbom,omitempty" yaml:"sbom,omitempty"`
+	Repository Repository          `json:"repository,omitempty" yaml:"repository,omitempty"`
 	Hash       string              `json:"hash,omitempty" yaml:"-"`
 }
 
@@ -197,6 +239,60 @@ func Validate(p *Policy) error {
 	}
 	if containsNewline(p.Release.PostPublish) {
 		return rgerrors.New(rgerrors.Policy, "release.post_publish must be a single-line command")
+	}
+	if po := p.Repository.Git.ProductionOperations; po != nil {
+		if err := validateProductionOperations(po); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateProductionOperations(po *ProductionOperations) error {
+	if po.Base == "" {
+		return rgerrors.New(rgerrors.Policy, `repository.git.productionOperations.base must be a non-empty ref (branch name or "default")`)
+	}
+	if len(po.Branches) == 0 {
+		return rgerrors.New(rgerrors.Policy, "repository.git.productionOperations.branches must declare at least one glob pattern")
+	}
+	if po.RequireLatestBase != nil && !*po.RequireLatestBase {
+		return rgerrors.New(rgerrors.Policy, "repository.git.productionOperations.requireLatestBase must be true; the production-operation contract has no opt-out")
+	}
+	if err := validateGlobs("repository.git.productionOperations.branches", po.Branches); err != nil {
+		return err
+	}
+	names := make([]string, 0, len(po.Operations))
+	for name := range po.Operations {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		if name == "" {
+			return rgerrors.New(rgerrors.Policy, "repository.git.productionOperations.operations names must be non-empty")
+		}
+		scope := po.Operations[name]
+		field := fmt.Sprintf("repository.git.productionOperations.operations.%s.branches", name)
+		if len(scope.Branches) == 0 {
+			return rgerrors.New(rgerrors.Policy, field+" must declare at least one glob pattern")
+		}
+		if err := validateGlobs(field, scope.Branches); err != nil {
+			return err
+		}
+		if err := validateGlobs(fmt.Sprintf("repository.git.productionOperations.operations.%s.allowedPaths", name), scope.AllowedPaths); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateGlobs(field string, patterns []string) error {
+	for _, pattern := range patterns {
+		if pattern == "" {
+			return rgerrors.New(rgerrors.Policy, field+" must contain non-empty strings")
+		}
+		if err := glob.Check(pattern); err != nil {
+			return rgerrors.New(rgerrors.Policy, fmt.Sprintf("%s has invalid glob pattern %q: %v", field, pattern, err))
+		}
 	}
 	return nil
 }

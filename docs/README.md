@@ -14,6 +14,7 @@ ReleaseGraph 是一个面向 GitHub Actions 的无服务器、多仓库发布编
 - [如何调用发布工作流](callers.md)：调用方接口、输出与冻结的 `release_health` 契约。
 - [发布健康](health.md)：一套词表、原因码，以及"健康不是动作"。
 - [计划契约](plan.md)：`plan --graph` 的线上格式与它的边界。
+- [生产操作分支契约](branch-contract.md)：cutover/release/hotfix/ops 分支必须直接派生自当前生产基线 HEAD，及其 reusable CI gate。
 - [英文架构文档](/en/ARCHITECTURE.md)
 - [英文 Policy 参考](/en/POLICY.md)
 - [英文恢复说明](/en/RECOVERY.md)

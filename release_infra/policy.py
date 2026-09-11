@@ -106,6 +106,48 @@ def validate_policy(policy: Any) -> None:
     post_publish = policy.get("release", {}).get("post_publish", "")
     if not isinstance(post_publish, str) or "\n" in post_publish:
         raise PolicyError("release.post_publish must be a single-line string")
+    repository = policy.get("repository")
+    if repository is not None:
+        if not isinstance(repository, dict):
+            raise PolicyError("repository must be an object")
+        git = repository.get("git")
+        if git is not None:
+            if not isinstance(git, dict):
+                raise PolicyError("repository.git must be an object")
+            production_operations = git.get("productionOperations")
+            if production_operations is not None:
+                validate_production_operations(production_operations)
+
+
+def _validate_branch_patterns(field: str, patterns: Any) -> None:
+    if not isinstance(patterns, list) or not patterns or not all(isinstance(v, str) and v for v in patterns):
+        raise PolicyError(f"{field} must be a non-empty list of non-empty strings")
+
+
+def validate_production_operations(po: Any) -> None:
+    if not isinstance(po, dict):
+        raise PolicyError("repository.git.productionOperations must be an object")
+    base = po.get("base")
+    if not isinstance(base, str) or not base:
+        raise PolicyError('repository.git.productionOperations.base must be a non-empty string (branch name or "default")')
+    _validate_branch_patterns("repository.git.productionOperations.branches", po.get("branches"))
+    require_latest = po.get("requireLatestBase", True)
+    if not isinstance(require_latest, bool) or not require_latest:
+        raise PolicyError(
+            "repository.git.productionOperations.requireLatestBase must be true; "
+            "the production-operation contract has no opt-out"
+        )
+    operations = po.get("operations", {})
+    if not isinstance(operations, dict):
+        raise PolicyError("repository.git.productionOperations.operations must be an object")
+    for name, operation in operations.items():
+        field = f"repository.git.productionOperations.operations.{name}"
+        if not isinstance(operation, dict):
+            raise PolicyError(f"{field} must be an object")
+        _validate_branch_patterns(f"{field}.branches", operation.get("branches"))
+        allowed_paths = operation.get("allowedPaths", [])
+        if not isinstance(allowed_paths, list) or not all(isinstance(v, str) and v for v in allowed_paths):
+            raise PolicyError(f"{field}.allowedPaths must be a list of non-empty strings")
 
 
 def desired_version(policy: dict[str, Any], explicit: str | None = None, root: str | Path = ".") -> str:

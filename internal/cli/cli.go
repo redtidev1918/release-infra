@@ -52,6 +52,8 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	switch args[0] {
 	case "fleet":
 		err = fleetCommand(stdout, args[1:])
+	case "branch-contract":
+		err = branchContractCommand(stdout, args[1:])
 	case "doctor":
 		err = doctor(stdout, args[1:])
 	case "graph":
@@ -127,7 +129,7 @@ func doctor(w io.Writer, args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"agent-context", "apply-plan", "audit", "doctor", "explain", "fleet", "graph", "init", "inspect", "migrate", "plan", "provider", "repair", "rollout", "static-check", "status", "version"}}
+	info := map[string]any{"status": "ok", "mode": "read-only", "serverRequired": false, "databaseRequired": false, "commands": []string{"agent-context", "apply-plan", "audit", "branch-contract", "doctor", "explain", "fleet", "graph", "init", "inspect", "migrate", "plan", "provider", "repair", "rollout", "static-check", "status", "version"}}
 	return write(w, format, info, humanDoctor)
 }
 
@@ -334,7 +336,7 @@ func effectiveMode(p *policy.Policy) string {
 	return p.Versioning.Provider
 }
 func usage(w io.Writer) {
-	fmt.Fprintln(w, "usage: releasegraph [audit|doctor|fleet|graph|inspect|plan|provider|rollout|static-check|version]")
+	fmt.Fprintln(w, "usage: releasegraph [audit|branch-contract|doctor|fleet|graph|inspect|plan|provider|rollout|static-check|version]")
 }
 func Main() { os.Exit(Run(os.Args[1:], os.Stdout, os.Stderr)) }
 

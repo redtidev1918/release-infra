@@ -41,6 +41,13 @@ and its own build/test configuration.
 9. **Do not put release logic in business repositories.** It belongs here.
 10. **Provider state is derived, never authoritative.** Real GitHub/registry state
     decides health; release-please labels are acknowledgement only.
+11. **Feature branches may stack. Branches that perform a production state
+    transition must not.** A cutover/release/hotfix/ops branch must be created
+    from the current configured production-base HEAD and must target that base
+    directly. Never build one on an unmerged feature branch; when the base has
+    advanced, recreate the branch from the latest base before merge.
+    AGENTS.md is guidance — the reusable branch-contract workflow is the
+    enforcement (see `docs/branch-contract.md`).
 
 ## Scope and credentials
 
@@ -59,6 +66,12 @@ readiness report.
 ```bash
 go vet ./... && go test ./...
 python3 -m unittest discover -s tests -q
+git diff --exit-code -- dist/release/RELEASE-METADATA.json
 ```
+
+Known technical debt: the full Python suite rewrites the tracked
+`dist/release/RELEASE-METADATA.json` (test timestamps). If the last check
+fails, restore the file (`git checkout -- dist/release/RELEASE-METADATA.json`)
+instead of committing the dirty artifact; never use `git add -A` blindly.
 
 Commits are reviewable vertical slices, one concern each.
