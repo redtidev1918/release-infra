@@ -106,8 +106,10 @@ permissions:
   contents: read
 jobs:
   branch-contract:
-    uses: redtidev1918/releasegraph/.github/workflows/reusable-branch-contract.yml@v1
+    uses: redtidev1918/releasegraph/.github/workflows/reusable-branch-contract.yml@0b0c28990abac59aa5ae1d2c50bf95ce06d26a8d # ReleaseGraph v1.4.11
 ```
+
+Human-readable version tags may be used in comments, but production callers must pin the reusable workflow by a full 40-character commit SHA.
 
 Behaviour:
 
