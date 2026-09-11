@@ -218,6 +218,16 @@ class BranchContractWorkflowTest(unittest.TestCase):
         self.assertIn('[ -z "$WORKFLOW_SHA" ]', workflow)
         self.assertIn("exit 1", workflow)
 
+    def test_branch_contract_gate_evaluates_the_pr_head_commit(self):
+        """The gate must evaluate the actual PR head commit
+        (github.event.pull_request.head.sha), never the merge commit — whose
+        ancestry against the base is trivially clean — and never the head
+        branch name, which does not resolve inside a merge-ref checkout."""
+        workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
+        self.assertIn("EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}", workflow)
+        self.assertIn('--head-sha "$HEAD_SHA"', workflow)
+        self.assertIn('echo "HEAD_SHA=$EVENT_HEAD_SHA" >> "$GITHUB_ENV"', workflow)
+
     def test_branch_contract_gate_attaches_diff_proof(self):
         workflow = Path(".github/workflows/reusable-branch-contract.yml").read_text()
         self.assertIn("branch-contract.txt", workflow)

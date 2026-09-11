@@ -30,10 +30,11 @@ func branchContractCommand(w io.Writer, args []string) error {
 }
 
 func branchContractCheck(w io.Writer, args []string) error {
-	var format, policyPath, head, base, defaultBranch string
+	var format, policyPath, head, headSHA, base, defaultBranch string
 	fs := flags(&format)
 	fs.StringVar(&policyPath, "path", ".release-policy.yml", "policy path")
 	fs.StringVar(&head, "head", "", "head branch ref (default: current branch)")
+	fs.StringVar(&headSHA, "head-sha", "", "exact head commit to evaluate; CI passes the PR head SHA because a pull_request checkout contains the merge commit, not the head branch (default: resolve --head as a revision)")
 	fs.StringVar(&base, "base", "", "declared pull-request base branch (default: resolved production base)")
 	fs.StringVar(&defaultBranch, "default-branch", "", "repository default branch (default: resolved from origin/HEAD)")
 	if err := fs.Parse(args); err != nil {
@@ -56,7 +57,7 @@ func branchContractCheck(w io.Writer, args []string) error {
 	if base == "" {
 		base = productionBaseRef(p, defaultBranch)
 	}
-	input := branchcontract.Input{HeadRef: head, BaseRef: base, DefaultBranch: defaultBranch, Policy: p}
+	input := branchcontract.Input{HeadRef: head, HeadSHA: headSHA, BaseRef: base, DefaultBranch: defaultBranch, Policy: p}
 	result, err := branchcontract.Evaluate(input, branchcontract.ExecGit{})
 	if err != nil {
 		return err

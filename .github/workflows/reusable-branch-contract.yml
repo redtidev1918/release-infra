@@ -89,6 +89,7 @@ jobs:
           INPUT_BASE_BRANCH: ${{ inputs.base-branch }}
           EVENT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           EVENT_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           EVENT_PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           EVENT_REF_NAME: ${{ github.ref_name }}
         run: |
@@ -102,6 +103,11 @@ jobs:
           else
             echo "HEAD_REF=$EVENT_REF_NAME" >> "$GITHUB_ENV"
           fi
+          # The topology must be evaluated on the actual PR head commit, never
+          # on the merge commit (whose ancestry against the base is trivially
+          # clean) and never on a branch name (which does not resolve inside a
+          # pull_request merge-ref checkout).
+          echo "HEAD_SHA=$EVENT_HEAD_SHA" >> "$GITHUB_ENV"
           echo "PR_BASE_REF=$EVENT_PR_BASE_REF" >> "$GITHUB_ENV"
           echo "EXTRA_BASE_REF=$INPUT_BASE_BRANCH" >> "$GITHUB_ENV"
       - name: Fetch production base evidence
@@ -117,19 +123,23 @@ jobs:
           POLICY_PATH: ${{ inputs.policy-path }}
         run: |
           set +e
+          # 2>&1 goes into the proof file so config/input errors are captured
+          # as evidence too, not just verdicts.
           if [ -n "$PR_BASE_REF" ]; then
             ./releasegraph branch-contract check \
               --head "$HEAD_REF" \
+              --head-sha "$HEAD_SHA" \
               --base "$PR_BASE_REF" \
               --default-branch "$DEFAULT_BRANCH" \
               --path "$POLICY_PATH" \
-              --output human | tee branch-contract.txt
+              --output human 2>&1 | tee branch-contract.txt
           else
             ./releasegraph branch-contract check \
               --head "$HEAD_REF" \
+              --head-sha "$HEAD_SHA" \
               --default-branch "$DEFAULT_BRANCH" \
               --path "$POLICY_PATH" \
-              --output human | tee branch-contract.txt
+              --output human 2>&1 | tee branch-contract.txt
           fi
           status=${PIPESTATUS[0]}
           set -e

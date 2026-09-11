@@ -207,6 +207,26 @@ func TestEvaluateGitFailureIsError(t *testing.T) {
 	}
 }
 
+func TestEvaluateExplicitHeadSHASkipsBranchResolution(t *testing.T) {
+	// Regression for the pilot end-to-end finding: inside a pull_request
+	// checkout the head branch name does not resolve (the checkout contains
+	// the merge commit, not the branch). With an explicit HeadSHA the
+	// evaluator must never try to resolve HeadRef as a revision, and the
+	// merge commit itself must never be evaluated.
+	git := &fakeGit{baseSHA: "mainB", headSHA: "mergeCommit", mergeBase: "mainB", commits: 1,
+		files: []string{"fly/service.toml"}, failRev: "chore/cutover-x"}
+	result, err := Evaluate(Input{HeadRef: "chore/cutover-x", HeadSHA: "prHeadSha", BaseRef: "main", DefaultBranch: "main", Policy: contractPolicy()}, git)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.Compliant {
+		t.Fatalf("explicit head SHA must be evaluated: %+v", result)
+	}
+	if result.Evidence == nil || result.Evidence.HeadSHA != "prHeadSha" {
+		t.Fatalf("evidence must carry the explicit head SHA: %+v", result.Evidence)
+	}
+}
+
 func TestEvaluateAllProductionPatternsMatch(t *testing.T) {
 	git := &fakeGit{baseSHA: "b", headSHA: "h", mergeBase: "b", commits: 1}
 	for _, head := range []string{"release/v1", "hotfix/urgent", "ops/fly-executor", "chore/cutover-x"} {

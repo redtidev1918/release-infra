@@ -32,7 +32,16 @@ const (
 // GitRunner; policy comes from the repository .release-policy.yml.
 type Input struct {
 	// HeadRef is the PR head branch name (e.g. "chore/cutover-provider-fly").
+	// It selects policy pattern matching; the evaluated commit is HeadSHA
+	// when provided, otherwise HeadRef is resolved as a revision.
 	HeadRef string
+	// HeadSHA optionally pins the exact head commit. CI passes
+	// github.event.pull_request.head.sha: a pull_request checkout contains
+	// the merge commit, not the head branch, so the branch name may not
+	// resolve there — and the merge commit itself must never be evaluated
+	// (its ancestry against the base is trivially clean). Callers that
+	// evaluate a real local branch may leave this empty.
+	HeadSHA string
 	// BaseRef is the PR base branch name as declared (e.g. "main").
 	// Empty means the caller could not observe it; only the ancestry
 	// invariant is checked in that case.
@@ -115,26 +124,30 @@ func Evaluate(in Input, git GitRunner) (Result, error) {
 	}
 
 	// Invariant 2: the branch must descend from the current HEAD of the
-	// production base.
+	// production base. The evaluated head commit is the explicit HeadSHA when
+	// provided (CI), otherwise the HeadRef revision (local runs).
 	baseRef := resolveBaseRef(git, base)
 	baseSHA, err := git.RevParse(baseRef)
 	if err != nil {
 		return Result{}, rgerrors.Wrap(rgerrors.Policy, fmt.Sprintf("resolve production base %q", baseRef), err)
 	}
-	headSHA, err := git.RevParse(in.HeadRef)
-	if err != nil {
-		return Result{}, rgerrors.Wrap(rgerrors.Policy, fmt.Sprintf("resolve head %q", in.HeadRef), err)
+	headCommit := in.HeadSHA
+	if headCommit == "" {
+		headCommit, err = git.RevParse(in.HeadRef)
+		if err != nil {
+			return Result{}, rgerrors.Wrap(rgerrors.Policy, fmt.Sprintf("resolve head %q", in.HeadRef), err)
+		}
 	}
-	mergeBase, err := git.MergeBase(in.HeadRef, baseRef)
+	mergeBase, err := git.MergeBase(headCommit, baseRef)
 	if err != nil {
 		return Result{}, rgerrors.Wrap(rgerrors.Policy, fmt.Sprintf("merge-base %q %q", in.HeadRef, baseRef), err)
 	}
 	commitCount, diffFiles := 0, []string{}
 	if mergeBase != "" {
-		if commitCount, err = git.RevListCount(mergeBase, headSHA); err != nil {
+		if commitCount, err = git.RevListCount(mergeBase, headCommit); err != nil {
 			return Result{}, err
 		}
-		if diffFiles, err = git.DiffNames(mergeBase, headSHA); err != nil {
+		if diffFiles, err = git.DiffNames(mergeBase, headCommit); err != nil {
 			return Result{}, err
 		}
 	}
@@ -142,7 +155,7 @@ func Evaluate(in Input, git GitRunner) (Result, error) {
 		ProductionBase: base,
 		BaseRef:        baseRef,
 		BaseSHA:        baseSHA,
-		HeadSHA:        headSHA,
+		HeadSHA:        headCommit,
 		MergeBaseSHA:   mergeBase,
 		CommitCount:    commitCount,
 		ChangedFiles:   diffFiles,
