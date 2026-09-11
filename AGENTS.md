@@ -11,6 +11,7 @@ touch?*
 | develop / release a business repo | that repository | nothing — `push`. The repo calls ReleaseGraph itself. |
 | inspect release infrastructure | this repository | `releasegraph provider inspect --all --manifest fleet.yaml` |
 | repair one repository's release | this repository | `releasegraph provider repair --repo owner/name --version X` (plan first, then `--apply`) |
+| audit open pull requests | this repository | `releasegraph pr-lifecycle audit` |
 | roll out a new ReleaseGraph version | this repository | `releasegraph rollout plan --version vX.Y.Z` |
 
 You never need to run ReleaseGraph inside a business repository: a business
@@ -51,6 +52,17 @@ and its own build/test configuration.
     Reusable governance workflows must never internally resolve their engine
     from a mutable channel such as v1/main; use the reusable workflow's own
     immutable workflow SHA (`job.workflow_sha`).
+12. **An open pull request is a merge queue, not a backlog.** Four objects have
+    four jobs and must never stand in for one another:
+    **Issue = backlog, branch = workspace, pull request = merge queue, release
+    pull request = publish queue.** A pull request that is no longer a merge
+    candidate leaves the queue, and its engineering context is archived into an
+    issue *before* it does. Never delete its branch, never rewrite its history,
+    and never merge on a human's behalf; `keep-open` is the only escape hatch and
+    it is permanent.
+    AGENTS.md is guidance — the scheduled
+    `.github/workflows/pr-lifecycle.yml` is the enforcement (see
+    `docs/pr-lifecycle.md`).
 
 ## Scope and credentials
 

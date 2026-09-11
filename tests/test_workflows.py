@@ -310,3 +310,97 @@ class ProviderReconciliationWorkflowTest(unittest.TestCase):
         self.assertIn("permission-workflows: write", workflow)
         self.assertLess(workflow.index("rollout plan"), workflow.index("rollout apply"))
         self.assertIn("if: ${{ inputs.apply }}", workflow)
+
+
+class PRLifecycleWorkflowTest(unittest.TestCase):
+    """The daily enforcement of the pull-request lifecycle contract.
+
+    Open pull requests are a merge queue, not a backlog, so this is the one
+    schedule that acts fleet-wide. The invariants below are the ones that make
+    that safe: a bounded blast radius, least-privilege writes, and no history
+    rewriting or branch deletion anywhere in the job.
+    """
+
+    WORKFLOW = Path(".github/workflows/pr-lifecycle.yml")
+
+    def setUp(self):
+        self.workflow = self.WORKFLOW.read_text()
+
+    def test_it_is_scheduled_daily_and_applies_the_contract(self):
+        self.assertIn('cron: "41 4 * * *"', self.workflow)
+        self.assertIn("pr-lifecycle audit", self.workflow)
+        self.assertIn("pr-lifecycle apply --limit", self.workflow)
+        # A manual run consults; only the schedule (or an explicit input) acts.
+        self.assertIn("github.event_name == 'schedule' || inputs.apply", self.workflow)
+        self.assertIn("default: false", self.workflow)
+
+    def test_the_blast_radius_of_one_pass_is_bounded(self):
+        # Archiving and closing are batched by the run, not by how many pull
+        # requests happen to be stale on the day the schedule first fires.
+        self.assertIn("LIMIT: ${{ inputs.limit || '1' }}", self.workflow)
+        self.assertIn("--limit \"$LIMIT\"", self.workflow)
+        # The contract may close pull requests, so its first passes are a
+        # canary: at most one pull request leaves the queue per repository,
+        # which a human can verify against the archive issue before the limit
+        # is raised.
+        self.assertIn('default: "1"', self.workflow)
+
+    def test_the_app_token_is_the_narrowest_one_that_can_work(self):
+        for granted in (
+            "permission-metadata: read",
+            "permission-contents: read",
+            "permission-pull-requests: write",
+            "permission-issues: write",
+            "permission-actions: read",
+            # A commit's check runs are the Checks API, not the Actions API.
+            # Without this read every pull request would look untested and green
+            # work would age into PARKED.
+            "permission-checks: read",
+        ):
+            with self.subTest(permission=granted):
+                self.assertIn(granted, self.workflow)
+        for forbidden in (
+            "permission-contents: write",
+            "permission-administration",
+            "permission-secrets",
+            "permission-workflows",
+            "permission-actions: write",
+        ):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, self.workflow)
+        self.assertIn("contents: read", self.workflow)
+
+    def test_it_never_merges_deletes_a_branch_or_rewrites_history(self):
+        for forbidden in (
+            "gh pr merge",
+            "git merge",
+            "git rebase",
+            "git push --force",
+            "git push -f",
+            "git tag -f",
+            "git branch -D",
+            "git branch -d",
+            "deleteBranch: true",
+            "gh api -X DELETE",
+        ):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, self.workflow)
+
+    def test_every_action_is_pinned_to_a_full_commit_sha(self):
+        actions = re.findall(r"uses:\s*([^\s#]+)@([^\s#]+)", self.workflow)
+        self.assertTrue(actions)
+        for action, ref in actions:
+            with self.subTest(action=action):
+                self.assertEqual(len(ref), 40, (action, ref))
+
+    def test_the_dashboard_is_fed_by_a_read_only_token(self):
+        # The column in STATUS.md is rendered by release_infra from the Go
+        # sidecar, so the audit workflow must produce the sidecar -- and must be
+        # unable to mutate anything while doing it.
+        dashboard = Path(".github/workflows/fleet-audit.yml").read_text()
+        self.assertIn("pr-lifecycle audit", dashboard)
+        self.assertIn("--report pr-lifecycle.json", dashboard)
+        self.assertIn("permission-checks: read", dashboard)
+        self.assertNotIn("permission-pull-requests: write", dashboard)
+        self.assertNotIn("permission-issues: write", dashboard)
+        self.assertNotIn("pr-lifecycle apply", dashboard)
