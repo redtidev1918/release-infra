@@ -96,8 +96,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/daviewer/actions/runs/34631255621",
-    "updated_at": "2026-09-11T18:05:47Z"
+    "url": "https://github.com/redtidev1918/daviewer/actions/runs/34679511985",
+    "updated_at": "2026-09-12T06:59:48Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -563,6 +563,9 @@
     }
   ],
   "release_config": {
+    ".release-please-manifest.json": {
+      ".": "0.2.184"
+    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -575,9 +578,6 @@
           "skip-github-release": true
         }
       }
-    },
-    ".release-please-manifest.json": {
-      ".": "0.2.184"
     }
   },
   "registries": {
@@ -592,5 +592,12 @@
     "gateInstalled": true,
     "gatePinned": true,
     "policyValid": true
+  },
+  "prLifecycle": {
+    "status": "evaluated",
+    "enabled": false,
+    "open": 1,
+    "inQueue": 1,
+    "shouldLeave": 0
   }
 }

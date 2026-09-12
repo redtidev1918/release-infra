@@ -103,8 +103,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/NekoTime/actions/runs/34628146711",
-    "updated_at": "2026-09-11T17:32:17Z"
+    "url": "https://github.com/redtidev1918/NekoTime/actions/runs/34679734324",
+    "updated_at": "2026-09-12T07:04:30Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -176,6 +176,9 @@
     }
   ],
   "release_config": {
+    ".release-please-manifest.json": {
+      ".": "2.3.4"
+    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -188,9 +191,6 @@
           "skip-github-release": true
         }
       }
-    },
-    ".release-please-manifest.json": {
-      ".": "2.3.4"
     }
   },
   "registries": {
@@ -205,5 +205,12 @@
     "gateInstalled": true,
     "gatePinned": true,
     "policyValid": true
+  },
+  "prLifecycle": {
+    "status": "evaluated",
+    "enabled": false,
+    "open": 0,
+    "inQueue": 0,
+    "shouldLeave": 0
   }
 }

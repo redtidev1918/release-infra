@@ -141,5 +141,6 @@
     "gateInstalled": false,
     "gatePinned": false,
     "policyValid": null
-  }
+  },
+  "prLifecycle": null
 }

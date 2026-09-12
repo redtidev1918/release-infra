@@ -77,6 +77,7 @@
     ".github/workflows/infra-canary.yml",
     ".github/workflows/infra-release.yml",
     ".github/workflows/notify-profile.yml",
+    ".github/workflows/pr-lifecycle.yml",
     ".github/workflows/provider-watchdog.yml",
     ".github/workflows/reusable-branch-contract.yml",
     ".github/workflows/reusable-readonly-plan.yml",
@@ -365,5 +366,12 @@
     "gateInstalled": false,
     "gatePinned": false,
     "policyValid": null
+  },
+  "prLifecycle": {
+    "status": "evaluated",
+    "enabled": false,
+    "open": 0,
+    "inQueue": 0,
+    "shouldLeave": 0
   }
 }

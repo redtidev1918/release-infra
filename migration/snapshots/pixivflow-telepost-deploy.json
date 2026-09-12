@@ -55,6 +55,27 @@
     "checksums": true,
     "sbom": true,
     "repository": {
+      "pullRequests": {
+        "lifecycle": {
+          "enabled": true,
+          "parkedAfterDays": 7,
+          "archiveParkedToIssue": true,
+          "closeParked": true,
+          "deleteBranch": false,
+          "exempt": {
+            "branches": [
+              "release-please--*"
+            ],
+            "actors": [
+              "github-actions[bot]",
+              "dependabot[bot]"
+            ],
+            "labels": [
+              "keep-open"
+            ]
+          }
+        }
+      },
       "git": {
         "productionOperations": {
           "base": "default",
@@ -106,8 +127,8 @@
   "latest_release_run": {
     "status": "completed",
     "conclusion": "success",
-    "url": "https://github.com/redtidev1918/pixivflow-telepost-deploy/actions/runs/34624689584",
-    "updated_at": "2026-09-11T16:55:35Z"
+    "url": "https://github.com/redtidev1918/pixivflow-telepost-deploy/actions/runs/34676847473",
+    "updated_at": "2026-09-12T05:56:38Z"
   },
   "signals": [
     ".release-please-manifest.json",
@@ -118,9 +139,7 @@
   ],
   "workflow_paths": [
     ".github/workflows/branch-contract.yml",
-    ".github/workflows/egress-probe.yml",
     ".github/workflows/notify-profile.yml",
-    ".github/workflows/pixivflow-batch.yml",
     ".github/workflows/release.yml",
     ".github/workflows/static.yml",
     ".github/workflows/update-download-page.yml",
@@ -199,6 +218,9 @@
     }
   ],
   "release_config": {
+    ".release-please-manifest.json": {
+      ".": "1.12.0"
+    },
     "release-please-config.json": {
       "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
       "skip-github-release": true,
@@ -210,9 +232,6 @@
           "include-component-in-tag": false
         }
       }
-    },
-    ".release-please-manifest.json": {
-      ".": "1.12.0"
     }
   },
   "registries": {},
@@ -221,5 +240,12 @@
     "gateInstalled": true,
     "gatePinned": true,
     "policyValid": true
+  },
+  "prLifecycle": {
+    "status": "evaluated",
+    "enabled": true,
+    "open": 4,
+    "inQueue": 4,
+    "shouldLeave": 0
   }
 }
